@@ -173,7 +173,7 @@ class Sequential(Module):
 
             #forward and backward propagation steps with parameter update
             Ypred = self.forward(batch)
-            self.backward(Ypred - Y[samples,:])
+            self.backward(Ypred - Y[samples,:]) #l1-loss
             self.update(lrate*learningFactor)
 
             #periodically evaluate network and optionally adjust learning rate or check for convergence.
