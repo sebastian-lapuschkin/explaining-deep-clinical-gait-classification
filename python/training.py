@@ -73,9 +73,9 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
 
                 #create and train the model here
                 nn = modules.Sequential([modules.Linear(D,n_hidden), modules.Rect(), modules.Linear(n_hidden,n_hidden), modules.Rect(), modules.Linear(n_hidden,L), modules.SoftMax()])
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, iters = 1000, batchsize=5, lrate=0.005) # train the model
-                #nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
-                #nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
+                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
+                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
+                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
 
                 #test the model
                 Ypred = nn.forward(Xtest)
