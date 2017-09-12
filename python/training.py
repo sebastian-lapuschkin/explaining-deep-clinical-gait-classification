@@ -117,6 +117,4 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
                 sys.stdout = STDOUT
 
 
-                exit() #debugging kill switch
-
 
