@@ -1,6 +1,7 @@
 import glob
 import os
 import numpy as np
+import natsort
 from prettytable import PrettyTable
 
 def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
@@ -23,17 +24,17 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
 
     results = np.array(results)
     #get unique field entries
-    targets = np.unique(results[:, 0])
+    targets = natsort.natsorted(np.unique(results[:, 0]))
     print targets
-    data = np.unique(results[:, 1])
+    data = natsort.natsorted(np.unique(results[:, 1]))
     print data
-    models = np.unique(results[:, 2])
+    models = natsort.natsorted(np.unique(results[:, 2]))
     print models
     print ''
 
 
     for t in targets:
-        tab = PrettyTable([''] + data.tolist())
+        tab = PrettyTable([''] + data)
 
         for m in models:
             row = [m]
