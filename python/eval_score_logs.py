@@ -3,7 +3,7 @@ import os
 import numpy as np
 from prettytable import PrettyTable
 
-def run(EXPERIMENTS='./BASELINE-NO-Training'):
+def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
     results = []
     with open(EXPERIMENTS + '/log.txt', 'rb') as f:
         log = f.read().split('\n')
@@ -23,12 +23,13 @@ def run(EXPERIMENTS='./BASELINE-NO-Training'):
 
     results = np.array(results)
     #get unique field entries
-    targets = np.unique(results[:,0])
+    targets = np.unique(results[:, 0])
     print targets
-    data = np.unique(results[:,1])
+    data = np.unique(results[:, 1])
     print data
-    models = np.unique(results[:,2])
+    models = np.unique(results[:, 2])
     print models
+    print ''
 
 
     for t in targets:
@@ -38,7 +39,7 @@ def run(EXPERIMENTS='./BASELINE-NO-Training'):
             row = [m]
             for d in data:
                 ii = np.where((results[:,0] == t) * (results[:,1] == d) * (results[:,2] == m))[0]
-                print t, m, d, ii
+                #print t, m, d, ii
 
                 scores = [float(s) for s in results[ii,3]]
                 scores = '{:.2f} +- {:.2f}'.format(np.mean(scores)*100, np.std(scores)*100)
@@ -50,6 +51,7 @@ def run(EXPERIMENTS='./BASELINE-NO-Training'):
         print tab
     print ''
 
-
+if __name__ == '__main__':
+    run()
 
 

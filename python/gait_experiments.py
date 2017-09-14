@@ -42,16 +42,16 @@ X_JA_Full = gaitdata['Feature_JA_Full']                     # 1142 x 101 x 33
 Label_JA_Full = gaitdata['Feature_JA_Full_Label']           # 1 x 1 x 33 channel label
 
 # ... fuer den Unterkoerper
-X_JA_Lower = gaitdata['Feature_JA_Lower']                # 1142 x 101 x 10
-Label_JA_Lower = gaitdata['Feature_JA_Lower_Label']      # 1 x 1 x 10 channel label
+X_JA_Lower = gaitdata['Feature_JA_Lower']                   # 1142 x 101 x 18
+Label_JA_Lower = gaitdata['Feature_JA_Lower_Label']         # 1 x 1 x 18 channel label
 
 # Gelenkwinkel lediglich in der Hauptdrehachse fuer den gesamten Koerper
-X_JA_X_Full = gaitdata['Feature_JA_X_Full']
-Label_JA_X_Full = gaitdata['Feature_JA_X_Full_Label']
+X_JA_X_Full = gaitdata['Feature_JA_X_Full']                 # 1142 x 101 x 10
+Label_JA_X_Full = gaitdata['Feature_JA_X_Full_Label']       # 1 x 1 x 10 channel label
 
 # ... und den Unterkoerper
-X_JA_X_Lower = gaitdata['Feature_JA_X_Lower']
-Label_JA_X_Lower = gaitdata['Feature_JA_X_Lower_Label']
+X_JA_X_Lower = gaitdata['Feature_JA_X_Lower']               # 1142 x 101 x 6
+Label_JA_X_Lower = gaitdata['Feature_JA_X_Lower_Label']     # 1 x 1 x 10
 
 #Target subject labels und gender labels
 Y_Subject = gaitdata['Target_SubjectID']                    # 1142 x 57, binary labels
