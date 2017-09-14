@@ -1,3 +1,5 @@
 *.pyc
 
-2017-09-12
+#ignore result folder
+2017-*
+BASELINE-NO-TRAINING
