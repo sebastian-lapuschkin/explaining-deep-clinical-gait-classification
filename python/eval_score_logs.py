@@ -34,7 +34,7 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
 
 
     for t in targets:
-        tab = PrettyTable([''] + data)
+        tab = PrettyTable([t] + data)
 
         for m in models:
             row = [m]
@@ -48,7 +48,6 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
 
             tab.add_row(row)
 
-        print t
         print tab
     print ''
 
