@@ -56,7 +56,7 @@ Y_Gender[:, 1] = 1-Y_Gender[:, 0]                           # 1142 x 2, binary l
 #Gender identification: create 10 splits with the genders split evenly over all partitions, but pool
 #the samples per subject in only one bin: avoid prediction based on personal characteristics
 #use a random seed to make partitioning deterministic
-SubjectIndexSplits, GenderIndexSplits, Permutation = helpers.create_index_splits(Y_Subject, Y_Gender, splits=10, seed=1234)
+SubjectIndexSplits, GenderIndexSplits, Permutations = helpers.create_index_splits(Y_Subject, Y_Gender, splits=10, seed=1234)
 
 #apply the permutation to the given data for the inputs and labels to match the splits again
 X_GRF_AV = X_GRF_AV[Permutation, ...]
@@ -85,6 +85,7 @@ S = {'Gender':GenderIndexSplits,
 
 #create folder for today's experiments.
 DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
+
 
 #run some experiments
 training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256)
