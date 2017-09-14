@@ -51,7 +51,7 @@ Label_JA_X_Full = gaitdata['Feature_JA_X_Full_Label']       # 1 x 1 x 10 channel
 
 # ... und den Unterkoerper
 X_JA_X_Lower = gaitdata['Feature_JA_X_Lower']               # 1142 x 101 x 6
-Label_JA_X_Lower = gaitdata['Feature_JA_X_Lower_Label']     # 1 x 1 x 10
+Label_JA_X_Lower = gaitdata['Feature_JA_X_Lower_Label']     # 1 x 1 x 10 channel label
 
 #Target subject labels und gender labels
 Y_Subject = gaitdata['Target_SubjectID']                    # 1142 x 57, binary labels
