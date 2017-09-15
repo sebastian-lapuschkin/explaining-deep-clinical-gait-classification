@@ -100,8 +100,7 @@ S = {'Gender':GenderIndexSplits,
 
 
 #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
-DAYFOLDER = './2017-09-14'
-
+#DAYFOLDER = './2017-09-14'
 #run some experiments
 #training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64)
 #training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128)
@@ -111,8 +110,12 @@ DAYFOLDER = './2017-09-14'
 
 
 #create folder for today's experiments.
-#DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
-#THERE WILL PROBABLY BE AN EMPTY FOLDER AFTER THE WEEKEND!
+DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024)
 
 
 #print out results for this run.
