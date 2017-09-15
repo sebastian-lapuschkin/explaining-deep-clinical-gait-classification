@@ -99,6 +99,9 @@ S = {'Gender':GenderIndexSplits,
      'Subject':SubjectIndexSplits}
 
 
+DAYFOLDER = './BASELINE-LINEAR'
+training.run_linear(X, Y, L, S, DAYFOLDER)
+
 #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
 #DAYFOLDER = './2017-09-14'
 #run some experiments
@@ -110,12 +113,12 @@ S = {'Gender':GenderIndexSplits,
 
 
 #create folder for today's experiments.
-DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64)
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128)
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256)
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512)
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024)
+#DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
+#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64)
+#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128)
+#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256)
+#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512)
+#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024)
 
 
 #print out results for this run.
