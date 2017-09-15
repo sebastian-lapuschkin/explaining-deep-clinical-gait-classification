@@ -38,8 +38,13 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, overwrite=False)
             for i in xrange(len(targetSplits)): #the splits for this target
                 #create output directory for this run
                 modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
+                modelfile = '{}/model.txt'.format(modeldir)
                 if not os.path.isdir(modeldir):
                     os.makedirs(modeldir)
+
+                if os.path.isfile(modelfile):
+                    STDOUT.write('{} exists. skipping..\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
 
                 t_start = time.time()
                 #set output log to capture all prints
@@ -107,7 +112,7 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, overwrite=False)
                 STDOUT.write(message)
 
                 #write out the model
-                model_io.write(nn, '{}/model.txt'.format(modeldir))
+                model_io.write(nn, modelfile)
 
                 #write out performance
                 with open('{}/scores.txt'.format(modeldir), 'wb') as f:
