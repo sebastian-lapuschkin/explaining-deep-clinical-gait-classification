@@ -120,6 +120,8 @@ training.run_linear(X, Y, L, S, DAYFOLDER)
 #training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512)
 #training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024)
 
+#TODO: FIX PRESOFTMAX HEATMAPS FOR 2L FCNN
+#TODO: FIX PRESOFTMAX HEATMAPS FOR 3L FCNN
 
 #print out results for this run.
 eval_score_logs.run(DAYFOLDER)

@@ -221,7 +221,7 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
                 #test the model
                 Ypred = nn.forward(Xtest)
                 Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-1].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
                 Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
 
                 #measure test performance
@@ -351,7 +351,7 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
                 #test the model
                 Ypred = nn.forward(Xtest)
                 Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-1].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
                 Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
 
                 #measure test performance
