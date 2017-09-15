@@ -1,5 +1,6 @@
 import glob
 import os
+import sys
 import numpy as np
 import natsort
 from prettytable import PrettyTable
@@ -51,7 +52,16 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
         print tab
     print ''
 
+
 if __name__ == '__main__':
-    run()
+
+    # can now be called from command line as
+    # python eval_score_logs.py <resultfolder>
+    # the script intends to load and parse <resultfolder>/log.txt
+
+    if len(sys.argv) < 2:
+        run()
+    else:
+        run(sys.argv[1])
 
 
