@@ -46,7 +46,7 @@ X_JA_Lower = gaitdata['Feature_JA_Lower']                   # 1142 x 101 x 18
 Label_JA_Lower = gaitdata['Feature_JA_Lower_Label']         # 1 x 1 x 18 channel label
 
 # Gelenkwinkel lediglich in der Hauptdrehachse fuer den gesamten Koerper
-X_JA_X_Full = gaitdata['Feature_JA_X_Full']                 # 1142 x 101 x 10
+X_JA_X_Full = gaitdata['Feature_JA_X_Full']                 # 1142 x 101 x 10 (11?)
 Label_JA_X_Full = gaitdata['Feature_JA_X_Full_Label']       # 1 x 1 x 10 channel label
 
 # ... und den Unterkoerper
@@ -98,30 +98,37 @@ L = {'GRF_AV': Label_GRF_AV,
 S = {'Gender':GenderIndexSplits,
      'Subject':SubjectIndexSplits}
 
+# skip to just do nothing and leave the results as is
+# load to load the model and reevaluate, recompute heatmaps
+# retrain to overwrite the old model and results
+DOTHISIFMODELEXISTS = 'skip'
 
 DAYFOLDER = './BASELINE-LINEAR'
-training.run_linear(X, Y, L, S, DAYFOLDER)
+training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists='load')
+eval_score_logs.run(DAYFOLDER)
 
 #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
-#DAYFOLDER = './2017-09-14'
+DAYFOLDER = './2017-09-14'
 #run some experiments
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists='load')
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists='load')
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists='load')
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists='load')
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists='load')
+eval_score_logs.run(DAYFOLDER)
 
 
 #create folder for today's experiments.
-#DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024)
+DAYFOLDER = './2017-09-15'
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists='load')
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists='load')
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists='load')
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists='load')
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists='load')
 
-#TODO: FIX PRESOFTMAX HEATMAPS FOR 2L FCNN
-#TODO: FIX PRESOFTMAX HEATMAPS FOR 3L FCNN
+
+#DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
+#load models, prepare data, compute heatmaps.
 
 #print out results for this run.
 eval_score_logs.run(DAYFOLDER)

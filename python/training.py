@@ -6,7 +6,7 @@ import scipy
 import modules
 import model_io
 
-def run_linear(X,Y,L,S,outputfolder='./tmp'):
+def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
     """
     Trains a linear model.
     X is a dictionary of DataName -> np.array , containing raw input data
@@ -39,12 +39,11 @@ def run_linear(X,Y,L,S,outputfolder='./tmp'):
                 #create output directory for this run
                 modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
                 modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+
                 if not os.path.isdir(modeldir):
                     os.makedirs(modeldir)
 
-                if os.path.isfile(modelfile):
-                    STDOUT.write('{} exists. skipping..\n\n'.format(modelfile))
-                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
 
                 t_start = time.time()
                 #set output log to capture all prints
@@ -80,11 +79,26 @@ def run_linear(X,Y,L,S,outputfolder='./tmp'):
                 D = Xtrain.shape[1]
                 L = Ytrain.shape[1]
 
-                #create and train the model here
-                nn = modules.Sequential([modules.Linear(D, L)])
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
+
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+                    nn = modules.Sequential([modules.Linear(D, L)])
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
 
                 #test the model
                 Ypred = nn.forward(Xtest)
@@ -138,7 +152,7 @@ def run_linear(X,Y,L,S,outputfolder='./tmp'):
 
 
 
-def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
+def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='skip'):
     """
     Trains a 2-layer fully connected net with ReLU activations
     X is a dictionary of DataName -> np.array , containing raw input data
@@ -171,12 +185,11 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
                 #create output directory for this run
                 modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
                 modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+
                 if not os.path.isdir(modeldir):
                     os.makedirs(modeldir)
 
-                if os.path.isfile(modelfile):
-                    STDOUT.write('{} exists. skipping..\n\n'.format(modelfile))
-                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
 
                 t_start = time.time()
                 #set output log to capture all prints
@@ -212,11 +225,25 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
                 D = Xtrain.shape[1]
                 L = Ytrain.shape[1]
 
-                #create and train the model here
-                nn = modules.Sequential([modules.Linear(D, n_hidden), modules.Rect(), modules.Linear(n_hidden, L), modules.SoftMax()])
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+                    nn = modules.Sequential([modules.Linear(D, n_hidden), modules.Rect(), modules.Linear(n_hidden, L), modules.SoftMax()])
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
 
                 #test the model
                 Ypred = nn.forward(Xtest)
@@ -268,7 +295,7 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
 
     LOG.close()
 
-def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
+def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='skip'):
     """
     Trains a 3-layer fully connected net with ReLU activations
     X is a dictionary of DataName -> np.array , containing raw input data
@@ -301,12 +328,10 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
                 #create output directory for this run
                 modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
                 modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+
                 if not os.path.isdir(modeldir):
                     os.makedirs(modeldir)
-
-                if os.path.isfile(modelfile):
-                    STDOUT.write('{} exists. skipping..\n\n'.format(modelfile))
-                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
 
                 t_start = time.time()
                 #set output log to capture all prints
@@ -342,11 +367,25 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512):
                 D = Xtrain.shape[1]
                 L = Ytrain.shape[1]
 
-                #create and train the model here
-                nn = modules.Sequential([modules.Linear(D, n_hidden), modules.Rect(), modules.Linear(n_hidden,n_hidden), modules.Rect(), modules.Linear(n_hidden, L), modules.SoftMax()])
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
-                nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+                    nn = modules.Sequential([modules.Linear(D, n_hidden), modules.Rect(), modules.Linear(n_hidden,n_hidden), modules.Rect(), modules.Linear(n_hidden, L), modules.SoftMax()])
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
 
                 #test the model
                 Ypred = nn.forward(Xtest)
