@@ -148,6 +148,7 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                 sys.stdout.close()
                 sys.stdout = STDOUT
 
+    sys.stdout = STDOUT
     LOG.close()
 
 
@@ -293,6 +294,7 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                 sys.stdout.close()
                 sys.stdout = STDOUT
 
+    sys.stdout = STDOUT
     LOG.close()
 
 def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='skip'):
@@ -435,4 +437,5 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                 sys.stdout.close()
                 sys.stdout = STDOUT
 
+    sys.stdout = STDOUT
     LOG.close()
