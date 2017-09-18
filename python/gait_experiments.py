@@ -104,27 +104,27 @@ S = {'Gender':GenderIndexSplits,
 DOTHISIFMODELEXISTS = 'skip'
 
 DAYFOLDER = './BASELINE-LINEAR'
-training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists='load')
+training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 eval_score_logs.run(DAYFOLDER)
 
 #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
 DAYFOLDER = './2017-09-14'
 #run some experiments
-training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists='load')
-training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists='load')
-training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists='load')
-training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists='load')
-training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists='load')
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
 eval_score_logs.run(DAYFOLDER)
 
 
 #create folder for today's experiments.
 DAYFOLDER = './2017-09-15'
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists='load')
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists='load')
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists='load')
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists='load')
-training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists='load')
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
 
 
 #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
