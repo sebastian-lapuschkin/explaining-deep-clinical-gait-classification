@@ -3,8 +3,65 @@ import time
 import os
 import numpy as np
 import scipy
+from sklearn.decomposition import PCA
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import modules
 import model_io
+
+
+def run_pca(X,Y,S):
+
+    """
+    Runs PCA for given data.
+    X is a dictionary of DataName -> np.array , containing raw input data
+    Y is a dictionary of Targetname -> np.array , containing binary labels
+    L is a dictionary of DataName -> channel labels
+    S is a dictionary of TargetName -> prepared index splits
+    """
+
+    if not os.path.isdir('./PCA'):
+        os.mkdir('./PCA')
+
+    #loop over all possible combinatinos of things
+    for xname, x in X.iteritems():
+        for yname, y in Y.iteritems(): #target name, i.e. pick a label in name and data
+            targetSplits = S[yname]
+            plt.clf()
+            for i in xrange(len(targetSplits)): #the splits for this target
+                t_start = time.time()
+                #set output log to capture all prints
+                iTrain = []
+                for j in [r % len(targetSplits) for r in range(i+2, (i+2)+(len(targetSplits)-2))]: #pool remaining data into training set.
+                    iTrain.extend(targetSplits[j])
+
+                #format the data for this run
+                Xtrain = x[iTrain, ...]
+
+                #get original data shapes
+                Ntr, T, C = Xtrain.shape
+
+                #reshape for fully connected inputs
+                Xtrain = np.reshape(Xtrain, [Ntr, -1])
+
+                #input dims and output dims
+                D = Xtrain.shape[1]
+
+                pca = PCA(n_components=None)
+                pca.fit(Xtrain)
+
+                t_end = time.time()
+                print '{}-{} set {} done after: {}s '.format(xname, yname, i, t_end-t_start)
+                plt.plot(pca.singular_values_, alpha=0.5)
+
+            plt.xlabel('components')
+            plt.ylabel('singular values')
+            figpath = './PCA/pca-{}-{}.pdf'.format(xname, yname)
+            print 'saving figure', figpath
+            plt.savefig(figpath)
+
+
 
 def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
     """

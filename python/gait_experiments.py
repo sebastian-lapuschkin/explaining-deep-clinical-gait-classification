@@ -103,6 +103,9 @@ S = {'Gender':GenderIndexSplits,
 # retrain to overwrite the old model and results
 DOTHISIFMODELEXISTS = 'skip'
 
+
+
+"""
 DAYFOLDER = './BASELINE-LINEAR'
 training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 eval_score_logs.run(DAYFOLDER)
@@ -125,10 +128,13 @@ training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHI
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
+"""
 
+
+training.run_pca(X,Y,S)
 
 #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
 #load models, prepare data, compute heatmaps.
 
 #print out results for this run.
-eval_score_logs.run(DAYFOLDER)
+#eval_score_logs.run(DAYFOLDER)
