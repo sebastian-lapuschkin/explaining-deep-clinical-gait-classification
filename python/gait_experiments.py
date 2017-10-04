@@ -65,7 +65,8 @@ Y_Gender[:, 1] = 1-Y_Gender[:, 0]                           # 1142 x 2, binary l
 #Gender identification: create 10 splits with the genders split evenly over all partitions, but pool
 #the samples per subject in only one bin: avoid prediction based on personal characteristics
 #use a random seed to make partitioning deterministic
-SubjectIndexSplits, GenderIndexSplits, Permutation = helpers.create_index_splits(Y_Subject, Y_Gender, splits=10, seed=1234)
+RANDOMSEED = 5432
+SubjectIndexSplits, GenderIndexSplits, Permutation = helpers.create_index_splits(Y_Subject, Y_Gender, splits=10, seed=RANDOMSEED)
 
 #apply the permutation to the given data for the inputs and labels to match the splits again
 X_GRF_AV = X_GRF_AV[Permutation, ...]
@@ -104,14 +105,13 @@ S = {'Gender':GenderIndexSplits,
 DOTHISIFMODELEXISTS = 'skip'
 
 
-
 """
-DAYFOLDER = './BASELINE-LINEAR'
+DAYFOLDER = './BASELINE-LINEAR-S{}'.format(RANDOMSEED)
 training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 eval_score_logs.run(DAYFOLDER)
 
 #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
-DAYFOLDER = './2017-09-14'
+DAYFOLDER = './2017-09-14'.format(RANDOMSEED)
 #run some experiments
 training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
@@ -122,19 +122,29 @@ eval_score_logs.run(DAYFOLDER)
 
 
 #create folder for today's experiments.
-DAYFOLDER = './2017-09-15'
+DAYFOLDER = './2017-09-15'.format(RANDOMSEED)
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHISIFMODELEXISTS)
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
+
+training.run_pca(X,Y,S)
 """
 
 
-training.run_pca(X,Y,S)
 
-#DAYFOLDER = './' + str(datetime.datetime.now()).split()[0]
-#load models, prepare data, compute heatmaps.
+DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
+training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
 
-#print out results for this run.
-#eval_score_logs.run(DAYFOLDER)
+eval_score_logs.run(DAYFOLDER)
