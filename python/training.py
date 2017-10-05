@@ -143,7 +143,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                         return
 
                     #STDOUT.write('starting {} {}'.format(xname, yname))
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, iters = 10) # train the model
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
                     #STDOUT.write('    {} {} ok\n'.format(xname, yname))
