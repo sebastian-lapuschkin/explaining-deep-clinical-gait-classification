@@ -195,6 +195,7 @@ class Sequential(Module):
                 if acc >= bestAccuracy and l1loss <= bestLoss:
                     print '    New optimal parameter set encountered. saving....'
                     bestAccuracy = acc
+                    bestLoss = l1loss
                     bestLayers = copy.deepcopy(self.modules)
 
                     #adjust learning rate
