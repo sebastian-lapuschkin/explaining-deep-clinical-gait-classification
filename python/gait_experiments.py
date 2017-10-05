@@ -46,7 +46,7 @@ X_JA_Lower = gaitdata['Feature_JA_Lower']                   # 1142 x 101 x 18
 Label_JA_Lower = gaitdata['Feature_JA_Lower_Label']         # 1 x 1 x 18 channel label
 
 # Gelenkwinkel lediglich in der Hauptdrehachse fuer den gesamten Koerper
-X_JA_X_Full = gaitdata['Feature_JA_X_Full']                 # 1142 x 101 x 10 (11?)
+X_JA_X_Full = gaitdata['Feature_JA_X_Full']                 # 1142 x 101 x 10
 Label_JA_X_Full = gaitdata['Feature_JA_X_Full_Label']       # 1 x 1 x 10 channel label
 
 # ... und den Unterkoerper
@@ -65,7 +65,7 @@ Y_Gender[:, 1] = 1-Y_Gender[:, 0]                           # 1142 x 2, binary l
 #Gender identification: create 10 splits with the genders split evenly over all partitions, but pool
 #the samples per subject in only one bin: avoid prediction based on personal characteristics
 #use a random seed to make partitioning deterministic
-RANDOMSEED = 5432
+RANDOMSEED = 1234
 SubjectIndexSplits, GenderIndexSplits, Permutation = helpers.create_index_splits(Y_Subject, Y_Gender, splits=10, seed=RANDOMSEED)
 
 #apply the permutation to the given data for the inputs and labels to match the splits again
@@ -133,7 +133,8 @@ training.run_pca(X,Y,S)
 """
 
 
-
+"""
+#some runs with another random seed for sanity checking.
 DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
 training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
@@ -146,5 +147,10 @@ training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTH
 training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
 training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
+"""
+
+
+DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
+training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
 
 eval_score_logs.run(DAYFOLDER)
