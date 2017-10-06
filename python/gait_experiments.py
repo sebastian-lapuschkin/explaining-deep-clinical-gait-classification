@@ -17,18 +17,29 @@ import scipy.io as scio # scientific python package, which supports mat-file IO 
 import helpers
 import training
 import eval_score_logs
+import sys
 
+SKIPTHISMANY=0
+ROOTFOLDER='.'
 
-
-
-
+for param in sys.argv:
+    if not '=' in param:
+        continue
+    else:
+        k,v = param.split('=')
+        if 'skip' in k:
+            print 'setting skip param to', v
+            SKIPTHISMANY = int(v)
+        elif 'root' in k:
+            print 'setting root folder param to', v
+            ROOTFOLDER = v
 
 
 ################################
 #           "Main"
 ################################
 
-gaitdata = scio.loadmat('Gait_GRF_JA_Label.mat') #load matlab data as dictionary using scipy
+gaitdata = scio.loadmat('{}/Gait_GRF_JA_Label.mat'.format(ROOTFOLDER)) #load matlab data as dictionary using scipy
 
 # Bodenreaktionskraft mit zwei verschiedenen Datennormalisierungen
 X_GRF_AV = gaitdata['Feature_GRF_AV']                       # 1142 x 101 x 6
@@ -151,9 +162,11 @@ training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOT
 
 
 #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
-DAYFOLDER = './2017-10-05-S1234'
-training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
-#training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
+DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
+SKIPTHISMANY = training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
+print SKIPTHISMANY
+if SKIPTHISMANY >= 0:
+    training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
 #TODO: Classical C6
 #TODO: Stride 3 C3 for the full angle data sets to compare to the C3 classical
 

@@ -11,7 +11,7 @@ import modules
 import model_io
 
 
-def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
+def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-1):
     """
     Trains a CNN model. The architecture of the model adapts to the dimensions of the data.
     This Type "C3" CNN uses classical convolution masks of size 3 in either directions and multiple layers
@@ -47,6 +47,11 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                 modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
                 modelfile = '{}/model.txt'.format(modeldir)
                 modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+
+                if SKIPTHISMANY > 0:
+                    print 'skipping {} due to request by parameter.\n\n'.format(modelfile)
+                    SKIPTHISMANY-=1
+                    continue
 
                 if not os.path.isdir(modeldir):
                     os.makedirs(modeldir)
@@ -156,7 +161,7 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
                     else:
                         print 'No architecture defined for data named', xname
-                        return
+                        exit()
 
                     #STDOUT.write('starting {} {}'.format(xname, yname))
                     print 'starting training for {}'.format(modeldir)
@@ -209,9 +214,11 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                                   'l1loss': l1loss,
                                   'acc': acc})
 
+                return SKIPTHISMANY
+    return SKIPTHISMANY
     LOG.close()
 
-def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
+def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-1):
     """
     Trains a CNN model. The architecture of the model adapts to the dimensions of the data.
     This Type "A" CNN sees all variables at once and slides its filters across the time axis.
@@ -249,6 +256,11 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                 modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
                 modelfile = '{}/model.txt'.format(modeldir)
                 modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+
+                if SKIPTHISMANY > 0:
+                    print 'skipping {} due to request by parameter.\n\n'.format(modelfile)
+                    SKIPTHISMANY-=1
+                    continue
 
                 if not os.path.isdir(modeldir):
                     os.makedirs(modeldir)
@@ -338,7 +350,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
                     else:
                         print 'No architecture defined for data named', xname
-                        return
+                        exit()
 
                     print 'starting training for {}'.format(modeldir)
                     #STDOUT.write('starting {} {}'.format(xname, yname))
@@ -390,7 +402,8 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-
+                return SKIPTHISMANY
+    return SKIPTHISMANY
     LOG.close()
 
 
