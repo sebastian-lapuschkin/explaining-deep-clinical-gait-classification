@@ -165,9 +165,9 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
 
                     #STDOUT.write('starting {} {}'.format(xname, yname))
                     print 'starting training for {}'.format(modeldir)
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10) # train the model
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001, convergence=10) # slower training once the model has converged somewhat
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005, convergence=10)# one last epoch
                     #STDOUT.write('    {} {} ok\n'.format(xname, yname))
                     #continue
 
