@@ -214,7 +214,7 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-                return SKIPTHISMANY
+                return -1 # we have done a training. this should suffice.
     return SKIPTHISMANY
     LOG.close()
 
@@ -354,9 +354,9 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
 
                     print 'starting training for {}'.format(modeldir)
                     #STDOUT.write('starting {} {}'.format(xname, yname))
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10) # train the model
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001, convergence=10) # slower training once the model has converged somewhat
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005, convergence=10)# one last epoch
                     #STDOUT.write('    {} {} ok\n'.format(xname, yname))
 
                 #test the model
@@ -402,7 +402,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-                return SKIPTHISMANY
+                return -1 # we have done a training. this should suffice.
     return SKIPTHISMANY
     LOG.close()
 

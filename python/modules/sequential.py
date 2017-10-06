@@ -160,7 +160,7 @@ print "%d:%02d:%02d" % (h, m, s)
         t_start = time.time()
         untilConvergence = convergence;    learningFactor = lfactor_initial
         bestAccuracy = 0.0;                bestLayers = copy.deepcopy(self.modules)
-        bestLoss = np.Inf
+        bestLoss = np.Inf;                 bestIter = 0
 
         N = X.shape[0]
         for d in xrange(iters):
@@ -201,6 +201,7 @@ print "%d:%02d:%02d" % (h, m, s)
                     bestAccuracy = acc
                     bestLoss = l1loss
                     bestLayers = copy.deepcopy(self.modules)
+                    bestIter = d
 
                     #adjust learning rate
                     if lrate_decay == None or lrate_decay == 'none':
@@ -241,7 +242,7 @@ print "%d:%02d:%02d" % (h, m, s)
                 sys.stdout.flush()
 
         #after training, either due to convergence or iteration limit
-        print 'Setting network parameters to best encountered network state with {0}% accuracy.'.format(bestAccuracy*100)
+        print 'Setting network parameters to best encountered network state with {0}% accuracy and a loss of {} from iteration {}.'.format(bestAccuracy*100, bestLoss, bestIter)
         self.modules = bestLayers
 
 
