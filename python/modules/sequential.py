@@ -12,6 +12,7 @@
 import copy
 import sys
 import numpy as np
+import time
 from module import Module
 na = np.newaxis
 
@@ -143,7 +144,9 @@ class Sequential(Module):
             if the ratio of N/b is high enough, we should see a huge performance gain.
 
             N : int
-                range of indices [0,N[ to choose from.
+                range of indices [0,N[ to choose from.m, s = divmod(seconds, 60)
+h, m = divmod(m, 60)
+print "%d:%02d:%02d" % (h, m, s)
 
             b : the number of unique indices to pick.
             '''
@@ -154,6 +157,7 @@ class Sequential(Module):
 
             return I
 
+        t_start = time.time()
         untilConvergence = convergence;    learningFactor = lfactor_initial
         bestAccuracy = 0.0;                bestLayers = copy.deepcopy(self.modules)
         bestLoss = np.Inf
@@ -217,6 +221,17 @@ class Sequential(Module):
                     if untilConvergence == 0 and convergence > 0:
                         print '    No more recorded model improvements for {0} evaluations. Accepting model convergence.'.format(convergence)
                         break
+
+                t_elapsed =  time.time() - t_start
+                percent_done = float(d+1)/iters #d+1 because we are after the iteration's heavy lifting
+                t_remaining_estimated = t_elapsed/percent_done - t_elapsed
+
+                m, s = divmod(t_remaining_estimated, 60)
+                h, m = divmod(m, 60)
+                d, h = divmod(h, 24)
+
+                timestring = '{}d {}h {}m {}s'.format(int(d), int(h), int(m), int(s))
+                print '    Estimate time until current training ends : {} ({:.2f}% done)'.format(timestring, percent_done*100)
 
             elif (d+1) % (status/10) == 0:
                 # print 'alive' signal

@@ -29,7 +29,6 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
     if not os.path.isdir(outputfolder):
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
-    STDOUT = sys.stdout
     LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
@@ -55,7 +54,6 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -88,15 +86,15 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
                 #how to handle existing model files
                 if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
-                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    print 'incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists)
                     exit()
 
                 if modelExists and ifModelExists == 'skip':
-                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    print '{} exists. skipping.\n\n'.format(modelfile)
                     continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
 
                 elif modelExists and ifModelExists == 'load':
-                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    print '{} exists. loading model, re-evaluating. \n\n'.format(modelfile)
                     nn = model_io.read(modelfile)
 
                 else: # model does not exist or parameter is retrain.
@@ -161,6 +159,7 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                         return
 
                     #STDOUT.write('starting {} {}'.format(xname, yname))
+                    print 'starting training for {}'.format(modeldir)
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
@@ -190,7 +189,7 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
                 LOG.write(message)
                 LOG.flush()
-                STDOUT.write(message)
+                print message
 
                 #write out the model
                 model_io.write(nn, modelfile)
@@ -210,12 +209,6 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-
-                #reinstate original sys.stdout
-                sys.stdout.close()
-                sys.stdout = STDOUT
-
-    sys.stdout = STDOUT
     LOG.close()
 
 def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
@@ -236,8 +229,8 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
     #and output folder
     if not os.path.isdir(outputfolder):
         os.mkdir(outputfolder)
-    #grab stdout to relay all prints to a log file
-    STDOUT = sys.stdout
+
+
     LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
@@ -262,8 +255,6 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
 
                 t_start = time.time()
-                #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -296,15 +287,15 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
                 #how to handle existing model files
                 if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
-                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    print 'incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists)
                     exit()
 
                 if modelExists and ifModelExists == 'skip':
-                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    print '{} exists. skipping.\n\n'.format(modelfile)
                     continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
 
                 elif modelExists and ifModelExists == 'load':
-                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    print '{} exists. loading model, re-evaluating. \n\n'.format(modelfile)
                     nn = model_io.read(modelfile)
 
                 else: # model does not exist or parameter is retrain.
@@ -349,6 +340,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                         print 'No architecture defined for data named', xname
                         return
 
+                    print 'starting training for {}'.format(modeldir)
                     #STDOUT.write('starting {} {}'.format(xname, yname))
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
@@ -378,7 +370,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
                 LOG.write(message)
                 LOG.flush()
-                STDOUT.write(message)
+                print message
 
                 #write out the model
                 model_io.write(nn, modelfile)
@@ -398,12 +390,6 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-
-                #reinstate original sys.stdout
-                sys.stdout.close()
-                sys.stdout = STDOUT
-
-    sys.stdout = STDOUT
     LOG.close()
 
 
