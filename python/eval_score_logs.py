@@ -14,10 +14,10 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
             if len(line) > 0:
                 if 'part' in line: #header
                     lineparts = line.strip('.').strip(':').strip().split()
-                    target = lineparts[1]
-                    data = lineparts[2]
-                    model = lineparts[3]
-                    part = lineparts[4]
+                    target = lineparts[-4]
+                    data = lineparts[-3]
+                    model = lineparts[-2]
+                    part = lineparts[-1]
 
                     acc = log[i+1].split()[-1]
                     thisresult = [target, data, model, float(acc)]
