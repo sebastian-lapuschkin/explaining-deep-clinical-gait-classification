@@ -242,7 +242,7 @@ print "%d:%02d:%02d" % (h, m, s)
                 sys.stdout.flush()
 
         #after training, either due to convergence or iteration limit
-        print 'Setting network parameters to best encountered network state with {0}% accuracy and a loss of {} from iteration {}.'.format(bestAccuracy*100, bestLoss, bestIter)
+        print 'Setting network parameters to best encountered network state with {}% accuracy and a loss of {} from iteration {}.'.format(bestAccuracy*100, bestLoss, bestIter)
         self.modules = bestLayers
 
 
