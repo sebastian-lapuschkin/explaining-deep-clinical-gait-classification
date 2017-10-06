@@ -390,6 +390,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                                   'l1loss': l1loss,
                                   'acc': acc})
 
+
     LOG.close()
 
 
