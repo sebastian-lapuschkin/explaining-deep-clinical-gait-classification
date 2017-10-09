@@ -170,4 +170,6 @@ if SKIPTHISMANY >= 0:
 #TODO: Classical C6
 #TODO: Stride 3 C3 for the full angle data sets to compare to the C3 classical
 
+training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
+
 eval_score_logs.run(DAYFOLDER)

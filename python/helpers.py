@@ -90,3 +90,10 @@ def create_index_splits(Y_Subject, Y_Gender, splits = 10, seed=None):
 
     #return the indices for the subject recognition training, the gender recognition training and the original permutation to be applied on the data.
     return SubjectIndexSplits, GenderIndexSplits, Permutation
+
+
+def convIO(D,F,S):
+    D = float(D)
+    F = float(F)
+    S = float(S)
+    return (D-F)/S + 1
