@@ -163,10 +163,10 @@ training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOT
 
 #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
 DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
-SKIPTHISMANY = training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
-print SKIPTHISMANY
-if SKIPTHISMANY >= 0:
-    training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
+#SKIPTHISMANY = training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
+#print SKIPTHISMANY
+#if SKIPTHISMANY >= 0:
+    #SKIPTHISMANY = training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
 #TODO: Classical C6
 #TODO: Stride 3 C3 for the full angle data sets to compare to the C3 classical
 

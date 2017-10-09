@@ -151,8 +151,8 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                         h2 = modules.Convolution(filtersize=(3,3,32,32), stride=(1,1))
                         # H2: 94 x 3 x 32
                         h3 = modules.Convolution(filtersize=(3,3,32,32), stride=(1,1))
-                        # H3: 92 x 1 x 32 = 2976
-                        h4 = modules.Linear(2976,L)
+                        # H3: 92 x 1 x 32 = 2944
+                        h4 = modules.Linear(2944,L)
                         nn = modules.Sequential([h1, modules.Rect(), h2, modules.Rect(), h3, modules.Rect(), modules.Flatten(), h4, modules.SoftMax()])
 
 
@@ -160,11 +160,11 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                         print 'No architecture defined for data named', xname
                         exit()
 
-
-                    print 'starting {} {}'.format(xname, yname)
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10,iters=10) # train the model
-                    print '    {} {} ok\n'.format(xname, yname)
-                    continue
+                    #DEBUG TESTS
+                    #print 'starting {} {}'.format(xname, yname)
+                    #nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10,iters=10) # train the model
+                    #print '    {} {} ok\n'.format(xname, yname)
+                    #continue
 
                     print 'starting training for {}'.format(modeldir)
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10) # train the model
