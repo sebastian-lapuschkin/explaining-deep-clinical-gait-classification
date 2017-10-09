@@ -199,7 +199,7 @@ print "%d:%02d:%02d" % (h, m, s)
                 #if acc >= bestAccuracy and l1loss <= bestLoss:
                 # only go by loss
                 if l1loss <= bestloss:
-                    print '    New optimal parameter set encountered. saving....'
+                    print '    New loss-optimal parameter set encountered. saving....'
                     bestAccuracy = acc
                     bestLoss = l1loss
                     bestLayers = copy.deepcopy(self.modules)
