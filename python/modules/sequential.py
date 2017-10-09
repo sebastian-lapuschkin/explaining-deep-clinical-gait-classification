@@ -198,7 +198,7 @@ print "%d:%02d:%02d" % (h, m, s)
                 #save current network parameters if we have improved
                 #if acc >= bestAccuracy and l1loss <= bestLoss:
                 # only go by loss
-                if l1loss <= bestloss:
+                if l1loss <= bestLoss:
                     print '    New loss-optimal parameter set encountered. saving....'
                     bestAccuracy = acc
                     bestLoss = l1loss
