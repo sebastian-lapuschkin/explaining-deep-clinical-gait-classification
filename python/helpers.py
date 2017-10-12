@@ -92,7 +92,7 @@ def create_index_splits(Y_Subject, Y_Gender, splits = 10, seed=None):
     return SubjectIndexSplits, GenderIndexSplits, Permutation
 
 
-def convIO(D,F,S):
+def convIOdims(D,F,S):
     D = float(D)
     F = float(F)
     S = float(S)

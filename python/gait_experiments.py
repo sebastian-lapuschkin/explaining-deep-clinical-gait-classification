@@ -21,6 +21,7 @@ import sys
 
 SKIPTHISMANY=0
 ROOTFOLDER='.'
+MODELTOEVALUATE=None
 
 for param in sys.argv:
     if not '=' in param:
@@ -33,6 +34,9 @@ for param in sys.argv:
         elif 'root' in k:
             print 'setting root folder param to', v
             ROOTFOLDER = v
+        elif 'model' in k:
+            print 'setting model to evaluate to', v
+            MODELTOEVALUATE = v
 
 
 ################################
@@ -167,9 +171,12 @@ DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
 #print SKIPTHISMANY
 #if SKIPTHISMANY >= 0:
     #SKIPTHISMANY = training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
-#TODO: Classical C6
-#TODO: Stride 3 C3 for the full angle data sets to compare to the C3 classical
+
+#if MODELTOEVALUATE == 'C3-3':
+#    print 'training C3-3'
+#    training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
+#else:
+#    training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
 
 training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
-
 eval_score_logs.run(DAYFOLDER)

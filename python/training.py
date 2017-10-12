@@ -12,6 +12,202 @@ import model_io
 
 
 
+
+def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-1):
+    """
+    Trains a CNN model. The architecture of the model adapts to the dimensions of the data.
+    This Type "C3" CNN uses classical convolution masks of size 3 in either directions and multiple layers
+    Stride along both axes is 3.
+
+    This method only trains for the full angle data sets
+
+    X is a dictionary of DataName -> np.array , containing raw input data
+    Y is a dictionary of Targetname -> np.array , containing binary labels
+    L is a dictionary of DataName -> channel labels
+    S is a dictionary of TargetName -> prepared index splits
+    """
+
+    #prepare model output
+    MODELNAME = 'CNN-C3-3'
+    #and output folder
+    if not os.path.isdir(outputfolder):
+        os.mkdir(outputfolder)
+    #grab stdout to relay all prints to a log file
+    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+
+    #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
+    scipy.io.savemat(outputfolder+'/data.mat', X)
+    scipy.io.savemat(outputfolder+'/targets.mat', Y)
+    scipy.io.savemat(outputfolder+'/labels.mat', L)
+    scipy.io.savemat(outputfolder+'/splits.mat', S)
+
+
+    #loop over all possible combinatinos of things
+    for xname, x in X.iteritems():
+        for yname, y in Y.iteritems(): #target name, i.e. pick a label in name and data
+            targetSplits = S[yname]
+            for i in xrange(len(targetSplits)): #the splits for this target
+                #create output directory for this run
+                modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
+                modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+
+                if SKIPTHISMANY > 0:
+                    print 'skipping {} due to request by parameter.\n\n'.format(modelfile)
+                    SKIPTHISMANY-=1
+                    continue
+
+                if not xname in [ 'JA_Full']:
+                    print 'skipping', xname, 'data for this model'
+                    continue # skip all non-relevant models
+
+                if not os.path.isdir(modeldir):
+                    os.makedirs(modeldir)
+
+
+                t_start = time.time()
+                #set output log to capture all prints
+
+                iTest = targetSplits[i] #get split for validation and testing
+                iVal = targetSplits[(i+1)%len(targetSplits)]
+                iTrain = []
+                for j in [r % len(targetSplits) for r in range(i+2, (i+2)+(len(targetSplits)-2))]: #pool remaining data into training set.
+                    iTrain.extend(targetSplits[j])
+
+                #format the data for this run
+                Xtrain = x[iTrain, ...]
+                Ytrain = y[iTrain, ...]
+
+                Xval = x[iVal, ...]
+                Yval = y[iVal, ...]
+
+                Xtest = x[iTest, ...]
+                Ytest = y[iTest, ...]
+
+                #in order to realize full 3-convs with stride 3 in the time axis, we need to pad with one zero (because I am too lazy to implement support for padding)
+                Xtrain = np.concatenate([Xtrain, np.zeros([Xtrain.shape[0],1,Xtrain.shape[2]],dtype=Xtrain.dtype)],axis=1)
+                Xtest = np.concatenate([Xtest, np.zeros([Xtest.shape[0],1,Xtest.shape[2]],dtype=Xtest.dtype)],axis=1)
+                Xval = np.concatenate([Xval, np.zeros([Xval.shape[0],1,Xval.shape[2]],dtype=Xval.dtype)],axis=1)
+
+                #get original data shapes
+                Ntr, T, C = Xtrain.shape
+                Nv = Xval.shape[0]
+                Nte = Xtest.shape[0]
+
+                #attach artificial channel axis.
+                Xtrain = Xtrain[..., None]
+                Xval = Xval[..., None]
+                Xtest = Xtest[..., None]
+
+                #number of target labels
+                L = Ytrain.shape[1]
+
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    print 'incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists)
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    print '{} exists. skipping.\n\n'.format(modelfile)
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    print '{} exists. loading model, re-evaluating. \n\n'.format(modelfile)
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+
+                    if xname == 'JA_Full':
+                        #samples are shaped 102 x 33 x 1
+
+                        # I: 102 x 33 x 1
+                        h1 = modules.Convolution(filtersize=(3,3,1,64), stride=(3,3))
+                        # H1: 34 x 11 x 64
+                        h2 = modules.Convolution(filtersize=(3,3,64,64), stride=(1,1))
+                        # H2: 32 x 9 x 64
+                        h3 = modules.Convolution(filtersize=(3,3,64,32), stride=(1,1))
+                        # H3: 30 x 7 x 32 = 6720
+                        h4 = modules.Linear(6720,L)
+                        nn = modules.Sequential([h1, modules.Rect(), h2, modules.Rect(), h3, modules.Rect(), modules.Flatten(), h4, modules.SoftMax()])
+
+                    elif xname == 'JA_Lower':
+                        #samples are shaped 102 x 18 x 1
+
+                        # I: 101 x 18 x 1
+                        h1 = modules.Convolution(filtersize=(3,3,1,64), stride=(3,3))
+                        # H1: 34 x 6 x 64
+                        h2 = modules.Convolution(filtersize=(3,3,64,64), stride=(1,1))
+                        # H2: 32 x 4 x 64
+                        h3 = modules.Convolution(filtersize=(3,3,64,32), stride=(1,1))
+                        # H3: 30 x 2 x 32 = 1920
+                        h4 = modules.Linear(1920,L)
+                        nn = modules.Sequential([h1, modules.Rect(), h2, modules.Rect(), h3, modules.Rect(), modules.Flatten(), h4, modules.SoftMax()])
+
+                    else:
+                        print 'No architecture defined for data named', xname
+                        exit()
+
+
+                    print 'starting {} {}'.format(xname, yname)
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10,iters=10) # train the model
+                    print '    {} {} ok\n'.format(xname, yname)
+                    continue
+
+                    print 'starting training for {}'.format(modeldir)
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10) # train the model
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001, convergence=10) # slower training once the model has converged somewhat
+                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005, convergence=10)# one last epoch
+
+
+                #test the model
+                Ypred = nn.forward(Xtest)
+                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                #measure test performance
+                l1loss = np.abs(Ypred - Ytest).sum()/Nte
+                predictions = np.argmax(Ypred, axis=1)
+                groundTruth = np.argmax(Ytest, axis=1)
+                acc = np.mean((predictions == groundTruth))
+
+                t_end = time.time()
+
+                #print results to terminal and log file
+                message = '\n'
+                message += '{} {}\n'.format(modeldir.replace('/', ' '),':')
+                message += 'test accuracy: {}\n'.format(acc)
+                message += 'test loss (l1): {}\n'.format(l1loss)
+                message += 'train-test-sequence done after: {}s\n\n'.format(t_end-t_start)
+
+                LOG.write(message)
+                LOG.flush()
+                print message
+
+                #write out the model
+                model_io.write(nn, modelfile)
+
+                #write out performance
+                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                    f.write('test loss (l1): {}\n'.format(l1loss))
+                    f.write('test accuracy : {}'.format(acc))
+
+
+                #write out matrices for prediction, GT heatmaps and prediction heatmaps
+                scipy.io.savemat('{}/outputs.mat'.format(modeldir),
+                                 {'Ypred': Ypred,
+                                  'Rpred': Rpred,
+                                  'RpredPresoftmax': RpredPresoftmax,
+                                  'Ract': Ract,
+                                  'l1loss': l1loss,
+                                  'acc': acc})
+
+                #return -1 # we have done a training. this should suffice.
+    return SKIPTHISMANY
+    LOG.close()
+
+
 def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-1):
     """
     Trains a CNN model. The architecture of the model adapts to the dimensions of the data.
