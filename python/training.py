@@ -57,7 +57,7 @@ def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMAN
                     SKIPTHISMANY-=1
                     continue
 
-                if not xname in [ 'JA_Full']:
+                if not xname in ['JA_Lower', 'JA_Full']:
                     print 'skipping', xname, 'data for this model'
                     continue # skip all non-relevant models
 
