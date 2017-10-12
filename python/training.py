@@ -149,10 +149,10 @@ def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMAN
                         exit()
 
 
-                    print 'starting {} {}'.format(xname, yname)
-                    nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10,iters=10) # train the model
-                    print '    {} {} ok\n'.format(xname, yname)
-                    continue
+                    #print 'starting {} {}'.format(xname, yname)
+                    #nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10,iters=10) # train the model
+                    #print '    {} {} ok\n'.format(xname, yname)
+                    #continue
 
                     print 'starting training for {}'.format(modeldir)
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10) # train the model

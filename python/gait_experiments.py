@@ -172,11 +172,11 @@ DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
 #if SKIPTHISMANY >= 0:
     #SKIPTHISMANY = training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
 
-#if MODELTOEVALUATE == 'C3-3':
-#    print 'training C3-3'
-#    training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
-#else:
-#    training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
+if MODELTOEVALUATE == 'C3-3':
+    print 'training C3-3'
+    training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
+else:
+    training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
 
-training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
+#training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
 eval_score_logs.run(DAYFOLDER)
