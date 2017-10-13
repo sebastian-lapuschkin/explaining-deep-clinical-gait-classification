@@ -175,6 +175,15 @@ DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
 if MODELTOEVALUATE == 'C3-3':
     print 'training C3-3'
     training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
+    
+elif MODELTOEVALUATE == 'CA-6':
+    print 'training CA-6'
+    training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
+    
+elif MODELTOEVALUATE == 'CA-3':
+    print 'training CA-3'
+    training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)    
+
 else:
     training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS, SKIPTHISMANY=SKIPTHISMANY)
 
