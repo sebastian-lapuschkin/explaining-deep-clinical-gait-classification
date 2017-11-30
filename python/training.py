@@ -8,7 +8,67 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import modules
+from modules import Convolution, Linear
 import model_io
+
+
+def test_model(nn, Xtest, Ytest,  Nte, T, C):
+    """
+    receives a neural network model and some test data and runs some test and lrp diagnostics
+
+    nn is a neural network model
+    Xtest is the test data
+    Nte = number test samples of original input shape
+    T = number time points of original input shape
+    C = number channels of original input shape
+
+    returns:
+
+    Ypred -- the model predictions
+    Rpred -- the relevance maps for all predictions with eps lrp
+    RPredPressoftmax -- the presoftmax lrp predictions with eps lrp
+    Ract -- the lrp predictions for the actual sample class only
+    RPredAct -- the presoftmax lrp for the actual class
+    RPredDom -- the presoftmax lrp for the dominant class
+    RPredActComp -- the presoftmax lrp for the actual class with the known optimal decomposition parametrization
+    RPredDomComp -- the presoftmax lrp for the actual class with the known optimal decomposition parametrization
+    """
+
+    #presoftmaxindex. the linear model does not have a softmax output.
+    iP = -1 if len(nn.modules) == 1 else -2
+    Ypred = nn.forward(Xtest)
+    YpredPresoftmax = nn.modules[iP].Y
+    amax = np.argmax(YpredPresoftmax,axis=1)
+
+    Ydom = np.zeros_like(YpredPresoftmax)
+    #loop over all samples (since I do not know any better solution right now) and set Ydom
+    for i in xrange(Nte):
+        Ydom[i,amax[i]] = YpredPresoftmax[i,amax[i]]
+
+
+
+
+    Rpred =             nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+    RpredPresoftmax =   nn.lrp(YpredPresoftmax, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+    Ract =              nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+
+    RPredAct =          nn.lrp(Ytest * YpredPresoftmax, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+    RPredDom =          nn.lrp(Ydom, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+
+    #preconfigure lrp for all layers
+    for m in nn.modules:
+        if m.__class__ == Convolution:
+            m.set_lrp_parameters(lrp_var='alpha',  param=2.0)
+        elif m.__class__ == Linear:
+            m.set_lrp_parameters(lrp_var='epsilon',  param=1e-5)
+
+    RPredActComp = nn.lrp(Ytest * YpredPresoftmax).reshape(Nte, T, C)
+    RPredDomComp = nn.lrp(Ydom).reshape(Nte, T, C)
+
+
+    return Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp
 
 
 
@@ -161,10 +221,12 @@ def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMAN
 
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -200,6 +262,10 @@ def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMAN
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
@@ -369,10 +435,12 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
 
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -408,6 +476,10 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
@@ -583,10 +655,12 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
 
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -622,6 +696,10 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
@@ -771,10 +849,12 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
                     #STDOUT.write('    {} {} ok\n'.format(xname, yname))
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -810,15 +890,19 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
                 return -1 # we have done a training. this should suffice.
     return SKIPTHISMANY
     LOG.close()
-    
-    
-    
+
+
+
 def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-1):
     """
     Trains a CNN model. The architecture of the model adapts to the dimensions of the data.
@@ -930,7 +1014,7 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                         #samples are shaped 101 x 33 x 1
                         # I: 101 x 33 x 1
                         h1 = modules.Convolution(filtersize=(6,33,1,64), stride=(1,1))
-                        # H1: 96 x 1 x 64 
+                        # H1: 96 x 1 x 64
                         h2 = modules.Convolution(filtersize=(6,1,64,32), stride=(1,1))
                         # H2: 91 x 1 x 32 = 2912
                         h3 = modules.Linear(2912, L)
@@ -940,7 +1024,7 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                         #samples are shaped 101 x 18 x 1
                         # I: 101 x 18 x 1
                         h1 = modules.Convolution(filtersize=(6,18,1,64), stride=(1,1))
-                        # H1: 96 x 1 x 64 
+                        # H1: 96 x 1 x 64
                         h2 = modules.Convolution(filtersize=(6,1,64,32), stride=(1,1))
                         # H2: 91 x 1 x 32 = 2912
                         h3 = modules.Linear(2912, L)
@@ -950,7 +1034,7 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                         #samples are shaped 101 x 10 x 1
                         # I: 101 x 10 x 1
                         h1 = modules.Convolution(filtersize=(6,10,1,32), stride=(1,1))
-                        # H1: 96 x 1 x 32 
+                        # H1: 96 x 1 x 32
                         h2 = modules.Convolution(filtersize=(6,1,32,32), stride=(1,1))
                         # H2: 91 x 1 x 32 = 2912
                         h3 = modules.Linear(2912, L)
@@ -961,13 +1045,13 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                         print 'No architecture defined for data named', xname
                         exit()
 
-                    
+
                     #print 'starting {} {}'.format(xname, yname)
                     #nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10,iters=10) # train the model
                     #print '    {} {} ok\n'.format(xname, yname)
                     #continue
-                    
-                    
+
+
                     #STDOUT.write('starting {} {}'.format(xname, yname))
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10) # train the model
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001, convergence=10) # slower training once the model has converged somewhat
@@ -975,10 +1059,12 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                     #STDOUT.write('    {} {} ok\n'.format(xname, yname))
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -1014,6 +1100,10 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
@@ -1164,13 +1254,13 @@ def run_cnn_A3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                         print 'No architecture defined for data named', xname
                         exit()
 
-                    
+
                     #print 'starting {} {}'.format(xname, yname)
                     #nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10,iters=10) # train the model
                     #print '    {} {} ok\n'.format(xname, yname)
                     #continue
-                    
-                    
+
+
                     #STDOUT.write('starting {} {}'.format(xname, yname))
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005, convergence=10) # train the model
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001, convergence=10) # slower training once the model has converged somewhat
@@ -1178,10 +1268,12 @@ def run_cnn_A3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                     #STDOUT.write('    {} {} ok\n'.format(xname, yname))
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -1217,6 +1309,10 @@ def run_cnn_A3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
@@ -1371,10 +1467,12 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-1].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-1].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -1410,6 +1508,10 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
@@ -1517,10 +1619,12 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -1556,6 +1660,10 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
@@ -1660,10 +1768,12 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
 
                 #test the model
-                Ypred = nn.forward(Xtest)
-                Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
-                RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
-                Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ypred = nn.forward(Xtest)
+                #Rpred = nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+                #RpredPresoftmax = nn.lrp(nn.modules[-2].Y, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+                #Ract = nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
                 l1loss = np.abs(Ypred - Ytest).sum()/Nte
@@ -1699,6 +1809,10 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                                   'Rpred': Rpred,
                                   'RpredPresoftmax': RpredPresoftmax,
                                   'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
                                   'l1loss': l1loss,
                                   'acc': acc})
 
