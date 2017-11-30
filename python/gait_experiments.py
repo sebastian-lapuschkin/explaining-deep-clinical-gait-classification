@@ -166,16 +166,22 @@ if MODELTOEVALUATE == '2layer':
 #training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
 
 
-if MODELTOEVALUATE == 'cnn':
+if 'cnn' in MODELTOEVALUATE:
     #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
     DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
-    training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
-    training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
 
-    training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    if MODELTOEVALUATE == 'cnnA':
+        training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
+    if MODELTOEVALUATE == 'cnnC3':
+        training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
+    if MODELTOEVALUATE == 'cnnC33':
+        training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    if MODELTOEVALUATE == 'cnnA6':
+        training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    if MODELTOEVALUATE == 'cnnA3':
+        training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    if MODELTOEVALUATE == 'cnnC6':
+        training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 
 
 
