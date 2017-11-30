@@ -36,6 +36,7 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
 
     #presoftmaxindex. the linear model does not have a softmax output.
     iP = -1 if len(nn.modules) == 1 else -2
+    print '  forward'
     Ypred = nn.forward(Xtest,lrp_aware=False)
     YpredPresoftmax = nn.modules[iP].Y
     amax = np.argmax(YpredPresoftmax,axis=1)
@@ -47,13 +48,16 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
 
 
 
-
+    print '  Rpred'
     Rpred =             nn.lrp(Ypred, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C) #reshape data into original input shape
+    print '  RpredPresoftmax'
     RpredPresoftmax =   nn.lrp(YpredPresoftmax, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+    print '  Ract'
     Ract =              nn.lrp(Ytest, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
 
-
+    print '  PRPredAct'
     RPredAct =          nn.lrp(Ytest * YpredPresoftmax, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
+    print '  RPredDom'
     RPredDom =          nn.lrp(Ydom, lrp_var='epsilon', param=1e-5).reshape(Nte, T, C)
 
 
@@ -67,7 +71,9 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
             m.set_lrp_parameters(lrp_var='epsilon',  param=1e-5)
             print 'setting lrp parameters to epsilon=1e-5 for module {} of type {}'.format(i,m.__class__)
 
+    print '  RPredActComp'
     RPredActComp = nn.lrp(Ytest * YpredPresoftmax).reshape(Nte, T, C)
+    print '  RPRedDomComp'
     RPredDomComp = nn.lrp(Ydom).reshape(Nte, T, C)
 
 
