@@ -36,7 +36,7 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
 
     #presoftmaxindex. the linear model does not have a softmax output.
     iP = -1 if len(nn.modules) == 1 else -2
-    Ypred = nn.forward(Xtest,lrp_aware=True)
+    Ypred = nn.forward(Xtest,lrp_aware=False)
     YpredPresoftmax = nn.modules[iP].Y
     amax = np.argmax(YpredPresoftmax,axis=1)
 
