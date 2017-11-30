@@ -48,7 +48,7 @@ class Convolution(Module):
         self.B = np.zeros([self.n])
 
 
-    def forward(self,X):
+    def forward(self,X,lrp_aware=False):
         '''
         Realizes the forward pass of an input through the convolution layer.
 
@@ -59,11 +59,19 @@ class Convolution(Module):
             N = batch size
             H, W, D = input size in heigth, width, depth
 
+        lrp_aware : bool
+            controls whether the forward pass is to be computed with awareness for multiple following
+            LRP calls. this will sacrifice speed in the forward pass but will save time if multiple LRP
+            calls will follow for the current X, e.g. wit different parameter settings or for multiple
+            target classes.
+
         Returns
         -------
         Y : numpy.ndarray
             the layer outputs.
         '''
+
+        self.lrp_aware = lrp_aware
 
         self.X = X
         N,H,W,D = X.shape
@@ -76,12 +84,21 @@ class Convolution(Module):
         Hout = (H - hf) / hstride + 1
         Wout = (W - wf) / wstride + 1
 
+
         #initialize pooled output
         self.Y = np.zeros((N,Hout,Wout,numfilters))
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
-                self.Y[:,i,j,:] = np.tensordot(X[:, i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ],self.W,axes = ([1,2,3],[0,1,2])) + self.B
+        if self.lrp_aware:
+            self.Z = np.zeros((N, Hout, Wout, hf, wf, df, nf)) #initialize container for precomputed forward messages
+            for i in xrange(Hout):
+                for j in xrange(Wout):
+                    self.Z[:,i,j,...] = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na] # N, hf, wf, df, nf
+                    self.Y[:,i,j,:] = self.Z[:,i,j,...].sum(axis=(1,2,3)) + self.B
+        else:
+            for i in xrange(Hout):
+                for j in xrange(Wout):
+                    self.Y[:,i,j,:] = np.tensordot(X[:, i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ],self.W,axes = ([1,2,3],[0,1,2])) + self.B
+
         return self.Y
 
 
@@ -157,9 +174,10 @@ class Convolution(Module):
         self.DY = None
 
 
-    def _simple_lrp(self,R):
+    def _simple_lrp_slow(self,R):
         '''
         LRP according to Eq(56) in DOI: 10.1371/journal.pone.0130140
+        This function shows all necessary operations to perform LRP in one place and is therefore not optimized
         '''
 
         N,Hout,Wout,NF = R.shape
@@ -172,8 +190,32 @@ class Convolution(Module):
             for j in xrange(Wout):
                 Z = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na]
                 Zs = Z.sum(axis=(1,2,3),keepdims=True) + self.B[na,na,na,na,...]
-                Zs += 1e-12*((Zs >= 0)*2 - 1.) # add a weak numerical stabilizer to cushion division by zero
+                Zs += 1e-16*((Zs >= 0)*2 - 1.) # add a weak numerical stabilizer to cushion division by zero
                 Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += ((Z/Zs) * R[:,i:i+1,j:j+1,na,:]).sum(axis=4)
+        return Rx
+
+
+
+    def _simple_lrp(self,R):
+        '''
+        LRP according to Eq(56) in DOI: 10.1371/journal.pone.0130140
+        '''
+
+        N,Hout,Wout,NF = R.shape
+        hf,wf,df,NF = self.W.shape
+        hstride, wstride = self.stride
+
+        Rx = np.zeros_like(self.X,dtype=np.float)
+        R_norm = R / (self.Y + 1e-16*((self.Y >= 0)*2 - 1.))
+
+        for i in xrange(Hout):
+            for j in xrange(Wout):
+                if self.lrp_aware:
+                    Z = self.Z[:,i,j,...]
+                else:
+                    Z = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na]
+
+                Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += (Z * (R_norm[:,i:i+1,j:j+1,na,:])).sum(axis=4)
         return Rx
 
     def _flat_lrp(self,R):
@@ -214,9 +256,10 @@ class Convolution(Module):
                 Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += ((Z/Zs) * R[:,i:i+1,j:j+1,na,:]).sum(axis=4)
         return Rx
 
-    def _epsilon_lrp(self,R,epsilon):
+    def _epsilon_lrp_slow(self,R,epsilon):
         '''
         LRP according to Eq(58) in DOI: 10.1371/journal.pone.0130140
+        This function shows all necessary operations to perform LRP in one place and is therefore not optimized
         '''
 
         N,Hout,Wout,NF = R.shape
@@ -234,7 +277,29 @@ class Convolution(Module):
         return Rx
 
 
-    def _alphabeta_lrp(self,R,alpha):
+    def _epsilon_lrp(self,R,epsilon):
+        '''
+        LRP according to Eq(58) in DOI: 10.1371/journal.pone.0130140
+        '''
+
+        N,Hout,Wout,NF = R.shape
+        hf,wf,df,NF = self.W.shape
+        hstride, wstride = self.stride
+
+        Rx = np.zeros_like(self.X,dtype=np.float)
+        R_norm = R / (self.Y + epsilon*((self.Y >= 0)*2 - 1.))
+
+        for i in xrange(Hout):
+            for j in xrange(Wout):
+                if self.lrp_aware:
+                    Z = self.Z[:,i,j,...]
+                else:
+                    Z = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na]
+                Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += (Z * (R_norm[:,i:i+1,j:j+1,na,:])).sum(axis=4)
+        return Rx
+
+
+    def _alphabeta_lrp_slow(self,R,alpha):
         '''
         LRP according to Eq(60) in DOI: 10.1371/journal.pone.0130140
         '''
@@ -268,5 +333,52 @@ class Convolution(Module):
                     Rbeta = 0
 
                 Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += Ralpha + Rbeta
+
+        return Rx
+
+
+    def _alphabeta_lrp(self,R,alpha):
+        '''
+        LRP according to Eq(60) in DOI: 10.1371/journal.pone.0130140
+        '''
+
+        beta = 1 - alpha
+
+        N,Hout,Wout,NF = R.shape
+        hf,wf,df,NF = self.W.shape
+        hstride, wstride = self.stride
+
+        Rx = np.zeros_like(self.X,dtype=np.float)
+
+        for i in xrange(Hout):
+            for j in xrange(Wout):
+                if self.lrp_aware:
+                    Z = self.Z[:,i,j,...]
+                else:
+                    Z = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na]
+
+                Zplus = Z > 0 #index mask of positive forward predictions
+
+                if alpha * beta != 0 : #the general case: both parameters are not 0
+                    Zp = Z * Zplus
+                    Zsp = Zp.sum(axis=(1,2,3),keepdims=True) + (self.B * (self.B > 0))[na,na,na,na,...] + 1e-16
+
+                    Zn = Z - Zp
+                    Zsn = self.Y[:,i:i+1,j:j+1,na,:] - Zsp - 1e-16
+
+                    Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += ((alpha * (Zp/Zsp) + beta * (Zn/Zsn))*R[:,i:i+1,j:j+1,na,:]).sum(axis=4)
+
+                elif alpha: #only alpha is not 0 -> alpha = 1, beta = 0
+                    Zp = Z * Zplus
+                    Zsp = Zp.sum(axis=(1,2,3),keepdims=True) + (self.B * (self.B > 0))[na,na,na,na,...] + 1e-16
+                    Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += (Zp*(R[:,i:i+1,j:j+1,na,:]/Zsp)).sum(axis=4)
+
+                elif beta: # only beta is not 0 -> alpha = 0, beta = 1
+                    Zn = Z * np.invert(Zplus)
+                    Zsn = Zn.sum(axis=(1,2,3),keepdims=True) + (self.B * (self.B < 0))[na,na,na,na,...] + 1e-16
+                    Rx[:,i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ] += (Zn*(R[:,i:i+1,j:j+1,na,:]/Zsn)).sum(axis=4)
+
+                else:
+                    raise Exception('This case should never occur: alpha={}, beta={}.'.format(alpha, beta))
 
         return Rx

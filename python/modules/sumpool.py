@@ -37,7 +37,7 @@ class SumPool(Module):
         self.pool = pool
         self.stride = stride
 
-    def forward(self,X):
+    def forward(self,X,*args,**kwargs):
         '''
         Realizes the forward pass of an input through the sum pooling layer.
 
@@ -114,7 +114,7 @@ class SumPool(Module):
         DX = np.zeros_like(self.X)
         for i in xrange(Hout):
             for j in xrange(Wout):
-                DX[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += DY[:,i:i+1,j:j+1,:] * normalizer # 0normalizer to produce well-conditioned gradients
+                DX[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += DY[:,i:i+1,j:j+1,:] * normalizer # normalizer to produce well-conditioned gradients
         return DX
 
 
@@ -122,7 +122,7 @@ class SumPool(Module):
         self.X = None
         self.Y = None
 
-    def _simple_lrp(self,R):
+    def _simple_lrp_slow(self,R):
         '''
         LRP according to Eq(56) in DOI: 10.1371/journal.pone.0130140
         '''
@@ -143,6 +143,32 @@ class SumPool(Module):
                 Zs += 1e-12*((Zs >= 0)*2-1) # add a weak numerical stabilizer to cushion an all-zero input
 
                 Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += (Z/Zs) * R[:,i:i+1,j:j+1,:]  #distribute relevance propoprtional to input activations per layer
+
+        return Rx
+
+
+    def _simple_lrp(self,R):
+        '''
+        LRP according to Eq(56) in DOI: 10.1371/journal.pone.0130140
+        '''
+        N,H,W,D = self.X.shape
+
+        hpool,   wpool   = self.pool
+        hstride, wstride = self.stride
+
+        #assume the given pooling and stride parameters are carefully chosen.
+        Hout = (H - hpool) / hstride + 1
+        Wout = (W - wpool) / wstride + 1
+
+        Rx = np.zeros(self.X.shape)
+        normalizer = 1./np.sqrt(hpool*wpool)
+        R_norm = R / (self.Y/normalizer + 1e-12*((self.Y/normalizer >= 0)*2 - 1.)) #factor in normalizer applied to Y in the forward pass
+
+
+        for i in xrange(Hout):
+            for j in xrange(Wout):
+                Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
+                Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += Z * (R_norm[:,i:i+1,j:j+1,:])
 
         return Rx
 
@@ -175,7 +201,8 @@ class SumPool(Module):
         '''
         return self._flat_lrp(R)
 
-    def _epsilon_lrp(self,R,epsilon):
+
+    def _epsilon_lrp_slow(self,R,epsilon):
         '''
         LRP according to Eq(58) in DOI: 10.1371/journal.pone.0130140
         '''
@@ -200,8 +227,41 @@ class SumPool(Module):
         return Rx
 
 
+    def _epsilon_lrp(self,R,epsilon):
+        '''
+        LRP according to Eq(58) in DOI: 10.1371/journal.pone.0130140
+        '''
+        N,H,W,D = self.X.shape
+
+        hpool,   wpool   = self.pool
+        hstride, wstride = self.stride
+
+        #assume the given pooling and stride parameters are carefully chosen.
+        Hout = (H - hpool) / hstride + 1
+        Wout = (W - wpool) / wstride + 1
+
+        Rx = np.zeros(self.X.shape)
+        normalizer = 1./np.sqrt(hpool*wpool) #factor in normalizer applied to Y in the forward pass
+        R_norm = R / (self.Y/normalizer + epsilon*((self.Y >= 0)*2 - 1.))
+
+        for i in xrange(Hout):
+            for j in xrange(Wout):
+                Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
+                Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += Z * (R_norm[:,i:i+1,j:j+1,:])
+
+        return Rx
+
+
+
+    #def _epsilon_lrp(self,R,epsilon):
+    #    return self._epsilon_lrp_slow(R,epsilon)
+
+
+
+
+
     # yes, we can do this. no, it will not make sense most of the time.  by default, _lrp_simple will be called. see line 152
-    def _alphabeta_lrp(self,R,alpha):
+    def _alphabeta_lrp_slow(self,R,alpha):
         '''
         LRP according to Eq(60) in DOI: 10.1371/journal.pone.0130140
         '''
@@ -225,18 +285,66 @@ class SumPool(Module):
 
                 if not alpha == 0:
                     Zp = Z * (Z > 0)
-                    Zsp = Zp.sum(axis=(1,2),keepdims=True) +1e-16 #zero division is quite likely in sum pooling layers when using the alpha-variant
-                    Ralpha = (Zp/Zsp) * R[:,i:i+1,j:j+1,:]
+                    Zsp = Zp.sum(axis=(1,2),keepdims=True) + 1e-16 #zero division is quite likely in sum pooling layers when using the alpha-variant
+                    Ralpha = alpha * (Zp/Zsp) * R[:,i:i+1,j:j+1,:]
                 else:
                     Ralpha = 0
 
                 if not beta == 0:
                     Zn = Z * (Z < 0)
                     Zsn = Zn.sum(axis=(1,2),keepdims=True) - 1e-16 #zero division is quite likely in sum pooling layers when using the alpha-variant
-                    Rbeta = (Zn/Zsn) * R[:,i:i+1,j:j+1,:]
+                    Rbeta = beta * (Zn/Zsn) * R[:,i:i+1,j:j+1,:]
                 else:
                     Rbeta = 0
 
                 Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += Ralpha + Rbeta
+
+        return Rx
+
+    def _alphabeta_lrp(self, R, alpha):
+        '''
+        LRP according to Eq(60) in DOI: 10.1371/journal.pone.0130140
+        '''
+
+        beta = 1-alpha
+
+        N,H,W,D = self.X.shape
+
+        hpool,   wpool   = self.pool
+        hstride, wstride = self.stride
+
+        #assume the given pooling and stride parameters are carefully chosen.
+        Hout = (H - hpool) / hstride + 1
+        Wout = (W - wpool) / wstride + 1
+        normalizer = 1./np.sqrt(hpool*wpool) #factor in normalizer applied to Y in the forward pass
+
+        #distribute the gradient towards across all inputs evenly
+        Rx = np.zeros(self.X.shape)
+        for i in xrange(Hout):
+            for j in xrange(Wout):
+                Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
+                Zplus = Z > 0 #index mask of positive forward predictions
+
+                if alpha * beta != 0 : #the general case: both parameters are not 0
+                    Zp = Z * Zplus
+                    Zsp = Zp.sum(axis=(1,2),keepdims=True)+ 1e-16
+
+                    Zn = Z - Zp
+                    Zsn = self.Y[:,i:i+1,j:j+1,:]/normalizer - Zsp - 1e-16
+
+                    Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += (alpha*(Zp/Zsp) + beta*Zn*(R[:,i:i+1,j:j+1,:]/Zsn))*R[:,i:i+1,j:j+1,:]
+
+                elif alpha: #only alpha is not 0 -> alpha = 1, beta = 0
+                    Zp = Z * Zplus
+                    Zsp = Zp.sum(axis=(1,2),keepdims=True) + 1e-16
+                    Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += Zp*(R[:,i:i+1,j:j+1,:]/Zsp)
+
+                elif beta: # only beta is not 0 -> alpha = 0, beta = 1
+                    Zn = Z * np.invert(Zplus)
+                    Zsn = Zn.sum(axis=(1,2),keepdims=True) - 1e-16
+                    Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += Zn*(R[:,i:i+1,j:j+1,:]/Zsn)
+
+                else:
+                    raise Exception('This case should never occur: alpha={}, beta={}.'.format(alpha, beta))
 
         return Rx
