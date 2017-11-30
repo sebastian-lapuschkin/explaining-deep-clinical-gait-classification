@@ -36,7 +36,7 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
 
     #presoftmaxindex. the linear model does not have a softmax output.
     iP = -1 if len(nn.modules) == 1 else -2
-    Ypred = nn.forward(Xtest)
+    Ypred = nn.forward(Xtest,lrp_aware=True)
     YpredPresoftmax = nn.modules[iP].Y
     amax = np.argmax(YpredPresoftmax,axis=1)
 
@@ -483,7 +483,7 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-                return -1 # we have done a training. this should suffice.
+                #return -1 # we have done a training. this should suffice.
     return SKIPTHISMANY
     LOG.close()
 
@@ -897,7 +897,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-                return -1 # we have done a training. this should suffice.
+                #return -1 # we have done a training. this should suffice.
     return SKIPTHISMANY
     LOG.close()
 
@@ -1107,7 +1107,7 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-                return -1 # we have done a training. this should suffice.
+                #return -1 # we have done a training. this should suffice.
     return SKIPTHISMANY
     LOG.close()
 
@@ -1316,7 +1316,7 @@ def run_cnn_A3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                                   'l1loss': l1loss,
                                   'acc': acc})
 
-                return -1 # we have done a training. this should suffice.
+                #return -1 # we have done a training. this should suffice.
     return SKIPTHISMANY
     LOG.close()
 
