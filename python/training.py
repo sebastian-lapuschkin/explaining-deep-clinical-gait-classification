@@ -58,11 +58,14 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
 
 
     #preconfigure lrp for all layers
-    for m in nn.modules:
+    for i in xrange(len(nn.modules)):
+        m = nn.modules[i]
         if m.__class__ == Convolution:
             m.set_lrp_parameters(lrp_var='alpha',  param=2.0)
+            print 'setting lrp parameters to alpha=2 for module {} of type {}'.format(i,m.__class__)
         elif m.__class__ == Linear:
             m.set_lrp_parameters(lrp_var='epsilon',  param=1e-5)
+            print 'setting lrp parameters to epsilon=1e-5 for module {} of type {}'.format(i,m.__class__)
 
     RPredActComp = nn.lrp(Ytest * YpredPresoftmax).reshape(Nte, T, C)
     RPredDomComp = nn.lrp(Ydom).reshape(Nte, T, C)
