@@ -5,19 +5,49 @@ import numpy as np
 import time
 
 
+def acc(Y,Ypred):
+    return np.mean(np.argmax(Y,axis=1) == np.argmax(Ypred,axis=1))
+
 def random_perturbations(nn,X,Y,CHANGE,repetitions,sigma):
     #additive random permutations on the data.
 
     N,nclasses = Y.shape
+    M = X[0,...].size # 'size' of each sample in number of pixels/dimensions
+
     YpredPerturbed = np.zeros([N,nclasses,len(CHANGE),repetitions]) #do NOT return all reps, but the average.
 
     # labels to numeric indicesprint 'split', S, ': [3] (re)shaping data to fit model inputs [time: {}]'.format(time.time() - t_start)
     for c in xrange(nclasses): # do all classes separately
+        IcurrentClass = Y[:,0] > 0
         for r in xrange(repetitions): # repeat for some times
-            Xc = np.copy(X[Y[:,c],...]) # get all samples of that class
-            for i in CHANGE: #change in percent of the available samples per datapoint
+            Xt = X[IcurrentClass,...]
+            Xtshape = Xt.shape
+            Xt = np.reshape(Xt, [-1,M]) # get all samples of that class as 'clean copy' in the beginning. reshape into 1-dim samples
+            ORDERS = [np.random.permutation(M) for s in xrange(N)] #create random permutation arrays for all samples
 
-                pass # <- continue here.
+            for t in xrange(len(CHANGE)): #change in percent of the available samples per datapoint
+                #process iterative change here:
+                #  move over N and change samples
+                #  reshape back for forward pass.
+                cstart = 0 if t == 0 else int(CHANGE[t-1]*M/100.)
+                cend = int(CHANGE[t]*M/100.)
+                for i in xrange(IcurrentClass.sum()):
+                    Xt[i,ORDERS[i][cstart:cend]] += sigma * np.random.randn(cend-cstart)
+
+                Yp = nn.forward(np.reshape(Xt, Xtshape))
+                #Yp = nn.modules[-2].Y if len(nn.modules) > 1 else Yp # get presoftmax score, if we have a softmax layer
+                YpredPerturbed[IcurrentClass,:,t,r] = Yp
+
+                print acc(Y[IcurrentClass], Yp) , 'after', t , 'changes for class', c, (cstart, cend)
+                #print acc(Y[IcurrentClass],Y[IcurrentClass])
+                #print acc(Yp,Yp)
+            exit()
+
+
+    #return the average perturbed predictions over the repetitions
+    print np.mean(YpredPerturbed, axis=3)
+    return np.mean(YpredPerturbed, axis=3)
+
 
 
 
@@ -48,7 +78,7 @@ def run(workerparams):
     t_start = time.time()
 
     REPS = 10
-    CHANGEPERCENT = range(0,21,2)
+    CHANGEPERCENT = range(0,50,1)
     print CHANGEPERCENT
 
     #unpack parameters
@@ -68,7 +98,11 @@ def run(workerparams):
     X,Y = reshape_data(X,Y,modelpath)
 
     print 'split', S, ': [4] random permutations on the data [time: {}]'.format(time.time() - t_start)
-    result = random_perturbations(nn, X, Y, CHANGEPERCENT, REPS, sigma=0.5)
+    result = random_perturbations(nn, X, Y, CHANGEPERCENT, REPS, sigma=1)
+
+
+    #YP = random_perturbations(nn,X,Y,CHANGE,repetitions,0.1)
+
 
     #after here the actual work
     RVARIANTS = ['RpredAct', 'RpredActComp'] #relevance variants to compare
