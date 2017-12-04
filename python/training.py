@@ -80,8 +80,6 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
     return Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp
 
 
-
-
 def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-1):
     """
     Trains a CNN model. The architecture of the model adapts to the dimensions of the data.
@@ -496,9 +494,6 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
     return SKIPTHISMANY
     LOG.close()
 
-
-
-
 def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-1):
     """
     Trains a CNN model. The architecture of the model adapts to the dimensions of the data.
@@ -909,7 +904,6 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
                 #return -1 # we have done a training. this should suffice.
     return SKIPTHISMANY
     LOG.close()
-
 
 
 def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-1):
@@ -1380,7 +1374,6 @@ def run_pca(X,Y,S):
             plt.savefig(figpath)
 
 
-
 def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
     """
     Trains a linear model.
@@ -1531,7 +1524,6 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
     sys.stdout = STDOUT
     LOG.close()
-
 
 
 def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='skip'):
