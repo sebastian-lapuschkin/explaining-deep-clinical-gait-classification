@@ -1,58 +1,19 @@
 import scipy.io as scio
 import model_io
 import time
+import sys
 import numpy as np
 import time
+from modules import SoftMax
 
+
+
+###############################
+# HELPER FUNCTIONS
+###############################
 
 def acc(Y,Ypred):
     return np.mean(np.argmax(Y,axis=1) == np.argmax(Ypred,axis=1))
-
-def perturbations(nn,X,Y,CHANGE,repetitions,sigma):
-    """
-    This is a general, parameterizable perturbation method.
-
-    """
-
-    N,nclasses = Y.shape
-    M = X[0,...].size # 'size' of each sample in number of pixels/dimensions
-
-    YpredPerturbed = np.zeros([N,nclasses,len(CHANGE),repetitions]) #do NOT return all reps, but the average.
-
-    # labels to numeric indicesprint 'split', S, ': [3] (re)shaping data to fit model inputs [time: {}]'.format(time.time() - t_start)
-    for c in xrange(nclasses): # do all classes separately
-        IcurrentClass = Y[:,0] > 0
-        for r in xrange(repetitions): # repeat for some times
-            Xt = X[IcurrentClass,...]
-            Xtshape = Xt.shape
-            Xt = np.reshape(Xt, [-1,M]) # get all samples of that class as 'clean copy' in the beginning. reshape into 1-dim samples
-            ORDERS = [np.random.permutation(M) for s in xrange(N)] #create random permutation arrays for all samples
-
-            for t in xrange(len(CHANGE)): #change in percent of the available samples per datapoint
-                #process iterative change here:
-                #  move over N and change samples
-                #  reshape back for forward pass.
-                cstart = 0 if t == 0 else int(CHANGE[t-1]*M/100.)
-                cend = int(CHANGE[t]*M/100.)
-                for i in xrange(IcurrentClass.sum()):
-                    Xt[i,ORDERS[i][cstart:cend]] += sigma * np.random.randn(cend-cstart)
-
-                Yp = nn.forward(np.reshape(Xt, Xtshape))
-                #Yp = nn.modules[-2].Y if len(nn.modules) > 1 else Yp # get presoftmax score, if we have a softmax layer
-                YpredPerturbed[IcurrentClass,:,t,r] = Yp
-
-                print acc(Y[IcurrentClass], Yp) , 'after', t , 'changes for class', c, (cstart, cend)
-                #print acc(Y[IcurrentClass],Y[IcurrentClass])
-                #print acc(Yp,Yp)
-            exit()
-
-
-    #return the average perturbed predictions over the repetitions
-    print np.mean(YpredPerturbed, axis=3)
-    return np.mean(YpredPerturbed, axis=3)
-
-
-
 
 
 def reshape_data(X,Y,modelpath):
@@ -74,22 +35,92 @@ def reshape_data(X,Y,modelpath):
     return X, Y
 
 
+###############################
+# HELPER FUNCTIONS
+###############################
+"""
+helper functions f(X,p)
+do receive some data X which is manipulated according to some param(s) p
+and then returned.
+"""
+
+def gaussian_noise(X, sigma):
+    return X + sigma * np.random.randn(X.size)
+
+
+
+###############################
+# ORDER FUNCTIONS
+###############################
+"""
+order functions f(X,R)
+receive some data X shaped M x D and some measure R
+by which perturbation orders are computed and returned as
+as a list of M lists with D entries or a M x D array
+"""
+def random_order(X, R):
+    M,D = X.shape
+    return [np.random.permutation(D) for m in xrange(M)]
+
+###############################
+# MAIN PERTURBATION FUNCTIONS
+###############################
+
+def perturbations(nn, X, Y, R, CHANGE, repetitions, orderfxn, noisefxn, noiseparam):
+    """
+    This is a general, parameterizable perturbation method.
+
+    """
+
+    N, nclasses = Y.shape
+    M = X[0, ...].size # 'size' of each sample in number of pixels/dimensions
+    YpredPerturbed = np.zeros([N, nclasses, len(CHANGE), repetitions]) # container for gradual perturbations across all repetitions
+
+    for c in xrange(nclasses):
+        # do all classes separately to keep the memory footprint low.
+        IcurrentClass = Y[:, c] > 0
+        for r in xrange(repetitions):   # repeat for some times
+            Xt = X[IcurrentClass,...]   # get a fresh copy of the 'clean' data.
+            Xtshape = Xt.shape          # get the shape constant for later reconstruction
+            Xt = np.reshape(Xt, [-1, M])# reshape into 1-dim samples, which makes perturbation across all models easier.
+            ORDERS = orderfxn(Xt, R)    # compute a perturbation order, provided the given method.
+
+            for t in xrange(len(CHANGE)):
+                # iteratively change a given percentage of the data at a time
+                change_start = 0 if t == 0 else int(CHANGE[t-1]*M/100.)
+                change_end = int(CHANGE[t]*M/100.)
+                print change_start, change_end
+                for i in xrange(IcurrentClass.sum()):
+                    Xt[i,ORDERS[i][change_start:change_end]] = noisefxn(Xt[i, ORDERS[i][change_start:change_end]], noiseparam)
+
+
+                Yp = nn.forward(np.reshape(Xt, Xtshape))                                # reconstruct original shape and predict
+                Yp = nn.modules[-2].Y if nn.modules[-1].__class__ == SoftMax else Yp    # collect presoftmax-prediction, if we have a softmax layer. Softmax can be added later manually, if needed
+                YpredPerturbed[IcurrentClass,:,t,r] = Yp                                # save the current results in the output tensor
+
+    return YpredPerturbed
+
+
+
+
+
+
+
 
 
 def run(workerparams):
 
     t_start = time.time()
 
-    REPS = 10
-    CHANGEPERCENT = range(0,50,1)
-    print CHANGEPERCENT
+    REPS = 10                                   # repeat the experiment ten times
+    CHANGEPERCENT = range(0,50,1)               # change up to 50% of the data
 
     #unpack parameters
-    S = workerparams['split_no'] # an int. the current split
-    modelpath = workerparams['model'] # path of the model to load
-    relevancepath = workerparams['relevances'] # path of the relevance mat file to load
-    X = workerparams['Xtest'] # N x T x C test data
-    Y = workerparams['Ytest'] # N x 2 or N x 57 test labels. binary
+    S = workerparams['split_no']                # an int. the current split
+    modelpath = workerparams['model']           # path of the model to load
+    relevancepath = workerparams['relevances']  # path of the relevance mat file to load
+    X = workerparams['Xtest']                   # N x T x C test data
+    Y = workerparams['Ytest']                   # N x 2 or N x 57 test labels. binary
 
     print 'split', S, ': [1] loading model [time: {}]'.format(time.time() - t_start)
     nn = model_io.read(modelpath)
@@ -104,15 +135,15 @@ def run(workerparams):
     Ypred = nn.forward(X)
 
     #compare computed and precomputed prediction scores before doing anything else
-    assert acc(Ypred, modeloutputs['Ypred']) == 1.0                             #computed and stored predictions should match.
-    assert acc(Ypred, Y) == acc(modeloutputs['Ypred'],Y), "{} {} {}".format(acc(Ypred, Y), acc(modeloutputs['Ypred'], Y), acc(Y, modeloutputs['Ypred'])- acc(Y, Ypred))   #second test for that
-    np.testing.assert_array_equal(Ypred, modeloutputs['Ypred'])                 #third, more detailed test.
+    assert acc(Ypred, modeloutputs['Ypred']) == 1.0                                                                                                                         #computed and stored predictions should match.
+    assert acc(Ypred, Y) == acc(modeloutputs['Ypred'],Y), "{} {} {}".format(acc(Ypred, Y), acc(modeloutputs['Ypred'], Y), acc(Y, modeloutputs['Ypred'])- acc(Y, Ypred))     #second test for that
+    np.testing.assert_allclose(Ypred, modeloutputs['Ypred'])                                                                                                                #third, more detailed test.
+
+    print '    split', S, ': [5] sanity check passed. model performance for is at {}% [time: {}]'.format(100*acc(Ypred, Y), time.time() - t_start)
 
 
-
-    print 'split', S, ': [5] random permutations on the data [time: {}]'.format(time.time() - t_start)
-    result = perturbations(nn, X, Y, CHANGEPERCENT, REPS, sigma=1)
-
+    print 'split', S, ': [6] random additive gaussian permutations on the data [time: {}]'.format(time.time() - t_start)
+    result = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=1)
 
 
 
