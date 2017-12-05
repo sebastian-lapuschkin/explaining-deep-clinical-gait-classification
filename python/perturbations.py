@@ -139,3 +139,4 @@ if __name__ == '__main__':
 
 
 #python perturbations.py folder=BASELINE-LINEAR-S1234 arch=Linear data=GRF_AV target=Gender debug=1
+#python perturbations.py folder=2017-09-15-S1234 arch=2LayerFCNN-512 data=GRF_AV target=Gender debug=0

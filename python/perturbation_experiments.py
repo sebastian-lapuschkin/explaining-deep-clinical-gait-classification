@@ -89,7 +89,7 @@ def perturbations(nn, X, Y, R, CHANGE, repetitions, orderfxn, noisefxn, noisepar
                 # iteratively change a given percentage of the data at a time
                 change_start = 0 if t == 0 else int(CHANGE[t-1]*M/100.)
                 change_end = int(CHANGE[t]*M/100.)
-                print change_start, change_end
+                #print change_start, change_end
                 for i in xrange(IcurrentClass.sum()):
                     Xt[i,ORDERS[i][change_start:change_end]] = noisefxn(Xt[i, ORDERS[i][change_start:change_end]], noiseparam)
 
