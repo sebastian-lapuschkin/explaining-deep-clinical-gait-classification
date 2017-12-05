@@ -185,7 +185,7 @@ def run(workerparams):
     assert acc(Ypred, Y) == acc(modeloutputs['Ypred'],Y), "{} {} {}".format(acc(Ypred, Y), acc(modeloutputs['Ypred'], Y), acc(Y, modeloutputs['Ypred'])- acc(Y, Ypred))     #second test for that
     np.testing.assert_allclose(Ypred, modeloutputs['Ypred'])                                                                                                                #third, more detailed test.
 
-    print '    split', S, ': [5] sanity check passed. model performance for is at {}% [time: {}]'.format(100*acc(Ypred, Y), time.time() - t_start)
+    print '    split', S, ': [5] sanity check passed. model performance is at {}% [time: {}]'.format(100*acc(Ypred, Y), time.time() - t_start)
 
 
     print 'split', S, ': [6] random additive gaussian random permutations on the data [time: {}]'.format(time.time() - t_start)
