@@ -45,8 +45,23 @@ and then returned.
 """
 
 def gaussian_noise(X, sigma):
+    #additive gaussian noise
     return X + sigma * np.random.randn(X.size)
 
+def shot_noise(X, p):
+    #random shot noise. set pixels to -1 and 1
+    return (np.random.rand(X.size) > 0).astype(np.float) * 2 - 1
+
+def pepper_noise(X,p):
+    #set selected pixels to black (0)
+    return np.zeros_like(X)
+
+def salt_noise(X,p):
+    #set selected pixels to white (1)
+    return np.ones_like(X)
+
+def negative_salt_noise(X,p):
+    return -np.ones_like(X)
 
 
 ###############################
@@ -143,7 +158,15 @@ def run(workerparams):
 
 
     print 'split', S, ': [6] random additive gaussian permutations on the data [time: {}]'.format(time.time() - t_start)
-    result = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=1)
+    p_gaussian_random_sigma05 = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=0.5)
+    p_gaussian_random_sigma1 = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=1)
+    p_gaussian_random_sigma2 = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=2)
+
+    print 'split', S, ': [7] different shot noise variants on the data [time: {}]'.format(time.time() - t_start)
+    p_shot_random = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=shot_noise, noiseparam=None)
+    p_pepper_random = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=pepper_noise, noiseparam=None)
+    p_salt_random = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=salt_noise, noiseparam=None)
+    p_negative_salt_random = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=negative_salt_noise, noiseparam=None)
 
 
 
