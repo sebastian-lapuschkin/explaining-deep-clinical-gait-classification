@@ -125,7 +125,8 @@ if __name__ == '__main__':
     t_start = time.time()
     if DEBUG:
         print 'debugging single run'
-        perturbation_experiments.run(workerparams[0])
+        for i in xrange(len(workerparams)):
+            perturbation_experiments.run(workerparams[i])
     else:
         print 'creating worker pool of size', N
         pool = Pool(N)
@@ -136,3 +137,5 @@ if __name__ == '__main__':
 
     print 'done after {}s'.format(time.time() - t_start)
 
+
+#python perturbations.py folder=BASELINE-LINEAR-S1234 arch=Linear data=GRF_AV target=Gender debug=1
