@@ -74,8 +74,32 @@ by which perturbation orders are computed and returned as
 as a list of M lists with D entries or a M x D array
 """
 def random_order(X, R):
-    M,D = X.shape
+    M, D = X.shape
     return [np.random.permutation(D) for m in xrange(M)]
+
+def relevance_ascending(X, R):
+    # sort by relevance ascendingly, e.g. the least important (and contradicting)
+    # dimensions are at the head of the list.
+    # this can be used to "repair" broken parts of the data, or for a sanity check.
+
+    M, D = X.shape
+    N, E = R.shape
+    assert M == N # make sure the shapes match
+    assert D == E
+
+    order = [None]*M
+    for m in xrange(M):
+        order[m] = R[m,:].argsort()
+    return order
+
+def relevance_descending(X,R):
+    # reversed ascending order.
+    # most relevant parts are at the beginning of the list.
+    return [o[::-1] for o in relevance_ascending(X,R)]
+
+
+
+
 
 ###############################
 # MAIN PERTURBATION FUNCTIONS
@@ -98,7 +122,12 @@ def perturbations(nn, X, Y, R, CHANGE, repetitions, orderfxn, noisefxn, noisepar
             Xt = X[IcurrentClass,...]   # get a fresh copy of the 'clean' data.
             Xtshape = Xt.shape          # get the shape constant for later reconstruction
             Xt = np.reshape(Xt, [-1, M])# reshape into 1-dim samples, which makes perturbation across all models easier.
-            ORDERS = orderfxn(Xt, R)    # compute a perturbation order, provided the given method.
+            if not R is None:                       # same for relevance scores, if given
+                Rt = R[IcurrentClass,...]
+                Rt = np.reshape(Rt, [-1, M])
+            else:
+                Rt = R
+            ORDERS = orderfxn(Xt, Rt)    # compute a perturbation order, provided the given method.
 
             for t in xrange(len(CHANGE)):
                 # iteratively change a given percentage of the data at a time
@@ -127,15 +156,17 @@ def run(workerparams):
 
     t_start = time.time()
 
-    REPS = 10                                   # repeat the experiment ten times
-    CHANGEPERCENT = range(0,50,1)               # change up to 50% of the data
+    REPS = 10                                           # repeat the experiment ten times
+    CHANGEPERCENT = range(0,50,1)                       # change up to 50% of the data
 
     #unpack parameters
-    S = workerparams['split_no']                # an int. the current split
-    modelpath = workerparams['model']           # path of the model to load
-    relevancepath = workerparams['relevances']  # path of the relevance mat file to load
-    X = workerparams['Xtest']                   # N x T x C test data
-    Y = workerparams['Ytest']                   # N x 2 or N x 57 test labels. binary
+    S = workerparams['split_no']                        # an int. the current split
+    modelpath = workerparams['model']                   # path of the model to load
+    relevancepath = workerparams['relevances']          # path of the relevance mat file to load
+    outputfolder = workerparams['outputfolder']         # path to the output folder
+    outputfile = outputfolder + '/perturbations.mat'    # the file to store the results in
+    X = workerparams['Xtest']                           # N x T x C test data
+    Y = workerparams['Ytest']                           # N x 2 or N x 57 test labels. binary
 
     print 'split', S, ': [1] loading model [time: {}]'.format(time.time() - t_start)
     nn = model_io.read(modelpath)
@@ -157,35 +188,73 @@ def run(workerparams):
     print '    split', S, ': [5] sanity check passed. model performance for is at {}% [time: {}]'.format(100*acc(Ypred, Y), time.time() - t_start)
 
 
-    print 'split', S, ': [6] random additive gaussian permutations on the data [time: {}]'.format(time.time() - t_start)
-    p_gaussian_random_sigma05 = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=0.5)
-    p_gaussian_random_sigma1 = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=1)
-    p_gaussian_random_sigma2 = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=2)
-
-    print 'split', S, ': [7] different shot noise variants on the data [time: {}]'.format(time.time() - t_start)
-    p_shot_random = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=shot_noise, noiseparam=None)
-    p_pepper_random = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=pepper_noise, noiseparam=None)
-    p_salt_random = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=salt_noise, noiseparam=None)
-    p_negative_salt_random = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=negative_salt_noise, noiseparam=None)
+    print 'split', S, ': [6] random additive gaussian random permutations on the data [time: {}]'.format(time.time() - t_start)
+    p_gaussian_random_sigma05   = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=0.5)
+    p_gaussian_random_sigma1    = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=1)
+    p_gaussian_random_sigma2    = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=gaussian_noise, noiseparam=2)
 
 
+    print 'split', S, ': [7] different random shot noise variants on the data [time: {}]'.format(time.time() - t_start)
+    p_shot_random               = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=shot_noise, noiseparam=None)
+    p_pepper_random             = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=pepper_noise, noiseparam=None)
+    p_salt_random               = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=salt_noise, noiseparam=None)
+    p_negative_salt_random      = perturbations(nn=nn, X=X, Y=Y, R=None, CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=negative_salt_noise, noiseparam=None)
 
 
-    #YP = random_perturbations(nn,X,Y,CHANGE,repetitions,0.1)
+    print 'split', S, ': [8] different gaussian noise variants wrt eps-LRP order on the data [time: {}]'.format(time.time() - t_start)
+    p_gaussian_reps_sigma05     = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredAct'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=relevance_descending, noisefxn=gaussian_noise, noiseparam=0.5)
+    p_gaussian_reps_sigma1      = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredAct'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=relevance_descending, noisefxn=gaussian_noise, noiseparam=1)
+    p_gaussian_reps_sigma2      = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredAct'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=relevance_descending, noisefxn=gaussian_noise, noiseparam=2)
 
 
-    #after here the actual work
-    RVARIANTS = ['RpredAct', 'RpredActComp'] #relevance variants to compare
-    # PLUS RANDOM PERTURBATIONS
+    print 'split', S, ': [9] different gaussian noise variants wrt composite-LRP order on the data [time: {}]'.format(time.time() - t_start)
+    p_gaussian_rcomp_sigma05    = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredActComp'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=relevance_descending, noisefxn=gaussian_noise, noiseparam=0.5)
+    p_gaussian_rcomp_sigma1     = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredActComp'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=relevance_descending, noisefxn=gaussian_noise, noiseparam=1)
+    p_gaussian_rcomp_sigma2     = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredActComp'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=relevance_descending, noisefxn=gaussian_noise, noiseparam=2)
 
 
+    print 'split', S, ': [10] different shot noise variants wrt eps-LRP order on the data [time: {}]'.format(time.time() - t_start)
+    p_shot_reps                 = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredAct'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=shot_noise, noiseparam=None)
+    p_pepper_reps               = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredAct'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=pepper_noise, noiseparam=None)
+    p_salt_reps                 = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredAct'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=salt_noise, noiseparam=None)
+    p_negative_salt_reps        = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredAct'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=negative_salt_noise, noiseparam=None)
 
 
-    #change 10 percent max
-    # in steps of 1 percent (rounded up))
+    print 'split', S, ': [11] different shot noise variants wrt composite-LRP order on the data [time: {}]'.format(time.time() - t_start)
+    p_shot_rcomp                = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredActComp'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=shot_noise, noiseparam=None)
+    p_pepper_rcomp              = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredActComp'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=pepper_noise, noiseparam=None)
+    p_salt_rcomp                = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredActComp'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=salt_noise, noiseparam=None)
+    p_negative_salt_rcomp       = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredActComp'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=negative_salt_noise, noiseparam=None)
 
-    #type of exp:
-        #ypred x 10
-        #relevance x 10 / X
 
-    return
+    print 'split', S, ': [12] saving results to {} [time: {}]'.format(outputfile, time.time() - t_start)
+    scio.savemat(outputfile,
+                {   'p_gaussian_random_sigma05' : p_gaussian_random_sigma05,
+                    'p_gaussian_random_sigma1' : p_gaussian_random_sigma1,
+                    'p_gaussian_random_sigma2' : p_gaussian_random_sigma2,
+                    #
+                    'p_shot_random' : p_shot_random,
+                    'p_pepper_random' : p_pepper_random,
+                    'p_salt_random' : p_salt_random,
+                    'p_negative_salt_random' : p_negative_salt_random,
+                    #
+                    'p_gaussian_reps_sigma05' : p_gaussian_reps_sigma05,
+                    'p_gaussian_reps_sigma1' : p_gaussian_reps_sigma1,
+                    'p_gaussian_reps_sigma2' : p_gaussian_reps_sigma2,
+                    #
+                    'p_gaussian_rcomp_sigma05' : p_gaussian_rcomp_sigma05,
+                    'p_gaussian_rcomp_sigma1' : p_gaussian_rcomp_sigma1,
+                    'p_gaussian_rcomp_sigma2' : p_gaussian_rcomp_sigma2,
+                    #
+                    'p_shot_reps' : p_shot_reps,
+                    'p_pepper_reps' : p_pepper_reps,
+                    'p_salt_reps' : p_salt_reps,
+                    'p_negative_salt_reps' : p_negative_salt_reps,
+                    #
+                    'p_shot_rcomp' : p_shot_rcomp,
+                    'p_pepper_rcomp' : p_pepper_rcomp,
+                    'p_salt_rcomp' : p_salt_rcomp,
+                    'p_negative_salt_rcomp' : p_negative_salt_rcomp
+
+                })
+

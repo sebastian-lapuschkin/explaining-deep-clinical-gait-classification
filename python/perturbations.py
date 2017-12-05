@@ -126,7 +126,8 @@ if __name__ == '__main__':
     if DEBUG:
         print 'debugging single run'
         for i in xrange(len(workerparams)):
-            perturbation_experiments.run(workerparams[i])
+            perturbation_experiments.run(workerparams[0])
+            break
     else:
         print 'creating worker pool of size', N
         pool = Pool(N)
