@@ -49,3 +49,4 @@ done #DATA
 
 echo 'packing results for' $ROOTFOLDER
 find $ROOTFOLDER -type f -name perturbations.mat -print0 | tar -czvf $ROOTFOLDER-PERTURBATIONS.tar.gz --null -T -
+du -sh $ROOTFOLDER-PERTURBATIONS.tar.gz
