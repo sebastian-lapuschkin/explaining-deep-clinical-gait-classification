@@ -8,8 +8,11 @@ import time
 def acc(Y,Ypred):
     return np.mean(np.argmax(Y,axis=1) == np.argmax(Ypred,axis=1))
 
-def random_perturbations(nn,X,Y,CHANGE,repetitions,sigma):
-    #additive random permutations on the data.
+def perturbations(nn,X,Y,CHANGE,repetitions,sigma):
+    """
+    This is a general, parameterizable perturbation method.
+
+    """
 
     N,nclasses = Y.shape
     M = X[0,...].size # 'size' of each sample in number of pixels/dimensions
@@ -97,8 +100,21 @@ def run(workerparams):
     print 'split', S, ': [3] (re)shaping data to fit model inputs [time: {}]'.format(time.time() - t_start)
     X,Y = reshape_data(X,Y,modelpath)
 
-    print 'split', S, ': [4] random permutations on the data [time: {}]'.format(time.time() - t_start)
-    result = random_perturbations(nn, X, Y, CHANGEPERCENT, REPS, sigma=1)
+    print 'split', S, ': [4] prediction performance sanity check [time: {}]'.format(time.time() - t_start)
+    Ypred = nn.forward(X)
+
+    #compare computed and precomputed prediction scores before doing anything else
+    assert acc(Ypred, modeloutputs['Ypred']) == 1.0                             #computed and stored predictions should match.
+    assert acc(Ypred, Y) == acc(modeloutputs['Ypred'],Y), "{} {} {}".format(acc(Ypred, Y), acc(modeloutputs['Ypred'], Y), acc(Y, modeloutputs['Ypred'])- acc(Y, Ypred))   #second test for that
+    np.testing.assert_array_equal(Ypred, modeloutputs['Ypred'])                 #third, more detailed test.
+
+
+
+    print 'split', S, ': [5] random permutations on the data [time: {}]'.format(time.time() - t_start)
+    result = perturbations(nn, X, Y, CHANGEPERCENT, REPS, sigma=1)
+
+
+
 
 
     #YP = random_perturbations(nn,X,Y,CHANGE,repetitions,0.1)
@@ -117,3 +133,5 @@ def run(workerparams):
     #type of exp:
         #ypred x 10
         #relevance x 10 / X
+
+    return
