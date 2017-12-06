@@ -36,7 +36,7 @@ def reshape_data(X,Y,modelpath):
 
 
 ###############################
-# HELPER FUNCTIONS
+# NOISE FUNCTIONS
 ###############################
 """
 helper functions f(X,p)
