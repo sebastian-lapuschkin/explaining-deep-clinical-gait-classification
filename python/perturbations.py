@@ -125,16 +125,24 @@ if __name__ == '__main__':
     t_start = time.time()
     if DEBUG:
         print 'debugging single run'
+        results = []
         for i in xrange(len(workerparams)):
-            perturbation_experiments.run(workerparams[0])
+            r = perturbation_experiments.run(workerparams[0])
+            results.append(r)
             break
     else:
         print 'creating worker pool of size', N
         pool = Pool(N)
 
         print 'executing jobs'
-        pool.map(perturbation_experiments.run, workerparams)
+        results  = pool.map(perturbation_experiments.run, workerparams)
 
+
+    print 'writing results sequentially... [time: {}]'.format(time.time() - t_start)
+    for r in results:
+        destination, matdict = r # unpack tuple
+        print '    writing {} [time: {}]'.format(destination, time.time() - t_start)
+        scio.savemat(destination, matdict)
 
     print 'done after {}s'.format(time.time() - t_start)
 

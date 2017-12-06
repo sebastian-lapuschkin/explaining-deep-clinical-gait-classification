@@ -142,7 +142,8 @@ def perturbations(nn, X, Y, R, CHANGE, repetitions, orderfxn, noisefxn, noisepar
                 Yp = nn.modules[-2].Y if nn.modules[-1].__class__ == SoftMax else Yp    # collect presoftmax-prediction, if we have a softmax layer. Softmax can be added later manually, if needed
                 YpredPerturbed[IcurrentClass,:,t,r] = Yp                                # save the current results in the output tensor
 
-    return YpredPerturbed
+    #return YpredPerturbed
+    return YpredPerturbed.astype(np.float16) # reduce the memory footprint a bit.
 
 
 
@@ -227,9 +228,8 @@ def run(workerparams):
     p_negative_salt_rcomp       = perturbations(nn=nn, X=X, Y=Y, R=modeloutputs['RPredActComp'], CHANGE=CHANGEPERCENT, repetitions=REPS, orderfxn=random_order, noisefxn=negative_salt_noise, noiseparam=None)
 
 
-    print 'split', S, ': [12] saving results to {} [time: {}]'.format(outputfile, time.time() - t_start)
-    scio.savemat(outputfile,
-                {   'p_gaussian_random_sigma05' : p_gaussian_random_sigma05,
+    print 'split', S, ': [12] packing results for {} [time: {}]'.format(outputfile, time.time() - t_start)
+    matdict = {   'p_gaussian_random_sigma05' : p_gaussian_random_sigma05,
                     'p_gaussian_random_sigma1' : p_gaussian_random_sigma1,
                     'p_gaussian_random_sigma2' : p_gaussian_random_sigma2,
                     #
@@ -256,5 +256,9 @@ def run(workerparams):
                     'p_salt_rcomp' : p_salt_rcomp,
                     'p_negative_salt_rcomp' : p_negative_salt_rcomp
 
-                })
+                }
+
+    #scio.savemat(outputfile, matdict)
+    print 'split', S, ': [13] done [time: {}]'.format(time.time() - t_start)
+    return (outputfile, matdict)
 
