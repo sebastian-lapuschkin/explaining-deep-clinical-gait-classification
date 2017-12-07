@@ -20,10 +20,15 @@ then
     ROOTFOLDER=2017-10-05-S1234
     ARCHLIST="CNN-A CNN-A3 CNN-A6"
 
-elif [ $1 = 'C' ]
+elif [ $1 = 'C3' ]
 then
     ROOTFOLDER=2017-10-05-S1234
-    ARCHLIST="CNN-C3 CNN-C6"
+    ARCHLIST="CNN-C3"
+
+elif [ $1 = 'C6' ]
+then
+    ROOTFOLDER=2017-10-05-S1234
+    ARCHLIST="CNN-C6"
 
 else
     echo 'invalid argument. How to use:'
