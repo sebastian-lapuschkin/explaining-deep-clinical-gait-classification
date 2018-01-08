@@ -1707,6 +1707,924 @@ def run_linear_SVM_L2_C1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists
     sys.stdout = STDOUT
     LOG.close()
 
+def run_linear_SVM_L2_C0p1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
+    """
+    Trains a linear model.
+    X is a dictionary of DataName -> np.array , containing raw input data
+    X is a dictionary of Targetname -> np.array , containing binary labels
+    L is a dictionary of DataName -> channel labels
+    S is a dictionary of TargetName -> prepared index splits
+    """
+
+    import sklearn
+    #prepare model output
+    MODELNAME = 'LinearSVM-L2C0p1SquareHinge'
+    #and output folder
+    if not os.path.isdir(outputfolder):
+        os.mkdir(outputfolder)
+    #grab stdout to relay all prints to a log file
+    STDOUT = sys.stdout
+    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+
+    #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
+    scipy.io.savemat(outputfolder+'/data.mat', X)
+    scipy.io.savemat(outputfolder+'/targets.mat', Y)
+    scipy.io.savemat(outputfolder+'/labels.mat', L)
+    scipy.io.savemat(outputfolder+'/splits.mat', S)
+
+
+    #loop over all possible combinatinos of things
+    for xname, x in X.iteritems():
+        for yname, y in Y.iteritems(): #target name, i.e. pick a label in name and data
+            targetSplits = S[yname]
+            for i in xrange(len(targetSplits)): #the splits for this target
+                #create output directory for this run
+                modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
+                modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+                #print modelfile, modelExists, yname, i
+
+                if not os.path.isdir(modeldir):
+                    os.makedirs(modeldir)
+
+
+                t_start = time.time()
+                #set output log to capture all prints
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+
+                iTest = targetSplits[i] #get split for validation and testing
+                iVal = targetSplits[(i+1)%len(targetSplits)]
+                iTrain = []
+                for j in [r % len(targetSplits) for r in range(i+2, (i+2)+(len(targetSplits)-2))]: #pool remaining data into training set.
+                    iTrain.extend(targetSplits[j])
+
+                #format the data for this run
+                Xtrain = x[iTrain, ...]
+                Ytrain = y[iTrain, ...]
+
+                Xval = x[iVal, ...]
+                Yval = y[iVal, ...]
+
+                Xtest = x[iTest, ...]
+                Ytest = y[iTest, ...]
+
+                #get original data shapes
+                Ntr, T, C = Xtrain.shape
+                Nv = Xval.shape[0]
+                Nte = Xtest.shape[0]
+
+                #reshape for fully connected inputs
+                Xtrain = np.reshape(Xtrain, [Ntr, -1])
+                Xval = np.reshape(Xval, [Nv, -1])
+                Xtest = np.reshape(Xtest, [Nte, -1])
+
+                #encode labels as required by sklearn
+                YtrainSVM = np.argmax(Ytrain, axis=1)
+                YtestSVM = np.argmax(Ytest, axis=1)
+                YvalSVM = np.argmax(Yval, axis=1)
+
+                #input dims and output dims
+                D = Xtrain.shape[1]
+                L = Ytrain.shape[1]
+
+
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+                    STDOUT.write('    training SVM model\n')
+                    model = sklearn.svm.LinearSVC(C=0.1) #use default options: square hinge loss, l2 penalty on the weights, C = 1.0
+                    model.fit(Xtrain, YtrainSVM)
+
+                    STDOUT.write('    converting SVM model to Toolbox NN model\n')
+                    #convert SKLearn-Models to  Toolbox NN models
+                    if np.unique(YtrainSVM).size == 2:
+                        #make a multi-output model
+                        L = Linear(D, L)
+                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        nn = modules.Sequential([L])
+                    else:
+                        #just copy the learned parameters
+                        L = Linear(D, L)
+                        L.W = model.coef_.T
+                        L.B = model.intercept_
+                        nn = modules.Sequential([L])
+
+                    STDOUT.write('    sanity checking model conversion\n')
+                    #sanity check model conversion.
+                    YpredSVM = model.decision_function(Xtest)
+                    YpredNN = nn.forward(Xtest)
+
+                    rtol=1e-7
+                    if np.unique(YtrainSVM).size == 2:
+                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        STDOUT.write('    sanity check passed (2-Class).\n')
+                    else:
+                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        STDOUT.write('    sanity check passed (Multiclass).\n')
+
+                #test the model
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
+
+                #measure test performance
+                l1loss = np.abs(Ypred - Ytest).sum()/Nte
+                predictions = np.argmax(Ypred, axis=1)
+                groundTruth = np.argmax(Ytest, axis=1)
+                acc = np.mean((predictions == groundTruth))
+
+                t_end = time.time()
+
+                #print results to terminal and log file
+                message = '\n'
+                message += '{} {}\n'.format(modeldir.replace('/', ' '),':')
+                message += 'test accuracy: {}\n'.format(acc)
+                message += 'test loss (l1): {}\n'.format(l1loss)
+                message += 'train-test-sequence done after: {}s\n\n'.format(t_end-t_start)
+
+                LOG.write(message)
+                LOG.flush()
+                STDOUT.write(message)
+
+                #write out the model
+                model_io.write(nn, modelfile)
+
+                #write out performance
+                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                    f.write('test loss (l1): {}\n'.format(l1loss))
+                    f.write('test accuracy : {}'.format(acc))
+
+
+                #write out matrices for prediction, GT heatmaps and prediction heatmaps
+                scipy.io.savemat('{}/outputs.mat'.format(modeldir),
+                                 {'Ypred': Ypred,
+                                  'Rpred': Rpred,
+                                  'RpredPresoftmax': RpredPresoftmax,
+                                  'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
+                                  'l1loss': l1loss,
+                                  'acc': acc})
+
+
+                #reinstate original sys.stdout
+                sys.stdout.close()
+                sys.stdout = STDOUT
+
+    sys.stdout = STDOUT
+    LOG.close()
+
+def run_linear_SVM_L2_C10_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
+    """
+    Trains a linear model.
+    X is a dictionary of DataName -> np.array , containing raw input data
+    X is a dictionary of Targetname -> np.array , containing binary labels
+    L is a dictionary of DataName -> channel labels
+    S is a dictionary of TargetName -> prepared index splits
+    """
+
+    import sklearn
+    #prepare model output
+    MODELNAME = 'LinearSVM-L2C10SquareHinge'
+    #and output folder
+    if not os.path.isdir(outputfolder):
+        os.mkdir(outputfolder)
+    #grab stdout to relay all prints to a log file
+    STDOUT = sys.stdout
+    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+
+    #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
+    scipy.io.savemat(outputfolder+'/data.mat', X)
+    scipy.io.savemat(outputfolder+'/targets.mat', Y)
+    scipy.io.savemat(outputfolder+'/labels.mat', L)
+    scipy.io.savemat(outputfolder+'/splits.mat', S)
+
+
+    #loop over all possible combinatinos of things
+    for xname, x in X.iteritems():
+        for yname, y in Y.iteritems(): #target name, i.e. pick a label in name and data
+            targetSplits = S[yname]
+            for i in xrange(len(targetSplits)): #the splits for this target
+                #create output directory for this run
+                modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
+                modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+                #print modelfile, modelExists, yname, i
+
+                if not os.path.isdir(modeldir):
+                    os.makedirs(modeldir)
+
+
+                t_start = time.time()
+                #set output log to capture all prints
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+
+                iTest = targetSplits[i] #get split for validation and testing
+                iVal = targetSplits[(i+1)%len(targetSplits)]
+                iTrain = []
+                for j in [r % len(targetSplits) for r in range(i+2, (i+2)+(len(targetSplits)-2))]: #pool remaining data into training set.
+                    iTrain.extend(targetSplits[j])
+
+                #format the data for this run
+                Xtrain = x[iTrain, ...]
+                Ytrain = y[iTrain, ...]
+
+                Xval = x[iVal, ...]
+                Yval = y[iVal, ...]
+
+                Xtest = x[iTest, ...]
+                Ytest = y[iTest, ...]
+
+                #get original data shapes
+                Ntr, T, C = Xtrain.shape
+                Nv = Xval.shape[0]
+                Nte = Xtest.shape[0]
+
+                #reshape for fully connected inputs
+                Xtrain = np.reshape(Xtrain, [Ntr, -1])
+                Xval = np.reshape(Xval, [Nv, -1])
+                Xtest = np.reshape(Xtest, [Nte, -1])
+
+                #encode labels as required by sklearn
+                YtrainSVM = np.argmax(Ytrain, axis=1)
+                YtestSVM = np.argmax(Ytest, axis=1)
+                YvalSVM = np.argmax(Yval, axis=1)
+
+                #input dims and output dims
+                D = Xtrain.shape[1]
+                L = Ytrain.shape[1]
+
+
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+                    STDOUT.write('    training SVM model\n')
+                    model = sklearn.svm.LinearSVC(C=10) #use default options: square hinge loss, l2 penalty on the weights, C = 1.0
+                    model.fit(Xtrain, YtrainSVM)
+
+                    STDOUT.write('    converting SVM model to Toolbox NN model\n')
+                    #convert SKLearn-Models to  Toolbox NN models
+                    if np.unique(YtrainSVM).size == 2:
+                        #make a multi-output model
+                        L = Linear(D, L)
+                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        nn = modules.Sequential([L])
+                    else:
+                        #just copy the learned parameters
+                        L = Linear(D, L)
+                        L.W = model.coef_.T
+                        L.B = model.intercept_
+                        nn = modules.Sequential([L])
+
+                    STDOUT.write('    sanity checking model conversion\n')
+                    #sanity check model conversion.
+                    YpredSVM = model.decision_function(Xtest)
+                    YpredNN = nn.forward(Xtest)
+
+                    rtol=1e-7
+                    if np.unique(YtrainSVM).size == 2:
+                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        STDOUT.write('    sanity check passed (2-Class).\n')
+                    else:
+                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        STDOUT.write('    sanity check passed (Multiclass).\n')
+
+                #test the model
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
+
+                #measure test performance
+                l1loss = np.abs(Ypred - Ytest).sum()/Nte
+                predictions = np.argmax(Ypred, axis=1)
+                groundTruth = np.argmax(Ytest, axis=1)
+                acc = np.mean((predictions == groundTruth))
+
+                t_end = time.time()
+
+                #print results to terminal and log file
+                message = '\n'
+                message += '{} {}\n'.format(modeldir.replace('/', ' '),':')
+                message += 'test accuracy: {}\n'.format(acc)
+                message += 'test loss (l1): {}\n'.format(l1loss)
+                message += 'train-test-sequence done after: {}s\n\n'.format(t_end-t_start)
+
+                LOG.write(message)
+                LOG.flush()
+                STDOUT.write(message)
+
+                #write out the model
+                model_io.write(nn, modelfile)
+
+                #write out performance
+                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                    f.write('test loss (l1): {}\n'.format(l1loss))
+                    f.write('test accuracy : {}'.format(acc))
+
+
+                #write out matrices for prediction, GT heatmaps and prediction heatmaps
+                scipy.io.savemat('{}/outputs.mat'.format(modeldir),
+                                 {'Ypred': Ypred,
+                                  'Rpred': Rpred,
+                                  'RpredPresoftmax': RpredPresoftmax,
+                                  'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
+                                  'l1loss': l1loss,
+                                  'acc': acc})
+
+
+                #reinstate original sys.stdout
+                sys.stdout.close()
+                sys.stdout = STDOUT
+
+    sys.stdout = STDOUT
+    LOG.close()
+
+
+#### LINEAR SVMS PLUS NOISE of 0.5 randn
+
+def run_linear_SVM_L2_C1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
+    """
+    Trains a linear model.
+    X is a dictionary of DataName -> np.array , containing raw input data
+    X is a dictionary of Targetname -> np.array , containing binary labels
+    L is a dictionary of DataName -> channel labels
+    S is a dictionary of TargetName -> prepared index splits
+    """
+
+    import sklearn
+    #prepare model output
+    MODELNAME = 'LinearSVM-L2C1SquareHinge-0p5randn'
+    #and output folder
+    if not os.path.isdir(outputfolder):
+        os.mkdir(outputfolder)
+    #grab stdout to relay all prints to a log file
+    STDOUT = sys.stdout
+    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+
+    #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
+    scipy.io.savemat(outputfolder+'/data.mat', X)
+    scipy.io.savemat(outputfolder+'/targets.mat', Y)
+    scipy.io.savemat(outputfolder+'/labels.mat', L)
+    scipy.io.savemat(outputfolder+'/splits.mat', S)
+
+
+    #loop over all possible combinatinos of things
+    for xname, x in X.iteritems():
+        for yname, y in Y.iteritems(): #target name, i.e. pick a label in name and data
+            targetSplits = S[yname]
+            for i in xrange(len(targetSplits)): #the splits for this target
+                #create output directory for this run
+                modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
+                modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+                #print modelfile, modelExists, yname, i
+
+                if not os.path.isdir(modeldir):
+                    os.makedirs(modeldir)
+
+
+                t_start = time.time()
+                #set output log to capture all prints
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+
+                iTest = targetSplits[i] #get split for validation and testing
+                iVal = targetSplits[(i+1)%len(targetSplits)]
+                iTrain = []
+                for j in [r % len(targetSplits) for r in range(i+2, (i+2)+(len(targetSplits)-2))]: #pool remaining data into training set.
+                    iTrain.extend(targetSplits[j])
+
+                #format the data for this run
+                Xtrain = x[iTrain, ...]
+                Ytrain = y[iTrain, ...]
+
+                Xval = x[iVal, ...]
+                Yval = y[iVal, ...]
+
+                Xtest = x[iTest, ...]
+                Ytest = y[iTest, ...]
+
+                #get original data shapes
+                Ntr, T, C = Xtrain.shape
+                Nv = Xval.shape[0]
+                Nte = Xtest.shape[0]
+
+                #reshape for fully connected inputs
+                Xtrain = np.reshape(Xtrain, [Ntr, -1])
+                Xval = np.reshape(Xval, [Nv, -1])
+                Xtest = np.reshape(Xtest, [Nte, -1])
+
+                #add some random noise to the training data
+                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+
+                #encode labels as required by sklearn
+                YtrainSVM = np.argmax(Ytrain, axis=1)
+                YtestSVM = np.argmax(Ytest, axis=1)
+                YvalSVM = np.argmax(Yval, axis=1)
+
+                #input dims and output dims
+                D = Xtrain.shape[1]
+                L = Ytrain.shape[1]
+
+
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+                    STDOUT.write('    training SVM model\n')
+                    model = sklearn.svm.LinearSVC() #use default options: square hinge loss, l2 penalty on the weights, C = 1.0
+                    model.fit(Xtrain, YtrainSVM)
+
+                    STDOUT.write('    converting SVM model to Toolbox NN model\n')
+                    #convert SKLearn-Models to  Toolbox NN models
+                    if np.unique(YtrainSVM).size == 2:
+                        #make a multi-output model
+                        L = Linear(D, L)
+                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        nn = modules.Sequential([L])
+                    else:
+                        #just copy the learned parameters
+                        L = Linear(D, L)
+                        L.W = model.coef_.T
+                        L.B = model.intercept_
+                        nn = modules.Sequential([L])
+
+                    STDOUT.write('    sanity checking model conversion\n')
+                    #sanity check model conversion.
+                    YpredSVM = model.decision_function(Xtest)
+                    YpredNN = nn.forward(Xtest)
+
+                    rtol=1e-7
+                    if np.unique(YtrainSVM).size == 2:
+                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        STDOUT.write('    sanity check passed (2-Class).\n')
+                    else:
+                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        STDOUT.write('    sanity check passed (Multiclass).\n')
+
+                #test the model
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
+
+                #measure test performance
+                l1loss = np.abs(Ypred - Ytest).sum()/Nte
+                predictions = np.argmax(Ypred, axis=1)
+                groundTruth = np.argmax(Ytest, axis=1)
+                acc = np.mean((predictions == groundTruth))
+
+                t_end = time.time()
+
+                #print results to terminal and log file
+                message = '\n'
+                message += '{} {}\n'.format(modeldir.replace('/', ' '),':')
+                message += 'test accuracy: {}\n'.format(acc)
+                message += 'test loss (l1): {}\n'.format(l1loss)
+                message += 'train-test-sequence done after: {}s\n\n'.format(t_end-t_start)
+
+                LOG.write(message)
+                LOG.flush()
+                STDOUT.write(message)
+
+                #write out the model
+                model_io.write(nn, modelfile)
+
+                #write out performance
+                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                    f.write('test loss (l1): {}\n'.format(l1loss))
+                    f.write('test accuracy : {}'.format(acc))
+
+
+                #write out matrices for prediction, GT heatmaps and prediction heatmaps
+                scipy.io.savemat('{}/outputs.mat'.format(modeldir),
+                                 {'Ypred': Ypred,
+                                  'Rpred': Rpred,
+                                  'RpredPresoftmax': RpredPresoftmax,
+                                  'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
+                                  'l1loss': l1loss,
+                                  'acc': acc})
+
+
+                #reinstate original sys.stdout
+                sys.stdout.close()
+                sys.stdout = STDOUT
+
+    sys.stdout = STDOUT
+    LOG.close()
+
+def run_linear_SVM_L2_C0p1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
+    """
+    Trains a linear model.
+    X is a dictionary of DataName -> np.array , containing raw input data
+    X is a dictionary of Targetname -> np.array , containing binary labels
+    L is a dictionary of DataName -> channel labels
+    S is a dictionary of TargetName -> prepared index splits
+    """
+
+    import sklearn
+    #prepare model output
+    MODELNAME = 'LinearSVM-L2C0p1SquareHinge-0p5randn'
+    #and output folder
+    if not os.path.isdir(outputfolder):
+        os.mkdir(outputfolder)
+    #grab stdout to relay all prints to a log file
+    STDOUT = sys.stdout
+    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+
+    #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
+    scipy.io.savemat(outputfolder+'/data.mat', X)
+    scipy.io.savemat(outputfolder+'/targets.mat', Y)
+    scipy.io.savemat(outputfolder+'/labels.mat', L)
+    scipy.io.savemat(outputfolder+'/splits.mat', S)
+
+
+    #loop over all possible combinatinos of things
+    for xname, x in X.iteritems():
+        for yname, y in Y.iteritems(): #target name, i.e. pick a label in name and data
+            targetSplits = S[yname]
+            for i in xrange(len(targetSplits)): #the splits for this target
+                #create output directory for this run
+                modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
+                modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+                #print modelfile, modelExists, yname, i
+
+                if not os.path.isdir(modeldir):
+                    os.makedirs(modeldir)
+
+
+                t_start = time.time()
+                #set output log to capture all prints
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+
+                iTest = targetSplits[i] #get split for validation and testing
+                iVal = targetSplits[(i+1)%len(targetSplits)]
+                iTrain = []
+                for j in [r % len(targetSplits) for r in range(i+2, (i+2)+(len(targetSplits)-2))]: #pool remaining data into training set.
+                    iTrain.extend(targetSplits[j])
+
+                #format the data for this run
+                Xtrain = x[iTrain, ...]
+                Ytrain = y[iTrain, ...]
+
+                Xval = x[iVal, ...]
+                Yval = y[iVal, ...]
+
+                Xtest = x[iTest, ...]
+                Ytest = y[iTest, ...]
+
+                #get original data shapes
+                Ntr, T, C = Xtrain.shape
+                Nv = Xval.shape[0]
+                Nte = Xtest.shape[0]
+
+                #reshape for fully connected inputs
+                Xtrain = np.reshape(Xtrain, [Ntr, -1])
+                Xval = np.reshape(Xval, [Nv, -1])
+                Xtest = np.reshape(Xtest, [Nte, -1])
+
+                #add some random noise to the training data
+                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+
+                #encode labels as required by sklearn
+                YtrainSVM = np.argmax(Ytrain, axis=1)
+                YtestSVM = np.argmax(Ytest, axis=1)
+                YvalSVM = np.argmax(Yval, axis=1)
+
+                #input dims and output dims
+                D = Xtrain.shape[1]
+                L = Ytrain.shape[1]
+
+
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+                    STDOUT.write('    training SVM model\n')
+                    model = sklearn.svm.LinearSVC(C=0.1) #use default options: square hinge loss, l2 penalty on the weights, C = 1.0
+                    model.fit(Xtrain, YtrainSVM)
+
+                    STDOUT.write('    converting SVM model to Toolbox NN model\n')
+                    #convert SKLearn-Models to  Toolbox NN models
+                    if np.unique(YtrainSVM).size == 2:
+                        #make a multi-output model
+                        L = Linear(D, L)
+                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        nn = modules.Sequential([L])
+                    else:
+                        #just copy the learned parameters
+                        L = Linear(D, L)
+                        L.W = model.coef_.T
+                        L.B = model.intercept_
+                        nn = modules.Sequential([L])
+
+                    STDOUT.write('    sanity checking model conversion\n')
+                    #sanity check model conversion.
+                    YpredSVM = model.decision_function(Xtest)
+                    YpredNN = nn.forward(Xtest)
+
+                    rtol=1e-7
+                    if np.unique(YtrainSVM).size == 2:
+                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        STDOUT.write('    sanity check passed (2-Class).\n')
+                    else:
+                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        STDOUT.write('    sanity check passed (Multiclass).\n')
+
+                #test the model
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
+
+                #measure test performance
+                l1loss = np.abs(Ypred - Ytest).sum()/Nte
+                predictions = np.argmax(Ypred, axis=1)
+                groundTruth = np.argmax(Ytest, axis=1)
+                acc = np.mean((predictions == groundTruth))
+
+                t_end = time.time()
+
+                #print results to terminal and log file
+                message = '\n'
+                message += '{} {}\n'.format(modeldir.replace('/', ' '),':')
+                message += 'test accuracy: {}\n'.format(acc)
+                message += 'test loss (l1): {}\n'.format(l1loss)
+                message += 'train-test-sequence done after: {}s\n\n'.format(t_end-t_start)
+
+                LOG.write(message)
+                LOG.flush()
+                STDOUT.write(message)
+
+                #write out the model
+                model_io.write(nn, modelfile)
+
+                #write out performance
+                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                    f.write('test loss (l1): {}\n'.format(l1loss))
+                    f.write('test accuracy : {}'.format(acc))
+
+
+                #write out matrices for prediction, GT heatmaps and prediction heatmaps
+                scipy.io.savemat('{}/outputs.mat'.format(modeldir),
+                                 {'Ypred': Ypred,
+                                  'Rpred': Rpred,
+                                  'RpredPresoftmax': RpredPresoftmax,
+                                  'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
+                                  'l1loss': l1loss,
+                                  'acc': acc})
+
+
+                #reinstate original sys.stdout
+                sys.stdout.close()
+                sys.stdout = STDOUT
+
+    sys.stdout = STDOUT
+    LOG.close()
+
+def run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
+    """
+    Trains a linear model.
+    X is a dictionary of DataName -> np.array , containing raw input data
+    X is a dictionary of Targetname -> np.array , containing binary labels
+    L is a dictionary of DataName -> channel labels
+    S is a dictionary of TargetName -> prepared index splits
+    """
+
+    import sklearn
+    #prepare model output
+    MODELNAME = 'LinearSVM-L2C10SquareHinge-0p5randn'
+    #and output folder
+    if not os.path.isdir(outputfolder):
+        os.mkdir(outputfolder)
+    #grab stdout to relay all prints to a log file
+    STDOUT = sys.stdout
+    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+
+    #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
+    scipy.io.savemat(outputfolder+'/data.mat', X)
+    scipy.io.savemat(outputfolder+'/targets.mat', Y)
+    scipy.io.savemat(outputfolder+'/labels.mat', L)
+    scipy.io.savemat(outputfolder+'/splits.mat', S)
+
+
+    #loop over all possible combinatinos of things
+    for xname, x in X.iteritems():
+        for yname, y in Y.iteritems(): #target name, i.e. pick a label in name and data
+            targetSplits = S[yname]
+            for i in xrange(len(targetSplits)): #the splits for this target
+                #create output directory for this run
+                modeldir = '{}/{}/{}/{}/part-{}'.format(outputfolder, yname, xname, MODELNAME, i)
+                modelfile = '{}/model.txt'.format(modeldir)
+                modelExists = os.path.isfile(modelfile) # is there an already pretrained model?
+                #print modelfile, modelExists, yname, i
+
+                if not os.path.isdir(modeldir):
+                    os.makedirs(modeldir)
+
+
+                t_start = time.time()
+                #set output log to capture all prints
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+
+                iTest = targetSplits[i] #get split for validation and testing
+                iVal = targetSplits[(i+1)%len(targetSplits)]
+                iTrain = []
+                for j in [r % len(targetSplits) for r in range(i+2, (i+2)+(len(targetSplits)-2))]: #pool remaining data into training set.
+                    iTrain.extend(targetSplits[j])
+
+                #format the data for this run
+                Xtrain = x[iTrain, ...]
+                Ytrain = y[iTrain, ...]
+
+                Xval = x[iVal, ...]
+                Yval = y[iVal, ...]
+
+                Xtest = x[iTest, ...]
+                Ytest = y[iTest, ...]
+
+                #get original data shapes
+                Ntr, T, C = Xtrain.shape
+                Nv = Xval.shape[0]
+                Nte = Xtest.shape[0]
+
+                #reshape for fully connected inputs
+                Xtrain = np.reshape(Xtrain, [Ntr, -1])
+                Xval = np.reshape(Xval, [Nv, -1])
+                Xtest = np.reshape(Xtest, [Nte, -1])
+
+                #add some random noise to the training data
+                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+
+                #encode labels as required by sklearn
+                YtrainSVM = np.argmax(Ytrain, axis=1)
+                YtestSVM = np.argmax(Ytest, axis=1)
+                YvalSVM = np.argmax(Yval, axis=1)
+
+                #input dims and output dims
+                D = Xtrain.shape[1]
+                L = Ytrain.shape[1]
+
+
+                #how to handle existing model files
+                if modelExists and ifModelExists not in ['retrain', 'skip', 'load']:
+                    STDOUT.write('incorrect instruction "{}" for handling preexisting model. aborting.\n\n'.format(ifModelExists))
+                    exit()
+
+                if modelExists and ifModelExists == 'skip':
+                    STDOUT.write('{} exists. skipping.\n\n'.format(modelfile))
+                    continue #ok, let us skip existing results again, as long as a model file exists. assume the remaining results exist as well
+
+                elif modelExists and ifModelExists == 'load':
+                    STDOUT.write('{} exists. loading model, re-evaluating. \n\n'.format(modelfile))
+                    nn = model_io.read(modelfile)
+
+                else: # model does not exist or parameter is retrain.
+                    #create and train the model here
+                    STDOUT.write('    training SVM model\n')
+                    model = sklearn.svm.LinearSVC(C=10) #use default options: square hinge loss, l2 penalty on the weights, C = 1.0
+                    model.fit(Xtrain, YtrainSVM)
+
+                    STDOUT.write('    converting SVM model to Toolbox NN model\n')
+                    #convert SKLearn-Models to  Toolbox NN models
+                    if np.unique(YtrainSVM).size == 2:
+                        #make a multi-output model
+                        L = Linear(D, L)
+                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        nn = modules.Sequential([L])
+                    else:
+                        #just copy the learned parameters
+                        L = Linear(D, L)
+                        L.W = model.coef_.T
+                        L.B = model.intercept_
+                        nn = modules.Sequential([L])
+
+                    STDOUT.write('    sanity checking model conversion\n')
+                    #sanity check model conversion.
+                    YpredSVM = model.decision_function(Xtest)
+                    YpredNN = nn.forward(Xtest)
+
+                    rtol=1e-7
+                    if np.unique(YtrainSVM).size == 2:
+                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        STDOUT.write('    sanity check passed (2-Class).\n')
+                    else:
+                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        STDOUT.write('    sanity check passed (Multiclass).\n')
+
+                #test the model
+                Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
+
+                #measure test performance
+                l1loss = np.abs(Ypred - Ytest).sum()/Nte
+                predictions = np.argmax(Ypred, axis=1)
+                groundTruth = np.argmax(Ytest, axis=1)
+                acc = np.mean((predictions == groundTruth))
+
+                t_end = time.time()
+
+                #print results to terminal and log file
+                message = '\n'
+                message += '{} {}\n'.format(modeldir.replace('/', ' '),':')
+                message += 'test accuracy: {}\n'.format(acc)
+                message += 'test loss (l1): {}\n'.format(l1loss)
+                message += 'train-test-sequence done after: {}s\n\n'.format(t_end-t_start)
+
+                LOG.write(message)
+                LOG.flush()
+                STDOUT.write(message)
+
+                #write out the model
+                model_io.write(nn, modelfile)
+
+                #write out performance
+                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                    f.write('test loss (l1): {}\n'.format(l1loss))
+                    f.write('test accuracy : {}'.format(acc))
+
+
+                #write out matrices for prediction, GT heatmaps and prediction heatmaps
+                scipy.io.savemat('{}/outputs.mat'.format(modeldir),
+                                 {'Ypred': Ypred,
+                                  'Rpred': Rpred,
+                                  'RpredPresoftmax': RpredPresoftmax,
+                                  'Ract': Ract,
+                                  'RPredAct' : RPredAct,
+                                  'RPredDom' : RPredDom,
+                                  'RPredActComp' : RPredActComp,
+                                  'RPredDomComp' : RPredDomComp,
+                                  'l1loss': l1loss,
+                                  'acc': acc})
+
+
+                #reinstate original sys.stdout
+                sys.stdout.close()
+                sys.stdout = STDOUT
+
+    sys.stdout = STDOUT
+    LOG.close()
+
+
 def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='skip'):
     """
     Trains a 2-layer fully connected net with ReLU activations
