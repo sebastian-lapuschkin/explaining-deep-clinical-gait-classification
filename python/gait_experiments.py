@@ -117,34 +117,38 @@ S = {'Gender':GenderIndexSplits,
 # skip to just do nothing and leave the results as is
 # load to load the model and reevaluate, recompute heatmaps
 # retrain to overwrite the old model and results
-DOTHISIFMODELEXISTS = 'load'
+DOTHISIFMODELEXISTS = 'retrain'
 
-if MODELTOEVALUATE == 'linear':
-    DAYFOLDER = './BASELINE-LINEAR-S{}'.format(RANDOMSEED)
-    training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    eval_score_logs.run(DAYFOLDER)
-
-
-if MODELTOEVALUATE == '3layer':
-    #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
-    DAYFOLDER = './2017-09-14-S{}'.format(RANDOMSEED)
-    #run some experiments
-    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
-    eval_score_logs.run(DAYFOLDER)
+#if MODELTOEVALUATE == 'linear':
+    #DAYFOLDER = './BASELINE-LINEAR-S{}'.format(RANDOMSEED)
+    #training.run_linear(X, Y, L, S, DAYFOLDER, )
 
 
-if MODELTOEVALUATE == '2layer':
-    #create folder for today's experiments.
-    DAYFOLDER = './2017-09-15-S{}'.format(RANDOMSEED)
-    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
+DAYFOLDER = './BASELINE-LINEAR-S{}'.format(RANDOMSEED)
+#training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+training.run_linear_SVM_L2_C1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+eval_score_logs.run(DAYFOLDER)
+
+#if MODELTOEVALUATE == '3layer':
+#    #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
+#    DAYFOLDER = './2017-09-14-S{}'.format(RANDOMSEED)
+#    #run some experiments
+#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
+#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
+#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
+#    eval_score_logs.run(DAYFOLDER)
+
+
+#if MODELTOEVALUATE == '2layer':
+#    #create folder for today's experiments.
+#    DAYFOLDER = './2017-09-15-S{}'.format(RANDOMSEED)
+#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
+#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHISIFMODELEXISTS)
+#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
 
 #training.run_pca(X,Y,S)
 
@@ -166,22 +170,22 @@ if MODELTOEVALUATE == '2layer':
 #training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
 
 
-if 'cnn' in MODELTOEVALUATE:
-    #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
-    DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
-
-    if MODELTOEVALUATE == 'cnnA':
-        training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
-    if MODELTOEVALUATE == 'cnnC3':
-        training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
-    if MODELTOEVALUATE == 'cnnC33':
-        training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    if MODELTOEVALUATE == 'cnnA6':
-        training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    if MODELTOEVALUATE == 'cnnA3':
-        training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    if MODELTOEVALUATE == 'cnnC6':
-        training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+#if 'cnn' in MODELTOEVALUATE:
+#    #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
+#    DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
+#
+#    if MODELTOEVALUATE == 'cnnA':
+#        training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
+#    if MODELTOEVALUATE == 'cnnC3':
+#        training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
+#    if MODELTOEVALUATE == 'cnnC33':
+#        training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+#    if MODELTOEVALUATE == 'cnnA6':
+#        training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+#    if MODELTOEVALUATE == 'cnnA3':
+#        training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+#    if MODELTOEVALUATE == 'cnnC6':
+#        training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 
 
 
