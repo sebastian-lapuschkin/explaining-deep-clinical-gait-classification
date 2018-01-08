@@ -2699,7 +2699,7 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', i
                 Xtest = np.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain += np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
                 YtrainSVM = np.argmax(Ytrain, axis=1)
@@ -2883,7 +2883,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp',
                 Xtest = np.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain += np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
                 YtrainSVM = np.argmax(Ytrain, axis=1)
@@ -3067,7 +3067,7 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', 
                 Xtest = np.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain +=  np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
                 YtrainSVM = np.argmax(Ytrain, axis=1)
