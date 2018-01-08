@@ -80,5 +80,5 @@ done #DATA
 echo 'packing results for' $ROOTFOLDER
 #find $ROOTFOLDER -type f -name perturbations.mat -print0 | tar -czvf $ROOTFOLDER-PERTURBATIONS.tar.gz --null -T -
 #right now: just pack everything within the linear models folder.
-#tar -czvf $ROOTFOLDER-MODELS+PERTURBATIONS.tar.gz $ROOTFOLDER
-#du -sh $ROOTFOLDER-PERTURBATIONS.tar.gz
+tar -czvf $ROOTFOLDER-MODELS+PERTURBATIONS.tar.gz $ROOTFOLDER
+du -sh $ROOTFOLDER-MODELS+PERTURBATIONS.tar.gz
