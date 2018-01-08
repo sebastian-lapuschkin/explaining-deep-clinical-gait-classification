@@ -117,7 +117,7 @@ S = {'Gender':GenderIndexSplits,
 # skip to just do nothing and leave the results as is
 # load to load the model and reevaluate, recompute heatmaps
 # retrain to overwrite the old model and results
-DOTHISIFMODELEXISTS = 'skip'
+DOTHISIFMODELEXISTS = 'retrain'
 
 #if MODELTOEVALUATE == 'linear':
     #DAYFOLDER = './BASELINE-LINEAR-S{}'.format(RANDOMSEED)
@@ -134,7 +134,7 @@ DAYFOLDER = './BASELINE-LINEAR-S{}'.format(RANDOMSEED)
 #training.run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 #training.run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 #training.run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-training.run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+#training.run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 eval_score_logs.run(DAYFOLDER)
 
 #if MODELTOEVALUATE == '3layer':
