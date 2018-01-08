@@ -10,10 +10,20 @@ then
     ROOTFOLDER=2017-09-15-S1234
     ARCHLIST="2LayerFCNN-64 2LayerFCNN-256 2LayerFCNN-1024"
 
+elif [ $1 = '2+' ]
+then
+    ROOTFOLDER=2017-09-15-S1234
+    ARCHLIST="2LayerFCNN-128 2LayerFCNN-512"
+
 elif [ $1 = '3' ]
 then
     ROOTFOLDER=2017-09-14-S1234
     ARCHLIST="3LayerFCNN-64 3LayerFCNN-256 3LayerFCNN-1024"
+
+elif [ $1 = '3+' ]
+then
+    ROOTFOLDER=2017-09-14-S1234
+    ARCHLIST="3LayerFCNN-128 3LayerFCNN-512"
 
 elif [ $1 = 'A' ]
 then
