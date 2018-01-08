@@ -5,6 +5,21 @@ then
     ROOTFOLDER=BASELINE-LINEAR-S1234
     ARCHLIST="Linear"
 
+elif [ $1 = 'LSVMC0' ]
+then
+    ROOTFOLDER=BASELINE-LINEAR-S1234
+    ARCHLIST="LinearSVM-L2C0p1SquareHinge LinearSVM-L2C0p1SquareHinge-0p5randn LinearSVM-L2C0p1SquareHinge-1p0randn"
+
+elif [ $1 = 'LSVMC1' ]
+then
+    ROOTFOLDER=BASELINE-LINEAR-S1234
+    ARCHLIST="LinearSVM-L2C1SquareHinge LinearSVM-L2C1SquareHinge-0p5randn LinearSVM-L2C1SquareHinge-1p0randn"
+
+elif [ $1 = 'LSVMC10' ]
+then
+    ROOTFOLDER=BASELINE-LINEAR-S1234
+    ARCHLIST="LinearSVM-L2C10SquareHinge LinearSVM-L2C10SquareHinge-0p5randn LinearSVM-L2C10SquareHinge-1p0randn"
+
 elif [ $1 = '2' ]
 then
     ROOTFOLDER=2017-09-15-S1234
@@ -63,5 +78,7 @@ done #TARGET
 done #DATA
 
 echo 'packing results for' $ROOTFOLDER
-find $ROOTFOLDER -type f -name perturbations.mat -print0 | tar -czvf $ROOTFOLDER-PERTURBATIONS.tar.gz --null -T -
-du -sh $ROOTFOLDER-PERTURBATIONS.tar.gz
+#find $ROOTFOLDER -type f -name perturbations.mat -print0 | tar -czvf $ROOTFOLDER-PERTURBATIONS.tar.gz --null -T -
+#right now: just pack everything within the linear models folder.
+#tar -czvf $ROOTFOLDER-MODELS+PERTURBATIONS.tar.gz $ROOTFOLDER
+#du -sh $ROOTFOLDER-PERTURBATIONS.tar.gz
