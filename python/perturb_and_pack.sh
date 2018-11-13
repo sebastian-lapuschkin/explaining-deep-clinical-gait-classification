@@ -1,5 +1,5 @@
 #!/bin/bash
-echo $1
+echo $1 $2
 if [ $1 = 'L' ]
 then
     ROOTFOLDER=BASELINE-LINEAR-S1234
@@ -8,7 +8,7 @@ then
 elif [ $1 = 'LSVMC0' ]
 then
     ROOTFOLDER=BASELINE-LINEAR-S1234
-    ARCHLIST="LinearSVM-L2C0p1SquareHinge LinearSVM-L2C0p1SquareHinge-0p5randn LinearSVM-L2C0p1SquareHinge-1p0randn"
+    ARCHLIST="LinearSVM-L2C0p1SquareHinge"
 
 elif [ $1 = 'LSVMC1' ]
 then
@@ -57,28 +57,51 @@ then
 
 else
     echo 'invalid argument. How to use:'
-    echo './perturb_and_pach.sh A'
+    echo './perturb_and_pach.sh A [B]'
     echo ''
-    echo 'A = L : Linear architectures'
-    echo 'A = 2 : 2-Layer FCNNs'
-    echo 'A = 3 : 3-Layer FCNNs'
-    echo 'A = A : CNN-A-Architectures'
-    echo 'A = C : CNN-C-Architectures'
+    echo 'A = L   : Linear architectures'
+    echo 'A = 2   : 2-Layer FCNNs'
+    echo 'A = 2+  : more 2-Layer FCNNs'
+    echo 'A = 3   : 3-Layer FCNNs'
+    echo 'A = 3+  : more 3-Layer FCNNs'
+    echo 'A = A   : CNN-A-Architectures'
+    echo 'A = C   : CNN-C-Architectures'
+    echo 'A = C-3 : CNN-C-3-Architectures'
+    echo 'A = C-6 : CNN-C-6-Architectures'
+    echo 'B = P   : Only pack results'
     echo 'Now try again!'
     echo ''
 fi
 
+#if [ $2 = 'P' ]
+#then
+#   ARCHLIST=
+#fi
 
-for DATA in GRF_AV GRF_JV ;  do
-for TARGET in Subject Gender ; do
+PIDS=()
+
+#for DATA in GRF_AV GRF_JV ;  do
+for DATA in JA_X_Lower JA_X_Full JA_Lower JA_Full; do
+for TARGET in Gender Subject ; do
 for ARCH in $ARCHLIST ; do
-    python perturbations.py folder=$ROOTFOLDER arch=$ARCH data=$DATA target=$TARGET
+    python perturbations.py folder=$ROOTFOLDER arch=$ARCH data=$DATA target=$TARGET debug=1 &
+    PIDS+=($!) #collect process IDs of stuff run in the background
 done #ARCH
 done #TARGET
 done #DATA
 
-echo 'packing results for' $ROOTFOLDER
-#find $ROOTFOLDER -type f -name perturbations.mat -print0 | tar -czvf $ROOTFOLDER-PERTURBATIONS.tar.gz --null -T -
-#right now: just pack everything within the linear models folder.
-tar -czvf $ROOTFOLDER-MODELS+PERTURBATIONS.tar.gz $ROOTFOLDER
-du -sh $ROOTFOLDER-MODELS+PERTURBATIONS.tar.gz
+#wait for processes to finish
+for pid in ${PIDS[*]}; do
+    echo "waiting for" $pid ; wait $pid ;  echo $pid "finished".
+done
+
+if [ $2 = 'P' ]
+then
+    echo 'packing results for' $ROOTFOLDER
+    find $ROOTFOLDER -type f -name perturbations.mat -print0 | tar -czvf $ROOTFOLDER-PERTURBATIONS.tar.gz --null -T -
+    du -sh $ROOTFOLDER-PERTURBATIONS.tar.gz
+fi
+
+#alternatively: just pack everything within the linear models folder.
+#tar -czvf $ROOTFOLDER-MODELS+PERTURBATIONS.tar.gz $ROOTFOLDER
+#du -sh $ROOTFOLDER-MODELS+PERTURBATIONS.tar.gz
