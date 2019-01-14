@@ -13,7 +13,7 @@ Folder `figures` contains code and data for (generating) the figures shown in th
 TODO: add
 ```
 
-Folder `python` contains code for model training and evaluation, as a derivation of the python sub-package of the [LRP Toolbox](https://github.com/sebastian-lapuschkin). Should you use or extend this implementation please consider citing the toolbox next to our paper mentioned above.
+Folder `python` contains code for model training and evaluation, as a derivation of the python sub-package of the [LRP Toolbox (version 1.2.0)](https://github.com/sebastian-lapuschkin). Should you use or extend this implementation please consider citing the toolbox next to our paper mentioned above.
 
 ```
 @article{JMLR:v17:15-618,
