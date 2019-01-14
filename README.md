@@ -10,7 +10,8 @@ TODO: add paper bibtex
 
 Folder `figures` contains code and data for (generating) the figures shown in the paper.
 ```
-TODO: add
+TODO: add content
+TODO: link fancy overview figure
 ```
 
 Folder `python` contains code for model training and evaluation, as a derivation of the python sub-package of the [LRP Toolbox (version 1.2.0)](https://github.com/sebastian-lapuschkin). Should you use or extend this implementation please consider citing the toolbox next to our paper mentioned above.
@@ -26,4 +27,13 @@ Folder `python` contains code for model training and evaluation, as a derivation
     pages   = {1-5},
     url     = {http://jmlr.org/papers/v17/15-618.html}
 }
+```
+
+Files describing the training, validation and test splits, the trained models on different feature sets (in part not discussed in the paper) and target labels (in part not discussed in the paper), as well as the model outputs, scores and analyses obtained via LRP and perturbation analysis can be obtained from the following locations, grouped by model type:
+
+```
+TODO: Link Linear baseline cases
+TODO: Link 2-layer MLPs
+TODO: Link 3-layer MLPs
+TODO: Link CNNs
 ```
