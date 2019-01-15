@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# !!!! NOTE: This install.sh is the installation script for the LRP Toolbox available at https://github.com/sebastian-lapuschkin/lrp_toolbox
+# and may help you with setting up the experimental code for our human gait classification paper (ie it lists some required packages).
+# you might need to install some additional (python) packages. the python2 interpreter will point any missing resources out to you :)
+#
 # This is an installation script for installing all required python
 # packages required for running the standalone lrp implementation /
 # demo which is part of the LRP Toolbox v1.0 on the Ubuntu 14.04 LTS
@@ -9,10 +13,10 @@
 # releases of Ubuntu/Linux. There is, however, no guarantee for that.
 # This is especially true for other Linux derivates or OSs in general.
 #
-# The installation of required python packages will by performed via 
+# The installation of required python packages will by performed via
 # the reliable and convenient apt-get.
 #
-# Before executing this script, please read and modify the following commands 
+# Before executing this script, please read and modify the following commands
 # carefully in order to prevent unwanted changes to your system.
 #
 # This installation requires administrator level privileges.
@@ -25,7 +29,7 @@ apt-get install python-numpy python-numpy-dbg python-scipy python-matplotlib pyt
 
 # DOWNLOAD MODELS AND DATA FOR THE DEMO APPLICATION
 # go to toolbox root
-cd .. 
+cd ..
 
 # download and extract the MNIST hand written data set
 if ! [[ -f data/MNIST/test_images.npy && -f data/MNIST/test_labels.npy ]]
