@@ -38,7 +38,7 @@ When using or refering to that data, please cite
 ```
 
 
-Files describing the training, validation and test splits, the trained models on different feature sets (in part not discussed in the paper) and target labels (in part not discussed in the paper), as well as the model outputs, scores and analyses downloaded via LRP and perturbation analysis can be obtained from the following locations, grouped by model type:
+Files describing the training, validation and test splits, the trained models on different feature sets (in part not discussed in the paper) and target labels (in part not discussed in the paper), as well as the model outputs, scores and analyses obtained via LRP and perturbation analysis can be downloaded from the following locations, grouped by model type:
 
 + [linear.tar.gz (61G)](172.16.23.134/interpretable-deep-gait/cnns.tar.gz) 
 + [2-layer-mlp.tar.gz (58G)](172.16.23.134/interpretable-deep-gait/2-layer-mlp.tar.gz) 
