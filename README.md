@@ -5,7 +5,17 @@
 This repository contains the python code for training and evaluation of models as presented in
 [Explaining the unique nature of individual gait patterns with deep learning](https://doi.org/10.1038/s41598-019-38748-8)
 ```
-TODO: add paper bibtex
+@article{horst2019explaining,
+  author = {Horst, Fabian and Lapuschkin, Sebastian and Samek, Wojciech and M{\"u}ller, Klaus-Robert and Sch{\"o}llhorn, Wolfgang I.},
+  title = {Explaining the Unique Nature of Individual Gait Patterns with Deep Learning},
+  journal = {Scientific Reports},
+  publisher = {Nature Publishing Group},
+  year = {2019},
+  number = {9},
+  pages = {2391},
+  doi = {10.1038/s41598-019-38748-8},
+  url = {https://doi.org/10.1038/s41598-019-38748-8}
+}
 ```
 
 
