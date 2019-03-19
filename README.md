@@ -21,7 +21,7 @@ This repository contains the python code for training and evaluation of models a
 
 Folder `figures` contains code and data for (generating) the figures shown in the paper.
 
-Folder `python` contains code for model training and evaluation, based on python2, as a derivation of the python sub-package of the [LRP Toolbox (version 1.2.0)](https://github.com/sebastian-lapuschkin). Should you use or extend this implementation please consider citing the toolbox, as well as to our paper mentioned above.
+Folder `python` contains code for model training and evaluation, based on python2, as a derivation of the python sub-package of the [LRP Toolbox (version 1.2.0)](https://github.com/sebastian-lapuschkin). Should you use or extend this implementation please consider citing the toolbox, as well as our paper mentioned above.
 ```
 @article{lapuschkin2016toolbox,
     author  = {Lapuschkin, Sebastian and Binder, Alexander and Montavon, Gr{\'e}goire and M\"uller, Klaus-Robert and Samek, Wojciech},
