@@ -43,159 +43,124 @@ for param in sys.argv:
 #           "Main"
 ################################
 
-gaitdata = scio.loadmat('{}/Gait_GRF_JA_Label.mat'.format(ROOTFOLDER)) #load matlab data as dictionary using scipy
 
-# Bodenreaktionskraft mit zwei verschiedenen Datennormalisierungen
-X_GRF_AV = gaitdata['Feature_GRF_AV']                       # 1142 x 101 x 6
+def trim_empty_classes(Y):
+    # expects an input array shaped Y x C. removes label columns for classes without samples.
+    n_per_col = Y.sum(axis=0)
+    empty_cols = n_per_col == 0
+    if np.any(empty_cols):
+        print('Empty columns detected in label matrix shaped {}. Columns are: {}. Removing'.format(Y.shape, np.where(empty_cols)[0]))
+        return Y[:,~empty_cols]
+    else:
+        print('No empty columns detected in label matrix shaped {}'.format(Y.shape))
+
+#load matlab data as dictionary using scipy
+gaitdata = scio.loadmat('{}/data/DatasetC_Classification_Norm_2_Normal-Knee.mat'.format(ROOTFOLDER)) 
+
+# Feature -> Bodenreaktionskraft
+X_GRF_AV = gaitdata['Feature']                       # 1142 x 101 x 6
 Label_GRF_AV = gaitdata['Feature_GRF_AV_Label']             # 1 x 1 x 6 channel label
 
-X_GRF_JV = gaitdata['Feature_GRF_JV']                       # 1142 x 101 x 6
-Label_GRF_JV = gaitdata['Feature_GRF_JV_Label']             # 1 x 1 x 6 channel label
-
-# Gelenkwinkel in drei Drehachsen fuer den gesamten Koerper
-X_JA_Full = gaitdata['Feature_JA_Full']                     # 1142 x 101 x 33
-Label_JA_Full = gaitdata['Feature_JA_Full_Label']           # 1 x 1 x 33 channel label
-
-# ... fuer den Unterkoerper
-X_JA_Lower = gaitdata['Feature_JA_Lower']                   # 1142 x 101 x 18
-Label_JA_Lower = gaitdata['Feature_JA_Lower_Label']         # 1 x 1 x 18 channel label
-
-# Gelenkwinkel lediglich in der Hauptdrehachse fuer den gesamten Koerper
-X_JA_X_Full = gaitdata['Feature_JA_X_Full']                 # 1142 x 101 x 10
-Label_JA_X_Full = gaitdata['Feature_JA_X_Full_Label']       # 1 x 1 x 10 channel label
-
-# ... und den Unterkoerper
-X_JA_X_Lower = gaitdata['Feature_JA_X_Lower']               # 1142 x 101 x 6
-Label_JA_X_Lower = gaitdata['Feature_JA_X_Lower_Label']     # 1 x 1 x 10 channel label
-
-#Target subject labels und gender labels
-Y_Subject = gaitdata['Target_SubjectID']                    # 1142 x 57, binary labels
-Y_Gender = gaitdata['Target_Gender']                        # 1142 x 1 , binary labels
-#-> create uniform label structure for gender
-Y_Gender = np.repeat(Y_Gender, 2, axis=1)
-Y_Gender[:, 1] = 1-Y_Gender[:, 0]                           # 1142 x 2, binary labels  (562 vs 580)
+# Targets -> Subject labels und gender labels
+Y_Subject = gaitdata['Target_Subject']                    # 1142 x 57, binary labels
+Y_Injury = gaitdata['Target_Injury']                        # 1142 x 1 , binary labels
 
 #split data for experiments.
-#Subject identification: create 10 splits with the samples of each subject spread over all splits.
-#Gender identification: create 10 splits with the genders split evenly over all partitions, but pool
+#Injury identification: create 8 splits with the injury split evenly over all partitions, but pool
 #the samples per subject in only one bin: avoid prediction based on personal characteristics
 #use a random seed to make partitioning deterministic
 RANDOMSEED = 1234
-SubjectIndexSplits, GenderIndexSplits, Permutation = helpers.create_index_splits(Y_Subject, Y_Gender, splits=10, seed=RANDOMSEED)
+
+SubjectIndexSplits, InjuryIndexSplits, Permutation = helpers.create_index_splits(Y_Subject, Y_Injury, splits=8, seed=RANDOMSEED)
 
 #apply the permutation to the given data for the inputs and labels to match the splits again
 X_GRF_AV = X_GRF_AV[Permutation, ...]
-X_GRF_JV = X_GRF_JV[Permutation, ...]
-X_JA_Full = X_JA_Full[Permutation, ...]
-X_JA_Lower = X_JA_Lower[Permutation, ...]
-X_JA_X_Full = X_JA_X_Full[Permutation, ...]
-X_JA_X_Lower = X_JA_X_Lower[Permutation, ...]
-Y_Gender = Y_Gender[Permutation, ...]
+Y_Injury = Y_Injury[Permutation, ...]
 Y_Subject = Y_Subject[Permutation, ...]
 
+n_labels = Y_Injury.sum(0)
+print n_labels
+
+#clean labels
+Y_Injury = Y_Injury[:,n_labels > 0]
+n_labels = Y_Injury.sum(0)
+print n_labels
+
 #create dictionaries for easier batch access for training and testing.
-X = {'GRF_AV': X_GRF_AV,
-     'GRF_JV': X_GRF_JV,
-     'JA_Full': X_JA_Full,
-     'JA_Lower': X_JA_Lower,
-     'JA_X_Full': X_JA_X_Full,
-     'JA_X_Lower': X_JA_X_Lower}
+X = {'GRF_AV': X_GRF_AV}
+     
+Y = {'Injury': Y_Injury}
 
-Y = {'Gender': Y_Gender,
-     'Subject': Y_Subject}
+L = {'GRF_AV': Label_GRF_AV}
 
-L = {'GRF_AV': Label_GRF_AV,
-     'GRF_JV': Label_GRF_JV,
-     'JA_Full': Label_JA_Full,
-     'JA_Lower': Label_JA_Lower,
-     'JA_X_Full': Label_JA_X_Full,
-     'JA_X_Lower': Label_JA_X_Lower}
-
-S = {'Gender':GenderIndexSplits,
-     'Subject':SubjectIndexSplits}
+S = {'Injury': InjuryIndexSplits}
 
 # skip to just do nothing and leave the results as is
 # load to load the model and reevaluate, recompute heatmaps
 # retrain to overwrite the old model and results
 DOTHISIFMODELEXISTS = 'retrain'
 
-#if MODELTOEVALUATE == 'linear':
-    #DAYFOLDER = './BASELINE-LINEAR-S{}'.format(RANDOMSEED)
-    #training.run_linear(X, Y, L, S, DAYFOLDER, )
+MODELTOEVALUATE ='linear'
+if MODELTOEVALUATE == 'linear':
+    DAYFOLDER = './NormalKnee-2019-08-05-S{}'.format(RANDOMSEED)
+    training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_linear_SVM_L2_C1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_linear_SVM_L2_C0p1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_linear_SVM_L2_C10_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    eval_score_logs.run(DAYFOLDER)
 
+MODELTOEVALUATE ='3Layer'
+if MODELTOEVALUATE == '3Layer':
+    #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
+    DAYFOLDER = './NormalKnee-2019-08-05-S{}'.format(RANDOMSEED)
+    #run some experiments
+    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
+    eval_score_logs.run(DAYFOLDER)
 
-DAYFOLDER = './BASELINE-LINEAR-S{}'.format(RANDOMSEED)
-#training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C0p1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C10_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C1_SquareHinge_plus_0p5randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C0p1_SquareHinge_plus_0p5randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-eval_score_logs.run(DAYFOLDER)
+MODELTOEVALUATE ='2Layer'
+if MODELTOEVALUATE == '2Layer':
+    #create folder for today's experiments.
+    DAYFOLDER = './NormalKnee-2019-08-05-S{}'.format(RANDOMSEED)
+    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
+    eval_score_logs.run(DAYFOLDER)
 
-#if MODELTOEVALUATE == '3layer':
-#    #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
-#    DAYFOLDER = './2017-09-14-S{}'.format(RANDOMSEED)
-#    #run some experiments
-#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
-#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
-#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
-#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
-#    training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
-#    eval_score_logs.run(DAYFOLDER)
-
-
-#if MODELTOEVALUATE == '2layer':
-#    #create folder for today's experiments.
-#    DAYFOLDER = './2017-09-15-S{}'.format(RANDOMSEED)
-#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
-#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHISIFMODELEXISTS)
-#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
-#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
-#    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
-
-#training.run_pca(X,Y,S)
-
-
-
-
-#some runs with another random seed for sanity checking.
-#DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
-#training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
-#training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024, ifModelExists=DOTHISIFMODELEXISTS)
-
-
-#if 'cnn' in MODELTOEVALUATE:
+MODELTOEVALUATE ='cnn'
+if 'cnn' in MODELTOEVALUATE:
 #    #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
-#    DAYFOLDER = '{}/2017-10-05-S1234'.format(ROOTFOLDER)
-#
-#    if MODELTOEVALUATE == 'cnnA':
-#        training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
-#    if MODELTOEVALUATE == 'cnnC3':
-#        training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
-#    if MODELTOEVALUATE == 'cnnC33':
-#        training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#    if MODELTOEVALUATE == 'cnnA6':
-#        training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#    if MODELTOEVALUATE == 'cnnA3':
-#        training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-#    if MODELTOEVALUATE == 'cnnC6':
-#        training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    DAYFOLDER = '{}/NormalKnee-2019-08-05-S1234'.format(ROOTFOLDER)
+    MODELTOEVALUATE ='cnnA'
+    if MODELTOEVALUATE == 'cnnA':
+        training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
+        
+    MODELTOEVALUATE ='cnnC3'
+    if MODELTOEVALUATE == 'cnnC3':
+        training.run_cnn_C3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # C3 - mode. classical 1-stride convolutions in either direction with filter size 3 in time and channel direction
 
+    MODELTOEVALUATE ='cnnC33'
+    if MODELTOEVALUATE == 'cnnC33':
+        training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 
+    MODELTOEVALUATE ='cnnA6'
+    if MODELTOEVALUATE == 'cnnA6':
+        training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+
+    MODELTOEVALUATE ='cnnA3'
+    if MODELTOEVALUATE == 'cnnA3':
+        training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+
+    MODELTOEVALUATE ='cnnC6'
+    if MODELTOEVALUATE == 'cnnC6':
+        training.run_cnn_C6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+
+eval_score_logs.run(DAYFOLDER)
 
 
 

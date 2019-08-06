@@ -54,9 +54,10 @@ def create_index_splits(Y_Subject, Y_Gender, splits = 10, seed=None):
     #2) create a split over gender labels, balancing gender as good as possible but by avoiding the same subject label in more than one bin.
     #for gender recognition, we want to avoid the model to learn gait criteria of subjects and classify by that bias.
     #first split into gender groups and use them as queues
-    gender0 = np.where(Y_Gender[:, 0] == 1)[0].tolist()
-    gender1 = np.where(Y_Gender[:, 1] == 1)[0].tolist()
-    genderQueues = [gender0, gender1]
+    #gender0 = np.where(Y_Gender[:, 0] == 1)[0].tolist()
+    #gender1 = np.where(Y_Gender[:, 1] == 1)[0].tolist()
+    #genderQueues = [gender0, gender1]
+    genderQueues = [np.where(Y_Gender[:, i] == 1)[0].tolist() for i in range(G)]
     GenderIndexSplits = [None]*splits
     currentSplit = 0
 
