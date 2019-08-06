@@ -135,7 +135,7 @@ if MODELTOEVALUATE == '2Layer':
 MODELTOEVALUATE ='cnn'
 if 'cnn' in MODELTOEVALUATE:
 #    #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
-    DAYFOLDER = '{}/NormalKnee-2019-08-05-S1234'.format(ROOTFOLDER)
+    DAYFOLDER = './NormalKnee-2019-08-05-S1234'.format(ROOTFOLDER)
     MODELTOEVALUATE ='cnnA'
     if MODELTOEVALUATE == 'cnnA':
         training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
