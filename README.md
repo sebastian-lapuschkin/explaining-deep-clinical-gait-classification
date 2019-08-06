@@ -1,4 +1,5 @@
-# Explaining the Unique Nature of Individual Gait Patterns with Deep Learning
+# Explaining the Unique Nature of Individual Gait Patterns with Deep Learning, *NOW WITH INJURED PEOPLE!*
+**This currently very WIP repo's initial commit is a duplicate of  [https://github.com/sebastian-lapuschkin/interpretable-deep-gait](https://github.com/sebastian-lapuschkin/interpretable-deep-gait), commit  [e5fc853](https://github.com/sebastian-lapuschkin/interpretable-deep-gait/commit/e5fc8536779f6a86e348ea89c6b7b65db68f91bd)**
 
 ![overview figure](./figures/overview.png)
 
