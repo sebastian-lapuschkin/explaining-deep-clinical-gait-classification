@@ -55,7 +55,7 @@ def trim_empty_classes(Y):
         print('No empty columns detected in label matrix shaped {}'.format(Y.shape))
 
 #load matlab data as dictionary using scipy
-gaitdata = scio.loadmat('{}/data/DatasetC_Classification_Norm_2_Normal-Knee.mat'.format(ROOTFOLDER)) 
+gaitdata = scio.loadmat('{}/data/DatasetC_Classification_Norm_5_Normal-Ankle-Hip-Knee.mat'.format(ROOTFOLDER)) 
 
 # Feature -> Bodenreaktionskraft
 X_GRF_AV = gaitdata['Feature']                       # 1142 x 101 x 6
@@ -78,13 +78,10 @@ X_GRF_AV = X_GRF_AV[Permutation, ...]
 Y_Injury = Y_Injury[Permutation, ...]
 Y_Subject = Y_Subject[Permutation, ...]
 
-n_labels = Y_Injury.sum(0)
-print n_labels
-
 #clean labels
+n_labels = Y_Injury.sum(0)
 Y_Injury = Y_Injury[:,n_labels > 0]
 n_labels = Y_Injury.sum(0)
-print n_labels
 
 #create dictionaries for easier batch access for training and testing.
 X = {'GRF_AV': X_GRF_AV}
@@ -93,7 +90,8 @@ Y = {'Injury': Y_Injury}
 
 L = {'GRF_AV': Label_GRF_AV}
 
-S = {'Injury': InjuryIndexSplits}
+S = {'Injury': InjuryIndexSplits,
+     'Subject': SubjectIndexSplits}
 
 # skip to just do nothing and leave the results as is
 # load to load the model and reevaluate, recompute heatmaps
@@ -102,7 +100,7 @@ DOTHISIFMODELEXISTS = 'retrain'
 
 MODELTOEVALUATE ='linear'
 if MODELTOEVALUATE == 'linear':
-    DAYFOLDER = './NormalKnee-2019-08-05-S{}'.format(RANDOMSEED)
+    DAYFOLDER = './Normal-Ankle-Hip-Knee-2019-08-05-S{}'.format(RANDOMSEED)
     training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
     training.run_linear_SVM_L2_C1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
     training.run_linear_SVM_L2_C0p1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
@@ -111,9 +109,7 @@ if MODELTOEVALUATE == 'linear':
 
 MODELTOEVALUATE ='3Layer'
 if MODELTOEVALUATE == '3Layer':
-    #prepare experiment configuration for this (not necessarily the current, e.g. for result completion) day
-    DAYFOLDER = './NormalKnee-2019-08-05-S{}'.format(RANDOMSEED)
-    #run some experiments
+    DAYFOLDER = './Normal-Ankle-Hip-Knee-2019-08-05-S{}'.format(RANDOMSEED)
     training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
     training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128, ifModelExists=DOTHISIFMODELEXISTS)
     training.run_3layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
@@ -123,8 +119,7 @@ if MODELTOEVALUATE == '3Layer':
 
 MODELTOEVALUATE ='2Layer'
 if MODELTOEVALUATE == '2Layer':
-    #create folder for today's experiments.
-    DAYFOLDER = './NormalKnee-2019-08-05-S{}'.format(RANDOMSEED)
+    DAYFOLDER = './Normal-Ankle-Hip-Knee-2019-08-05-S{}'.format(RANDOMSEED)
     training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
     training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHISIFMODELEXISTS)
     training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
@@ -134,8 +129,7 @@ if MODELTOEVALUATE == '2Layer':
 
 MODELTOEVALUATE ='cnn'
 if 'cnn' in MODELTOEVALUATE:
-#    #DAYFOLDER = './' + str(datetime.datetime.now()).split()[0] + '-S{}'.format(RANDOMSEED)
-    DAYFOLDER = './NormalKnee-2019-08-05-S1234'.format(ROOTFOLDER)
+    DAYFOLDER = './Normal-Ankle-Hip-Knee-2019-08-05-S1234'.format(ROOTFOLDER)
     MODELTOEVALUATE ='cnnA'
     if MODELTOEVALUATE == 'cnnA':
         training.run_cnn_A(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS) # A - mode uses ALL features in each convolution and slides over time. filters are square in shape
@@ -148,13 +142,13 @@ if 'cnn' in MODELTOEVALUATE:
     if MODELTOEVALUATE == 'cnnC33':
         training.run_cnn_C3_3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 
-    MODELTOEVALUATE ='cnnA6'
-    if MODELTOEVALUATE == 'cnnA6':
-        training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    #MODELTOEVALUATE ='cnnA6'
+    #if MODELTOEVALUATE == 'cnnA6':
+    #    training.run_cnn_A6(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 
-    MODELTOEVALUATE ='cnnA3'
-    if MODELTOEVALUATE == 'cnnA3':
-        training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    #MODELTOEVALUATE ='cnnA3'
+    #if MODELTOEVALUATE == 'cnnA3':
+    #    training.run_cnn_A3(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
 
     MODELTOEVALUATE ='cnnC6'
     if MODELTOEVALUATE == 'cnnC6':
