@@ -33,12 +33,12 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     SubjectIndexSplits = [None]*splits
 
     #1) create a split over subject labels first by iterating over all person labels and subdividing them as equally as possible.
-    for i in xrange(P):
+    for i in range(P):
         pIndices = np.where(Y_Subject[:,i] == 1)[0]
 
         #compute an approx equally sized partitioning.
         partitioning = np.linspace(0, len(pIndices), splits+1, dtype=int)
-        for si in xrange(splits):
+        for si in range(splits):
             #make sure index lists exist
             if SubjectIndexSplits[si] is None:
                 SubjectIndexSplits[si] = []
