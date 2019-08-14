@@ -1,8 +1,15 @@
+#ignore output files
 *.pyc
 *.tar.gz
+*.mat
+*.txt
 
 #ignore result folder
 2017-*
+2019-*
 BASELINE-*
 BASELINE-*
 PCA
+
+#ignore dev environment stuff
+.vscode
