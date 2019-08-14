@@ -7,8 +7,7 @@
 @version: 1.0
 @copyright: Copyright (c)  2015-2017, Sebastian Lapuschkin, Alexander Binder, Gregoire Montavon, Klaus-Robert Mueller, Wojciech Samek
 @license : BSD-2-Clause
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                '''
-
+'''
 
 import datetime
 import os
@@ -21,7 +20,7 @@ import sys
 
 SKIPTHISMANY=0
 ROOTFOLDER='.'
-MODELSTOEVALUATE = ['2Layer']
+MODELSTOEVALUATE = ['cnnA']
 # skip to just do nothing and leave the results as is
 # load to load the model and reevaluate, recompute heatmaps
 # retrain to overwrite the old model and results
