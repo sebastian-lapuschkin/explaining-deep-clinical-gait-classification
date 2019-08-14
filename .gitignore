@@ -1,5 +1,7 @@
 *.pyc
 *.tar.gz
+*.mat
+*.txt
 
 #ignore result folder
 2017-*
