@@ -1,3 +1,4 @@
+#ignore output files
 *.pyc
 *.tar.gz
 *.mat
@@ -9,3 +10,6 @@
 BASELINE-*
 BASELINE-*
 PCA
+
+#ignore dev environment stuff
+.vscode
