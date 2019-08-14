@@ -10,14 +10,14 @@
 
 # Option A: CPU Only
 # CREATES: an environment called "gait", for running the code on CPU hardware
-conda create -n gait -c conda-forge python=3.* numpy matplotlib prettytable flake8 pylint rope scikit-learn scikit-image scipy
+conda create -n gait -c conda-forge python=3.* numpy matplotlib prettytable flake8 pylint rope scikit-learn scikit-image scipy natsort
 
 
 
 
 # Option B: GPU Support
 # CREATES: an environment called gait-gpu, for running the code on NVIDIA-hardware
-# conda create -n gait-gpu -c conda-forge python=3.* numpy cupy matplotlib prettytable flake8 pylint rope scikit-learn scikit-image scipy
+# conda create -n gait-gpu -c conda-forge python=3.* numpy cupy matplotlib prettytable flake8 pylint rope scikit-learn scikit-image scipy natsort
 
 
 
