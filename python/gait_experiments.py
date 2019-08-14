@@ -32,13 +32,13 @@ for param in sys.argv:
     else:
         k,v = param.split('=')
         if 'skip' in k:
-            print 'setting skip param to', v
+            print('setting skip param to', v)
             SKIPTHISMANY = int(v)
         elif 'root' in k:
-            print 'setting root folder param to', v
+            print('setting root folder param to', v)
             ROOTFOLDER = v
         elif 'model' in k:
-            print 'setting model to evaluate to', v
+            print('setting model to evaluate to', v)
             MODELSTOEVALUATE = v # TODO REWORK handling of this THIS
 
         #TODO: add "what if model already exists" to list of passable arguments for behavioral control
@@ -54,12 +54,12 @@ def trim_empty_classes(Y):
     n_per_col = Y.sum(axis=0)
     empty_cols = n_per_col == 0
     if np.any(empty_cols):
-        print('{} Empty columns detected in label matrix shaped {}. Columns are: {}. Removing.'.format(empty_cols.sum(), Y.shape, np.where(empty_cols)[0]))
+        print(('{} Empty columns detected in label matrix shaped {}. Columns are: {}. Removing.'.format(empty_cols.sum(), Y.shape, np.where(empty_cols)[0])))
         Y = Y[:,~empty_cols]
-        print('    shape is {} post column removal.'.format(Y.shape))
+        print(('    shape is {} post column removal.'.format(Y.shape)))
         return Y
     else:
-        print('No empty columns detected in label matrix shaped {}'.format(Y.shape))
+        print(('No empty columns detected in label matrix shaped {}'.format(Y.shape)))
 
 #load matlab data as dictionary using scipy
 gaitdata = scio.loadmat('{}/data/DatasetC_Classification_Norm_5_Normal-Ankle-Hip-Knee.mat'.format(ROOTFOLDER)) #TODO make dataset passable parameter

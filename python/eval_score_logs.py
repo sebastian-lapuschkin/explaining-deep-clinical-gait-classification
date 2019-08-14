@@ -9,7 +9,7 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
     results = []
     with open(EXPERIMENTS + '/log.txt', 'rb') as f:
         log = f.read().split('\n')
-        for i in xrange(len(log)):
+        for i in range(len(log)):
             line = log[i]
             if len(line) > 0:
                 if 'part' in line: #header
@@ -26,12 +26,12 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
     results = np.array(results)
     #get unique field entries
     targets = natsort.natsorted(np.unique(results[:, 0]))
-    print targets
+    print(targets)
     data = natsort.natsorted(np.unique(results[:, 1]))
-    print data
+    print(data)
     models = natsort.natsorted(np.unique(results[:, 2]))
-    print models
-    print ''
+    print(models)
+    print('')
 
 
     for t in targets:
@@ -49,8 +49,8 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
 
             tab.add_row(row)
 
-        print tab
-    print ''
+        print(tab)
+    print('')
 
 
 if __name__ == '__main__':
