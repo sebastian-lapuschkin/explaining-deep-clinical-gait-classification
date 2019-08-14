@@ -34,6 +34,9 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
     RPredDomComp -- the presoftmax lrp for the actual class with the known optimal decomposition parametrization
     """
 
+
+    # TODO HERE call Seqential.drop_softmax_output_layer()
+
     #presoftmaxindex. the linear model does not have a softmax output.
     iP = -1 if len(nn.modules) == 1 else -2
     print '  forward'

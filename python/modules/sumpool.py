@@ -9,8 +9,14 @@
 @license : BSD-2-Clause
 '''
 
+from .module import Module
+import numpy
 import numpy as np
-from module import Module
+import importlib.util as imp
+if imp.find_spec("cupy"):
+    import cupy
+    import cupy as np
+na = np.newaxis
 
 # -------------------------------
 # Sum Pooling layer
@@ -37,6 +43,19 @@ class SumPool(Module):
         self.pool = pool
         self.stride = stride
 
+    def to_cupy(self):
+        assert imp.find_spec("cupy"), "module cupy not found."
+        if hasattr(self, 'X') and self.X is not None: self.X = cupy.array(self.X)
+        if hasattr(self, 'Y') and self.Y is not None: self.Y = cupy.array(self.Y)
+
+    def to_numpy(self):
+        if np == numpy or not imp.find_spec("cupy"):
+            pass #nothing to do if there is no cupy. model should exist as numpy arrays
+        else:
+            if hasattr(self, 'X') and self.X is not None: self.X = cupy.asnumpy(self.X)
+            if hasattr(self, 'Y') and self.Y is not None: self.Y = cupy.asnumpy(self.Y)
+
+
     def forward(self,X,*args,**kwargs):
         '''
         Realizes the forward pass of an input through the sum pooling layer.
@@ -61,16 +80,16 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
 
         normalizer = 1./np.sqrt(hpool*wpool)
 
         #initialize pooled output
         self.Y = np.zeros((N,Hout,Wout,D))
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 self.Y[:,i,j,:] = X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ].sum(axis=(1,2)) * normalizer #normalizer to keep the output well conditioned
         return self.Y
 
@@ -105,15 +124,15 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
 
         normalizer = 1./np.sqrt(hpool * wpool)
 
         #distribute the gradient (1 * DY) towards across all contributing inputs evenly
         DX = np.zeros_like(self.X)
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 DX[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += DY[:,i:i+1,j:j+1,:] * normalizer # normalizer to produce well-conditioned gradients
         return DX
 
@@ -132,12 +151,12 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
 
         Rx = np.zeros(self.X.shape)
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
                 Zs = Z.sum(axis=(1,2),keepdims=True)
                 Zs += 1e-12*((Zs >= 0)*2-1) # add a weak numerical stabilizer to cushion an all-zero input
@@ -157,16 +176,16 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
 
         Rx = np.zeros(self.X.shape)
         normalizer = 1./np.sqrt(hpool*wpool)
         R_norm = R / (self.Y/normalizer + 1e-12*((self.Y/normalizer >= 0)*2 - 1.)) #factor in normalizer applied to Y in the forward pass
 
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
                 Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += Z * (R_norm[:,i:i+1,j:j+1,:])
 
@@ -183,13 +202,13 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = np.ones([N,hpool,wpool,D])
                 Zs = Z.sum(axis=(1,2),keepdims=True)
                 Rx[:,i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool,:] += (Z / Zs) * R[:,i:i+1,j:j+1,:]
@@ -212,12 +231,12 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
 
         Rx = np.zeros(self.X.shape)
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
                 Zs = Z.sum(axis=(1,2),keepdims=True)
                 Zs += epsilon*((Zs >= 0)*2-1) # add a epsilon stabilizer to cushion an all-zero input
@@ -237,15 +256,15 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
 
         Rx = np.zeros(self.X.shape)
         normalizer = 1./np.sqrt(hpool*wpool) #factor in normalizer applied to Y in the forward pass
         R_norm = R / (self.Y/normalizer + epsilon*((self.Y >= 0)*2 - 1.))
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
                 Rx[:,i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ] += Z * (R_norm[:,i:i+1,j:j+1,:])
 
@@ -274,13 +293,13 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
 
         #distribute the gradient towards across all inputs evenly
         Rx = np.zeros(self.X.shape)
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
 
                 if not alpha == 0:
@@ -314,14 +333,14 @@ class SumPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = int((H - hpool) / hstride + 1)
+        Wout = int((W - wpool) / wstride + 1)
         normalizer = 1./np.sqrt(hpool*wpool) #factor in normalizer applied to Y in the forward pass
 
         #distribute the gradient towards across all inputs evenly
         Rx = np.zeros(self.X.shape)
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ] #input activations.
                 Zplus = Z > 0 #index mask of positive forward predictions
 

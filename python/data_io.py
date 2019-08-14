@@ -9,8 +9,15 @@
 '''
 
 import os
-import numpy as np ; na = np.newaxis
 import scipy.io as scio
+
+import numpy
+import numpy as np
+import importlib.util as imp
+if imp.find_spec("cupy"):
+    import cupy
+    import cupy as np
+na = np.newaxis
 
 
 
@@ -54,18 +61,18 @@ def read(path, fmt = None):
 
 
 def _read_np(path):
-    print 'loading np-formatted data from',path
+    print('loading np-formatted data from',path)
     return np.load(path)
 
 
 def _read_mat(path):
-    print 'loading matlab formatted data from', path
-    return scio.loadmat(path)['data']
+    print('loading matlab formatted data from', path)
+    return np.array(scio.loadmat(path)['data'])
 
 
 def _read_txt(path):
-    print 'loading plain text data from',path
-    return np.loadtxt(path)
+    print('loading plain text data from',path)
+    return np.array(numpy.loadtxt(path))
 
 _read_as = {'npy':_read_np,\
             'npz':_read_np,\
@@ -109,15 +116,19 @@ def write(data, path, fmt = None):
 
 
 def _write_np(data, path):
-    print  'writing data in npy-format to',path
+    print('writing data in npy-format to',path)
     np.save(path, data)
 
 def _write_mat(data, path):
-    print 'writing data in mat-format to',path
+    print('writing data in mat-format to',path)
+    if not numpy == np: #np == cupy
+        data = np.asnumpy(data)
     scio.savemat(path, {'data':data}, appendmat = False)
 
 def _write_txt(data, path):
-    print 'writing data as plain text to',path
+    print('writing data as plain text to',path)
+    if not numpy == np: #np == cupy
+        data = np.asnumpy(data)
     np.savetxt(path, data)
 
 

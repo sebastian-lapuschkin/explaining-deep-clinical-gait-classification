@@ -9,8 +9,13 @@
 @license : BSD-2-Clause
 '''
 
+from .module import Module
+import numpy
 import numpy as np
-from module import Module
+import importlib.util as imp
+if imp.find_spec("cupy"):
+    import cupy
+    import cupy as np
 na = np.newaxis
 
 
@@ -47,6 +52,25 @@ class Convolution(Module):
         self.W = np.random.normal(0,1./(self.fh*self.fw*self.fd)**.5, filtersize)
         self.B = np.zeros([self.n])
 
+    def to_cupy(self):
+        assert imp.find_spec("cupy"), "module cupy not found."
+        self.W = cupy.array(self.W)
+        self.B = cupy.array(self.B)
+        if hasattr(self, 'X') and self.X is not None: self.X = cupy.array(self.X)
+        if hasattr(self, 'Y') and self.Y is not None: self.Y = cupy.array(self.Y)
+        if hasattr(self, 'Z') and self.Z is not None: self.Z = cupy.array(self.Z)
+        if hasattr(self, 'DY') and self.DY is not None: self.DY = cupy.array(self.DY)
+
+    def to_numpy(self):
+        if np == numpy or not imp.find_spec("cupy"):
+            pass #nothing to do if there is no cupy. model should exist as numpy arrays
+        else:
+            self.W = cupy.asnumpy(self.W)
+            self.B = cupy.asnumpy(self.B)
+            if hasattr(self, 'X') and self.X is not None: self.X = cupy.asnumpy(self.X)
+            if hasattr(self, 'Y') and self.Y is not None: self.Y = cupy.asnumpy(self.Y)
+            if hasattr(self, 'Z') and self.Z is not None: self.Z = cupy.asnumpy(self.Z)
+            if hasattr(self, 'DY') and self.DY is not None: self.DY = cupy.asnumpy(self.DY)
 
     def forward(self,X,lrp_aware=False):
         '''
@@ -81,8 +105,8 @@ class Convolution(Module):
         numfilters = self.n
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hf) / hstride + 1
-        Wout = (W - wf) / wstride + 1
+        Hout = (H - hf) // hstride + 1
+        Wout = (W - wf) // wstride + 1
 
 
         #initialize pooled output
@@ -90,13 +114,13 @@ class Convolution(Module):
 
         if self.lrp_aware:
             self.Z = np.zeros((N, Hout, Wout, hf, wf, df, nf)) #initialize container for precomputed forward messages
-            for i in xrange(Hout):
-                for j in xrange(Wout):
+            for i in range(Hout):
+                for j in range(Wout):
                     self.Z[:,i,j,...] = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na] # N, hf, wf, df, nf
                     self.Y[:,i,j,:] = self.Z[:,i,j,...].sum(axis=(1,2,3)) + self.B
         else:
-            for i in xrange(Hout):
-                for j in xrange(Wout):
+            for i in range(Hout):
+                for j in range(Wout):
                     self.Y[:,i,j,:] = np.tensordot(X[:, i*hstride:i*hstride+hf: , j*wstride:j*wstride+wf: , : ],self.W,axes = ([1,2,3],[0,1,2])) + self.B
 
         return self.Y
@@ -134,12 +158,12 @@ class Convolution(Module):
 
 
         if not (hf == wf and self.stride == (1,1)):
-            for i in xrange(Hy):
-                for j in xrange(Wy):
+            for i in range(Hy):
+                for j in range(Wy):
                     DX[:,i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : ] += (self.W[na,...] * DY[:,i:i+1,j:j+1,na,:]).sum(axis=4)  #sum over all the filters
         else:
-            for i in xrange(hf):
-                for j in xrange(wf):
+            for i in range(hf):
+                for j in range(wf):
                     DX[:,i:i+Hy:hstride,j:j+Wy:wstride,:] += np.dot(DY,self.W[i,j,:,:].T)
 
         return DX #* (hf*wf*df)**.5 / (NF*Hy*Wy)**.5
@@ -155,12 +179,12 @@ class Convolution(Module):
         DW = np.zeros_like(self.W,dtype=np.float)
 
         if not (hf == wf and self.stride == (1,1)):
-            for i in xrange(Hy):
-                for j in xrange(Wy):
+            for i in range(Hy):
+                for j in range(Wy):
                     DW += (self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , :, na] * self.DY[:,i:i+1,j:j+1,na,:]).sum(axis=0)
         else:
-            for i in xrange(hf):
-                for j in xrange(wf):
+            for i in range(hf):
+                for j in range(wf):
                     DW[i,j,:,:] = np.tensordot(self.X[:,i:i+Hy:hstride,j:j+Wy:wstride,:],self.DY,axes=([0,1,2],[0,1,2]))
 
         DB = self.DY.sum(axis=(0,1,2))
@@ -171,6 +195,7 @@ class Convolution(Module):
     def clean(self):
         self.X = None
         self.Y = None
+        self.Z = None
         self.DY = None
 
 
@@ -186,8 +211,8 @@ class Convolution(Module):
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na]
                 Zs = Z.sum(axis=(1,2,3),keepdims=True) + self.B[na,na,na,na,...]
                 Zs += 1e-16*((Zs >= 0)*2 - 1.) # add a weak numerical stabilizer to cushion division by zero
@@ -208,8 +233,8 @@ class Convolution(Module):
         Rx = np.zeros_like(self.X,dtype=np.float)
         R_norm = R / (self.Y + 1e-16*((self.Y >= 0)*2 - 1.))
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 if self.lrp_aware:
                     Z = self.Z[:,i,j,...]
                 else:
@@ -229,8 +254,8 @@ class Convolution(Module):
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = np.ones((N,hf,wf,df,NF))
                 Zs = Z.sum(axis=(1,2,3),keepdims=True)
 
@@ -248,8 +273,8 @@ class Convolution(Module):
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.W[na,...]**2
                 Zs = Z.sum(axis=(1,2,3),keepdims=True)
 
@@ -268,8 +293,8 @@ class Convolution(Module):
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na]
                 Zs = Z.sum(axis=(1,2,3),keepdims=True) + self.B[na,na,na,na,...]
                 Zs += epsilon*((Zs >= 0)*2-1)
@@ -289,8 +314,8 @@ class Convolution(Module):
         Rx = np.zeros_like(self.X,dtype=np.float)
         R_norm = R / (self.Y + epsilon*((self.Y >= 0)*2 - 1.))
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 if self.lrp_aware:
                     Z = self.Z[:,i,j,...]
                 else:
@@ -312,8 +337,8 @@ class Convolution(Module):
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.W[na,...] * self.X[:, i*hstride:i*hstride+hf , j*wstride:j*wstride+wf , : , na]
 
                 if not alpha == 0:
@@ -321,6 +346,7 @@ class Convolution(Module):
                     Bp = (self.B * (self.B > 0))[na,na,na,na,...]
                     Zsp = Zp.sum(axis=(1,2,3),keepdims=True) + Bp
                     Ralpha = alpha * ((Zp/Zsp) * R[:,i:i+1,j:j+1,na,:]).sum(axis=4)
+                    Ralpha[np.isnan(Ralpha)] = 0
                 else:
                     Ralpha = 0
 
@@ -329,6 +355,7 @@ class Convolution(Module):
                     Bn = (self.B * (self.B < 0))[na,na,na,na,...]
                     Zsn = Zn.sum(axis=(1,2,3),keepdims=True) + Bn
                     Rbeta = beta * ((Zn/Zsn) * R[:,i:i+1,j:j+1,na,:]).sum(axis=4)
+                    Rbeta[np.isnan(Rbeta)] = 0
                 else:
                     Rbeta = 0
 
@@ -350,8 +377,8 @@ class Convolution(Module):
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 if self.lrp_aware:
                     Z = self.Z[:,i,j,...]
                 else:

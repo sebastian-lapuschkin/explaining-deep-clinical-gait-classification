@@ -10,8 +10,14 @@
 
 import os
 import pickle
-import numpy as np
 from modules import Sequential,Linear,Tanh,Rect,SoftMax,Convolution,Flatten,SumPool,MaxPool
+import numpy
+import numpy as np
+import importlib.util as imp
+if imp.find_spec("cupy"):
+    import cupy
+    import cupy as np
+na = np.newaxis
 
 #--------------------
 #   model reading
@@ -86,19 +92,24 @@ def read(path, fmt = None):
     if fmt is None: #try to infer format
         fmt = os.path.splitext(path)[1].replace('.','').lower()
 
-    return _read_as[fmt](path)
+    model = _read_as[fmt](path)
+    if not np == numpy: #np = cupy
+        model.to_cupy()
+    return model
 
 
 def _read_pickled(path):
-    print 'loading pickled model from',path
-    return pickle.load(open(path,'rb'))
+    print('loading pickled model from',path)
+    with open(path,'rb') as f:
+        p = pickle.load(f, encoding='latin1')
+    return p
 
 
 def _read_txt(path):
-    print 'loading plain text model from',path
+    print('loading plain text model from',path)
 
     def _read_txt_helper(path):
-        with open(path,'rb') as f:
+        with open(path,'r') as f:
             content = f.read().split('\n')
 
             modules = []
@@ -185,17 +196,17 @@ def _read_txt(path):
     except ValueError as e:
         #numpy.reshape may throw ValueErros if reshaping does not work out.
         #In this case: fall back to reading the old plain text format.
-        print 'probable reshaping/formatting error while reading plain text network file.'
-        print 'ValueError message:', e.message
-        print  'Attempting fall-back to legacy plain text format interpretation...'
+        print('probable reshaping/formatting error while reading plain text network file.')
+        print('ValueError message:', e.message)
+        print('Attempting fall-back to legacy plain text format interpretation...')
         return _read_txt_old(path)
-        print 'fall-back successfull!'
+        print('fall-back successfull!')
 
 
 def _read_txt_old(path):
-    print 'loading plain text model from', path
+    print('loading plain text model from', path)
 
-    with open(path, 'rb') as f:
+    with open(path, 'r') as f:
         content = f.read().split('\n')
 
         modules = []
@@ -207,7 +218,7 @@ def _read_txt_old(path):
                 m = int(lineparts[1])
                 n = int(lineparts[2])
                 mod = Linear(m,n)
-                for i in xrange(m):
+                for i in range(m):
                     c+=1
                     mod.W[i,:] = np.array([float(val) for val in content[c].split() if len(val) > 0])
 
@@ -224,7 +235,7 @@ def _read_txt_old(path):
             else:
                 raise ValueError('Layer type ' + [s for s in line.split() if len(s) > 0][0] +  ' not supported by legacy plain text format.')
 
-            c+=1;
+            c+=1
             line = content[c]
 
         return Sequential(modules)
@@ -270,6 +281,8 @@ def write(model, path, fmt = None):
     '''
 
     model.clean()
+    if not np == numpy: #np = cupy
+        model.to_numpy() #TODO reconvert after writing?
     if fmt is None:
         fmt = os.path.splitext(path)[1].replace('.','').lower()
 
@@ -277,18 +290,18 @@ def write(model, path, fmt = None):
 
 
 def _write_pickled(model, path):
-    print 'writing model pickled to',path
+    print('writing model pickled to',path)
     with open(path, 'wb') as f:
         pickle.dump(model,f,pickle.HIGHEST_PROTOCOL)
 
 
 def _write_txt(model,path):
-    print 'writing model as plain text to',path
+    print('writing model as plain text to',path)
 
     if not isinstance(model, Sequential):
         raise Exception('Argument "model" must be an instance of module.Sequential, wrapping a sequence of neural network computation layers, but is {0}'.format(type(model)))
 
-    with open(path, 'wb') as f:
+    with open(path, 'w') as f:
         for layer in model.modules:
             if isinstance(layer,Linear):
                 '''
