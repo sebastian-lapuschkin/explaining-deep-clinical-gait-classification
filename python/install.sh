@@ -1,59 +1,26 @@
 #!/bin/bash
 #
-# !!!! NOTE: This install.sh is the installation script for the LRP Toolbox available at https://github.com/sebastian-lapuschkin/lrp_toolbox
-# and may help you with setting up the experimental code for our human gait classification paper (ie it lists some required packages).
-# you might need to install some additional (python) packages. the python2 interpreter will point any missing resources out to you :)
 #
-# This is an installation script for installing all required python
-# packages required for running the standalone lrp implementation /
-# demo which is part of the LRP Toolbox v1.0 on the Ubuntu 14.04 LTS
-# 64 bit distribution. This script should be considered a convenient
-# solution for setting up the LRP toolbox for the afore mentioned OS
-# and might have success installing all needed requirements on different
-# releases of Ubuntu/Linux. There is, however, no guarantee for that.
-# This is especially true for other Linux derivates or OSs in general.
+# REQUIRES: installed (Ana)conda virtualization framework
 #
-# The installation of required python packages will by performed via
-# the reliable and convenient apt-get.
-#
-# Before executing this script, please read and modify the following commands
-# carefully in order to prevent unwanted changes to your system.
-#
-# This installation requires administrator level privileges.
-
-# INSTALL REQUIRED PYTHON PACKAGES
-apt-get install python-numpy python-numpy-dbg python-scipy python-matplotlib python-skimage
-#pip install skimage #python skimage 0.12.3+ for newer ubuntu/windows compatibility
+# below calls create virtual environments for running and using the code in this repo. pick the one suitable for your hardware.
+# comment/uncomment the desired conda setup calls
 
 
 
-# DOWNLOAD MODELS AND DATA FOR THE DEMO APPLICATION
-# go to toolbox root
-cd ..
-
-# download and extract the MNIST hand written data set
-if ! [[ -f data/MNIST/test_images.npy && -f data/MNIST/test_labels.npy ]]
-then
-  fname=data_mnist_npy.zip
-  wget -nc http://heatmapping.org/files/lrp_toolbox/data/$fname
-  unzip $fname
-  rm $fname
-fi
-
-# download and extract the model required for successfully run the demo
-if ! [ -f models/MNIST/long-rect.nn ]
-then
-  fname=models_mnist_nn.zip
-  wget -nc http://heatmapping.org/files/lrp_toolbox/models/$fname
-  unzip $fname
-  rm $fname
-fi
-
-# go back to ./python
-cd python
+# Option A: CPU Only
+# CREATES: an environment called "gait", for running the code on CPU hardware
+conda create -n gait -c conda-forge python=3.* numpy matplotlib prettytable flake8 pylint rope scikit-learn scikit-image scipy
 
 
 
-# RUN DEMO CODE
-python lrp_demo.py
 
+# Option B: GPU Support
+# CREATES: an environment called gait-gpu, for running the code on NVIDIA-hardware
+# conda create -n gait-gpu -c conda-forge python=3.* numpy cupy matplotlib prettytable flake8 pylint rope scikit-learn scikit-image scipy
+
+
+
+
+# After setting up the required environments, just activate the environment and run the script(s), e.g.
+# conda activate gait-gpu ; python gait_experiments.py
