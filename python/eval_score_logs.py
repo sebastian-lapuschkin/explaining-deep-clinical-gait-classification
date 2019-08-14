@@ -1,13 +1,13 @@
 import glob
 import os
 import sys
-import numpy as np
+import numpy as numpy
 import natsort
 from prettytable import PrettyTable
 
 def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
     results = []
-    with open(EXPERIMENTS + '/log.txt', 'rb') as f:
+    with open(EXPERIMENTS + '/log.txt', 'r') as f:
         log = f.read().split('\n')
         for i in range(len(log)):
             line = log[i]
@@ -23,13 +23,13 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
                     thisresult = [target, data, model, float(acc)]
                     results.append(thisresult)
 
-    results = np.array(results)
+    results = numpy.array(results)
     #get unique field entries
-    targets = natsort.natsorted(np.unique(results[:, 0]))
+    targets = natsort.natsorted(numpy.unique(results[:, 0]))
     print(targets)
-    data = natsort.natsorted(np.unique(results[:, 1]))
+    data = natsort.natsorted(numpy.unique(results[:, 1]))
     print(data)
-    models = natsort.natsorted(np.unique(results[:, 2]))
+    models = natsort.natsorted(numpy.unique(results[:, 2]))
     print(models)
     print('')
 
@@ -40,11 +40,11 @@ def run(EXPERIMENTS='./BASELINE-NO-TRAINING'):
         for m in models:
             row = [m]
             for d in data:
-                ii = np.where((results[:,0] == t) * (results[:,1] == d) * (results[:,2] == m))[0]
+                ii = numpy.where((results[:,0] == t) * (results[:,1] == d) * (results[:,2] == m))[0]
                 #print t, m, d, ii
 
                 scores = [float(s) for s in results[ii,3]]
-                scores = '{:.2f} +- {:.2f}'.format(np.mean(scores)*100, np.std(scores)*100)
+                scores = '{:.2f} +- {:.2f}'.format(numpy.mean(scores)*100, numpy.std(scores)*100)
                 row.append(scores)
 
             tab.add_row(row)

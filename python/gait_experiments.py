@@ -11,7 +11,10 @@
 
 import datetime
 import os
-import numpy as np # the de facto numerics package for python
+
+import numpy
+import numpy as numpy # no cupy import here, stay on the CPU in the main script.
+
 import scipy.io as scio # scientific python package, which supports mat-file IO within python
 import helpers
 import training
@@ -20,7 +23,7 @@ import sys
 
 SKIPTHISMANY=0
 ROOTFOLDER='.'
-MODELSTOEVALUATE = ['cnnA']
+MODELSTOEVALUATE = ['2Layer']
 # skip to just do nothing and leave the results as is
 # load to load the model and reevaluate, recompute heatmaps
 # retrain to overwrite the old model and results
@@ -53,13 +56,13 @@ def trim_empty_classes(Y):
     # expects an input array shaped Y x C. removes label columns for classes without samples.
     n_per_col = Y.sum(axis=0)
     empty_cols = n_per_col == 0
-    if np.any(empty_cols):
-        print(('{} Empty columns detected in label matrix shaped {}. Columns are: {}. Removing.'.format(empty_cols.sum(), Y.shape, np.where(empty_cols)[0])))
+    if numpy.any(empty_cols):
+        print('{} Empty columns detected in label matrix shaped {}. Columns are: {}. Removing.'.format(empty_cols.sum(), Y.shape, numpy.where(empty_cols)[0]))
         Y = Y[:,~empty_cols]
-        print(('    shape is {} post column removal.'.format(Y.shape)))
+        print('    shape is {} post column removal.'.format(Y.shape))
         return Y
     else:
-        print(('No empty columns detected in label matrix shaped {}'.format(Y.shape)))
+        print('No empty columns detected in label matrix shaped {}'.format(Y.shape))
 
 #load matlab data as dictionary using scipy
 gaitdata = scio.loadmat('{}/data/DatasetC_Classification_Norm_5_Normal-Ankle-Hip-Knee.mat'.format(ROOTFOLDER)) #TODO make dataset passable parameter
@@ -88,7 +91,7 @@ Y_Injury = Y_Injury[Permutation, ...]
 Y_Subject = Y_Subject[Permutation, ...]
 
 #transposing axes, to obtain N x time x channel axis ordering, as in Horst et al. 2019
-X_GRF_AV = np.transpose(X_GRF_AV, [0, 2, 1])
+X_GRF_AV = numpy.transpose(X_GRF_AV, [0, 2, 1])
 
 
 #create dictionaries for easier batch access for training and testing.
@@ -107,10 +110,10 @@ S = {'Injury': InjuryIndexSplits,
 
 if 'linear' in MODELSTOEVALUATE:
     DAYFOLDER = './Normal-Ankle-Hip-Knee-2019-08-05-S{}'.format(RANDOMSEED)
-    training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_linear_SVM_L2_C1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_linear_SVM_L2_C0p1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_linear_SVM_L2_C10_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    #training.run_linear_SVM_L2_C1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    #training.run_linear_SVM_L2_C0p1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    #training.run_linear_SVM_L2_C10_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    #training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
     eval_score_logs.run(DAYFOLDER)
 
 if '3Layer' in MODELSTOEVALUATE:
@@ -126,9 +129,9 @@ if '2Layer' in MODELSTOEVALUATE:
     DAYFOLDER = './Normal-Ankle-Hip-Knee-2019-08-05-S{}'.format(RANDOMSEED)
     training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=64, ifModelExists=DOTHISIFMODELEXISTS)
     training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=128,ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
-    training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
+    #training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=256, ifModelExists=DOTHISIFMODELEXISTS)
+    #training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=512, ifModelExists=DOTHISIFMODELEXISTS)
+    #training.run_2layer_fcnn(X, Y, L, S, DAYFOLDER, n_hidden=1024,ifModelExists=DOTHISIFMODELEXISTS)
     eval_score_logs.run(DAYFOLDER)
 
 if 'cnnC' in MODELSTOEVALUATE:

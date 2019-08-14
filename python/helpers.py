@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as numpy
 
 def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     """ this method subdivides the given labels into optimal groups
@@ -19,11 +19,11 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     _, I = Y_Injury.shape
 
     #create global permutation sequence
-    Permutation = np.arange(N)
+    Permutation = numpy.arange(N)
 
     if seed is not None: #reseed the random generator
-        np.random.seed(seed)
-        Permutation = np.random.permutation(Permutation)
+        numpy.random.seed(seed)
+        Permutation = numpy.random.permutation(Permutation)
 
     #permute label matrices. also return this thing!
     Y_Subject = Y_Subject[Permutation,...]
@@ -34,10 +34,10 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
 
     #1) create a split over subject labels first by iterating over all person labels and subdividing them as equally as possible.
     for i in range(P):
-        pIndices = np.where(Y_Subject[:,i] == 1)[0]
+        pIndices = numpy.where(Y_Subject[:,i] == 1)[0]
 
         #compute an approx equally sized partitioning.
-        partitioning = np.linspace(0, len(pIndices), splits+1, dtype=int)
+        partitioning = numpy.linspace(0, len(pIndices), splits+1, dtype=int)
         for si in range(splits):
             #make sure index lists exist
             if SubjectIndexSplits[si] is None:
@@ -54,7 +54,7 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     #2) create a split over injury labels, balancing injury as good as possible but by avoiding the same subject label in more than one bin.
     #for injury recognition, we want to avoid the model to learn gait criteria of subjects and classify by that bias.
     #first split into injury groups and use them as queues
-    injuryQueues = [np.where(Y_Injury[:, i] == 1)[0].tolist() for i in range(I)]
+    injuryQueues = [numpy.where(Y_Injury[:, i] == 1)[0].tolist() for i in range(I)]
     InjuryIndexSplits = [None]*splits
     currentSplit = 0
 
@@ -72,9 +72,9 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
 
             #process lists/subjects:
             #find out who the next person is. get all those entries.
-            pindex = np.where(Y_Subject[iQ[0], :])[0]
+            pindex = numpy.where(Y_Subject[iQ[0], :])[0]
             #get all the indices for that person.
-            pIndices = np.where(Y_Subject[:, pindex])[0]
+            pIndices = numpy.where(Y_Subject[:, pindex])[0]
 
             #remove this person from its respective queue
             for p in pIndices:

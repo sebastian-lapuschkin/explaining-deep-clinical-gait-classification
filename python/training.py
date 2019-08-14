@@ -1,7 +1,7 @@
 import sys
 import time
 import os
-import numpy as np
+import numpy as numpy
 import scipy
 from sklearn.decomposition import PCA
 import matplotlib
@@ -42,9 +42,9 @@ def test_model(nn, Xtest, Ytest,  Nte, T, C):
     print('  forward')
     Ypred = nn.forward(Xtest,lrp_aware=False)
     YpredPresoftmax = nn.modules[iP].Y
-    amax = np.argmax(YpredPresoftmax,axis=1)
+    amax = numpy.argmax(YpredPresoftmax,axis=1)
 
-    Ydom = np.zeros_like(YpredPresoftmax)
+    Ydom = numpy.zeros_like(YpredPresoftmax)
     #loop over all samples (since I do not know any better solution right now) and set Ydom
     for i in range(Nte):
         Ydom[i,amax[i]] = YpredPresoftmax[i,amax[i]]
@@ -103,7 +103,7 @@ def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMAN
     if not os.path.isdir(outputfolder):
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -155,9 +155,9 @@ def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMAN
                 Ytest = y[iTest, ...]
 
                 #in order to realize full 3-convs with stride 3 in the time axis, we need to pad with one zero (because I am too lazy to implement support for padding)
-                Xtrain = np.concatenate([Xtrain, np.zeros([Xtrain.shape[0],1,Xtrain.shape[2]],dtype=Xtrain.dtype)],axis=1)
-                Xtest = np.concatenate([Xtest, np.zeros([Xtest.shape[0],1,Xtest.shape[2]],dtype=Xtest.dtype)],axis=1)
-                Xval = np.concatenate([Xval, np.zeros([Xval.shape[0],1,Xval.shape[2]],dtype=Xval.dtype)],axis=1)
+                Xtrain = numpy.concatenate([Xtrain, numpy.zeros([Xtrain.shape[0],1,Xtrain.shape[2]],dtype=Xtrain.dtype)],axis=1)
+                Xtest = numpy.concatenate([Xtest, numpy.zeros([Xtest.shape[0],1,Xtest.shape[2]],dtype=Xtest.dtype)],axis=1)
+                Xval = numpy.concatenate([Xval, numpy.zeros([Xval.shape[0],1,Xval.shape[2]],dtype=Xval.dtype)],axis=1)
 
                 #get original data shapes
                 Ntr, T, C = Xtrain.shape
@@ -239,10 +239,10 @@ def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMAN
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -261,7 +261,7 @@ def run_cnn_C3_3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMAN
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -302,7 +302,7 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
     if not os.path.isdir(outputfolder):
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -453,10 +453,10 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -475,7 +475,7 @@ def run_cnn_C6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -515,7 +515,7 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
     if not os.path.isdir(outputfolder):
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -670,10 +670,10 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -692,7 +692,7 @@ def run_cnn_C3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -734,7 +734,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
         os.mkdir(outputfolder)
 
 
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -864,10 +864,10 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -886,7 +886,7 @@ def run_cnn_A(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=-
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -929,7 +929,7 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
         os.mkdir(outputfolder)
 
 
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -1073,10 +1073,10 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -1095,7 +1095,7 @@ def run_cnn_A6(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -1138,7 +1138,7 @@ def run_cnn_A3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
         os.mkdir(outputfolder)
 
 
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -1282,10 +1282,10 @@ def run_cnn_A3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -1304,7 +1304,7 @@ def run_cnn_A3(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip', SKIPTHISMANY=
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -1358,7 +1358,7 @@ def run_pca(X,Y,S):
                 Ntr, T, C = Xtrain.shape
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -1393,7 +1393,7 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -1418,7 +1418,7 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -1442,9 +1442,9 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -1467,6 +1467,7 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                 else: # model does not exist or parameter is retrain.
                     #create and train the model here
                     nn = modules.Sequential([modules.Linear(D, L)])
+                    nn.to_numpy()
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.005) # train the model
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.001) # slower training once the model has converged somewhat
                     nn.train(Xtrain, Ytrain, Xval=Xval, Yval=Yval, batchsize=5, lrate=0.0005)# one last epoch
@@ -1480,10 +1481,10 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -1502,7 +1503,7 @@ def run_linear(X,Y,L,S,outputfolder='./tmp', ifModelExists='skip'):
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -1546,7 +1547,7 @@ def run_linear_SVM_L2_C1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -1572,7 +1573,7 @@ def run_linear_SVM_L2_C1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -1596,14 +1597,14 @@ def run_linear_SVM_L2_C1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -1631,11 +1632,11 @@ def run_linear_SVM_L2_C1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -1644,28 +1645,31 @@ def run_linear_SVM_L2_C1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists
                         L.B = model.intercept_
                         nn = modules.Sequential([L])
 
+                    #ensure to execute on CPU in case of a linear SVM (to avoid the necessity of CPU -> GPU -> CPU data transfer without saving time)
+                    nn.to_numpy()
+
                     STDOUT.write('    sanity checking model conversion\n')
                     #sanity check model conversion.
                     YpredSVM = model.decision_function(Xtest)
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -1684,7 +1688,7 @@ def run_linear_SVM_L2_C1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExists
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -1727,7 +1731,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExis
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -1753,7 +1757,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExis
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -1777,14 +1781,14 @@ def run_linear_SVM_L2_C0p1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExis
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -1812,11 +1816,11 @@ def run_linear_SVM_L2_C0p1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExis
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -1825,28 +1829,31 @@ def run_linear_SVM_L2_C0p1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExis
                         L.B = model.intercept_
                         nn = modules.Sequential([L])
 
+                    #ensure to execute on CPU in case of a linear SVM (to avoid the necessity of CPU -> GPU -> CPU data transfer without saving time)
+                    nn.to_numpy()
+
                     STDOUT.write('    sanity checking model conversion\n')
                     #sanity check model conversion.
                     YpredSVM = model.decision_function(Xtest)
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -1865,7 +1872,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExis
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -1908,7 +1915,7 @@ def run_linear_SVM_L2_C10_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExist
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -1934,7 +1941,7 @@ def run_linear_SVM_L2_C10_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExist
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -1958,14 +1965,14 @@ def run_linear_SVM_L2_C10_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExist
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -1993,11 +2000,11 @@ def run_linear_SVM_L2_C10_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExist
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -2006,28 +2013,31 @@ def run_linear_SVM_L2_C10_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExist
                         L.B = model.intercept_
                         nn = modules.Sequential([L])
 
+                    #ensure to execute on CPU in case of a linear SVM (to avoid the necessity of CPU -> GPU -> CPU data transfer without saving time)
+                    nn.to_numpy()
+
                     STDOUT.write('    sanity checking model conversion\n')
                     #sanity check model conversion.
                     YpredSVM = model.decision_function(Xtest)
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -2046,7 +2056,7 @@ def run_linear_SVM_L2_C10_SquareHinge(X,Y,L,S,outputfolder='./tmp', ifModelExist
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -2092,7 +2102,7 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp',
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -2118,7 +2128,7 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp',
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -2142,17 +2152,17 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp',
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain += 0.5 + numpy.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -2180,11 +2190,11 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp',
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -2199,22 +2209,25 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp',
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
+
+                    #ensure to execute on CPU in case of a linear SVM (to avoid the necessity of CPU -> GPU -> CPU data transfer without saving time)
+                    nn.to_numpy()
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -2233,7 +2246,7 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp',
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -2276,7 +2289,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -2302,7 +2315,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -2326,17 +2339,17 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain += 0.5 + numpy.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -2364,11 +2377,11 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -2377,28 +2390,31 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp
                         L.B = model.intercept_
                         nn = modules.Sequential([L])
 
+                    #ensure to execute on CPU in case of a linear SVM (to avoid the necessity of CPU -> GPU -> CPU data transfer without saving time)
+                    nn.to_numpy()
+
                     STDOUT.write('    sanity checking model conversion\n')
                     #sanity check model conversion.
                     YpredSVM = model.decision_function(Xtest)
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -2417,7 +2433,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -2460,7 +2476,7 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp'
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -2486,7 +2502,7 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp'
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -2510,17 +2526,17 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp'
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain += 0.5 + np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain += 0.5 + numpy.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -2548,11 +2564,11 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp'
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -2561,28 +2577,31 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp'
                         L.B = model.intercept_
                         nn = modules.Sequential([L])
 
+                    #ensure to execute on CPU in case of a linear SVM (to avoid the necessity of CPU -> GPU -> CPU data transfer without saving time)
+                    nn.to_numpy()
+
                     STDOUT.write('    sanity checking model conversion\n')
                     #sanity check model conversion.
                     YpredSVM = model.decision_function(Xtest)
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -2601,7 +2620,7 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_0p5randn(X,Y,L,S,outputfolder='./tmp'
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -2647,7 +2666,7 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', i
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -2673,7 +2692,7 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', i
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -2697,17 +2716,17 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', i
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain += np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain += numpy.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -2735,11 +2754,11 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', i
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -2748,28 +2767,31 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', i
                         L.B = model.intercept_
                         nn = modules.Sequential([L])
 
+                    #ensure to execute on CPU in case of a linear SVM (to avoid the necessity of CPU -> GPU -> CPU data transfer without saving time)
+                    nn.to_numpy()
+
                     STDOUT.write('    sanity checking model conversion\n')
                     #sanity check model conversion.
                     YpredSVM = model.decision_function(Xtest)
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -2788,7 +2810,7 @@ def run_linear_SVM_L2_C1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', i
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -2831,7 +2853,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp',
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -2857,7 +2879,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp',
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -2881,17 +2903,17 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp',
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain += np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain += numpy.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -2919,11 +2941,11 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp',
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -2938,22 +2960,22 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp',
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -2972,7 +2994,7 @@ def run_linear_SVM_L2_C0p1_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp',
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -3015,7 +3037,7 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', 
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -3041,7 +3063,7 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', 
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -3065,17 +3087,17 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', 
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #add some random noise to the training data
-                Xtrain +=  np.random.randn(Xtrain.shape[0], Xtrain.shape[1])
+                Xtrain +=  numpy.random.randn(Xtrain.shape[0], Xtrain.shape[1])
 
                 #encode labels as required by sklearn
-                YtrainSVM = np.argmax(Ytrain, axis=1)
-                YtestSVM = np.argmax(Ytest, axis=1)
-                YvalSVM = np.argmax(Yval, axis=1)
+                YtrainSVM = numpy.argmax(Ytrain, axis=1)
+                YtestSVM = numpy.argmax(Ytest, axis=1)
+                YvalSVM = numpy.argmax(Yval, axis=1)
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -3103,11 +3125,11 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', 
 
                     STDOUT.write('    converting SVM model to Toolbox NN model\n')
                     #convert SKLearn-Models to  Toolbox NN models
-                    if np.unique(YtrainSVM).size == 2:
+                    if numpy.unique(YtrainSVM).size == 2:
                         #make a multi-output model
                         L = Linear(D, L)
-                        L.W = np.concatenate([-model.coef_.T, model.coef_.T], axis=1)
-                        L.B = np.concatenate([-model.intercept_, model.intercept_], axis=0)
+                        L.W = numpy.concatenate([-model.coef_.T, model.coef_.T], axis=1)
+                        L.B = numpy.concatenate([-model.intercept_, model.intercept_], axis=0)
                         nn = modules.Sequential([L])
                     else:
                         #just copy the learned parameters
@@ -3122,22 +3144,22 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', 
                     YpredNN = nn.forward(Xtest)
 
                     rtol=1e-7
-                    if np.unique(YtrainSVM).size == 2:
-                        np.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
-                        np.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                    if numpy.unique(YtrainSVM).size == 2:
+                        numpy.testing.assert_allclose(YpredSVM, -YpredNN[:,0], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN[:,1], rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal! (2-Class-Case)')
                         STDOUT.write('    sanity check passed (2-Class).\n')
                     else:
-                        np.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
+                        numpy.testing.assert_allclose(YpredSVM, YpredNN, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
                         STDOUT.write('    sanity check passed (Multiclass).\n')
 
                 #test the model
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -3156,7 +3178,7 @@ def run_linear_SVM_L2_C10_SquareHinge_plus_1randn(X,Y,L,S,outputfolder='./tmp', 
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -3199,7 +3221,7 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -3224,7 +3246,7 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -3248,9 +3270,9 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -3285,10 +3307,10 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -3307,7 +3329,7 @@ def run_2layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 
@@ -3349,7 +3371,7 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
         os.mkdir(outputfolder)
     #grab stdout to relay all prints to a log file
     STDOUT = sys.stdout
-    LOG = open(outputfolder + '/log.txt', 'ab') #append (each model trained this day)
+    LOG = open(outputfolder + '/log.txt', 'a') #append (each model trained this day)
 
     #write out data and stuff used in this configuration. we just keep the same seed every time to ensure reproducibility
     scipy.io.savemat(outputfolder+'/data.mat', X)
@@ -3373,7 +3395,7 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
 
                 t_start = time.time()
                 #set output log to capture all prints
-                sys.stdout = open('{}/log.txt'.format(modeldir), 'wb')
+                sys.stdout = open('{}/log.txt'.format(modeldir), 'w')
 
                 iTest = targetSplits[i] #get split for validation and testing
                 iVal = targetSplits[(i+1)%len(targetSplits)]
@@ -3397,9 +3419,9 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                 Nte = Xtest.shape[0]
 
                 #reshape for fully connected inputs
-                Xtrain = np.reshape(Xtrain, [Ntr, -1])
-                Xval = np.reshape(Xval, [Nv, -1])
-                Xtest = np.reshape(Xtest, [Nte, -1])
+                Xtrain = numpy.reshape(Xtrain, [Ntr, -1])
+                Xval = numpy.reshape(Xval, [Nv, -1])
+                Xtest = numpy.reshape(Xtest, [Nte, -1])
 
                 #input dims and output dims
                 D = Xtrain.shape[1]
@@ -3434,10 +3456,10 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                 Ypred, Rpred, RpredPresoftmax, Ract, RPredAct, RPredDom, RPredActComp, RPredDomComp = test_model(nn, Xtest, Ytest, Nte, T, C)
 
                 #measure test performance
-                l1loss = np.abs(Ypred - Ytest).sum()/Nte
-                predictions = np.argmax(Ypred, axis=1)
-                groundTruth = np.argmax(Ytest, axis=1)
-                acc = np.mean((predictions == groundTruth))
+                l1loss = numpy.abs(Ypred - Ytest).sum()/Nte
+                predictions = numpy.argmax(Ypred, axis=1)
+                groundTruth = numpy.argmax(Ytest, axis=1)
+                acc = numpy.mean((predictions == groundTruth))
 
                 t_end = time.time()
 
@@ -3456,7 +3478,7 @@ def run_3layer_fcnn(X,Y,L,S,outputfolder='./tmp', n_hidden=512, ifModelExists='s
                 model_io.write(nn, modelfile)
 
                 #write out performance
-                with open('{}/scores.txt'.format(modeldir), 'wb') as f:
+                with open('{}/scores.txt'.format(modeldir), 'w') as f:
                     f.write('test loss (l1): {}\n'.format(l1loss))
                     f.write('test accuracy : {}'.format(acc))
 

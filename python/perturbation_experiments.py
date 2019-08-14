@@ -2,7 +2,7 @@ import scipy.io as scio
 import model_io
 import time
 import sys
-import numpy as np
+import numpy as numpy
 import time
 from modules import SoftMax
 
@@ -13,7 +13,7 @@ from modules import SoftMax
 ###############################
 
 def acc(Y,Ypred):
-    return np.mean(np.argmax(Y,axis=1) == np.argmax(Ypred,axis=1))
+    return numpy.mean(numpy.argmax(Y,axis=1) == numpy.argmax(Ypred,axis=1))
 
 
 def reshape_data(X,Y,modelpath):
@@ -22,13 +22,13 @@ def reshape_data(X,Y,modelpath):
 
     if 'Linear' in modelpath or 'LayerFCNN' in modelpath:
         #flatten data
-        X = np.reshape(X, [N,-1])
+        X = numpy.reshape(X, [N,-1])
 
     elif 'CNN-' in modelpath and not 'LayerFCNN' in modelpath:
         #special 3-stride cnn
         if 'CNN-C3-3' in modelpath:
             #in order to realize full 3-convs with stride 3 in the time axis, we need to pad with one zero
-            X = np.concatenate([X, np.zeros([N,1,C],dtype=X.dtype)],axis=1)
+            X = numpy.concatenate([X, numpy.zeros([N,1,C],dtype=X.dtype)],axis=1)
         #regular cnns: just add extra axis
         X = X[...,None]
 
@@ -46,22 +46,22 @@ and then returned.
 
 def gaussian_noise(X, sigma):
     #additive gaussian noise
-    return X + sigma * np.random.randn(X.size)
+    return X + sigma * numpy.random.randn(X.size)
 
 def shot_noise(X, p):
     #random shot noise. set pixels to -1 and 1
-    return (np.random.rand(X.size) > 0).astype(np.float) * 2 - 1
+    return (numpy.random.rand(X.size) > 0).astype(numpy.float) * 2 - 1
 
 def pepper_noise(X,p):
     #set selected pixels to black (0)
-    return np.zeros_like(X)
+    return numpy.zeros_like(X)
 
 def salt_noise(X,p):
     #set selected pixels to white (1)
-    return np.ones_like(X)
+    return numpy.ones_like(X)
 
 def negative_salt_noise(X,p):
-    return -np.ones_like(X)
+    return -numpy.ones_like(X)
 
 
 ###############################
@@ -75,7 +75,7 @@ as a list of M lists with D entries or a M x D array
 """
 def random_order(X, R):
     M, D = X.shape
-    return [np.random.permutation(D) for m in range(M)]
+    return [numpy.random.permutation(D) for m in range(M)]
 
 def relevance_ascending(X, R):
     # sort by relevance ascendingly, e.g. the least important (and contradicting)
@@ -113,7 +113,7 @@ def perturbations(nn, X, Y, R, CHANGE, repetitions, orderfxn, noisefxn, noisepar
 
     N, nclasses = Y.shape
     M = X[0, ...].size # 'size' of each sample in number of pixels/dimensions
-    YpredPerturbed = np.zeros([N, nclasses, len(CHANGE), repetitions]) # container for gradual perturbations across all repetitions
+    YpredPerturbed = numpy.zeros([N, nclasses, len(CHANGE), repetitions]) # container for gradual perturbations across all repetitions
 
     for c in range(nclasses):
         # do all classes separately to keep the memory footprint low.
@@ -121,10 +121,10 @@ def perturbations(nn, X, Y, R, CHANGE, repetitions, orderfxn, noisefxn, noisepar
         for r in range(repetitions):   # repeat for some times
             Xt = X[IcurrentClass,...]   # get a fresh copy of the 'clean' data.
             Xtshape = Xt.shape          # get the shape constant for later reconstruction
-            Xt = np.reshape(Xt, [-1, M])# reshape into 1-dim samples, which makes perturbation across all models easier.
+            Xt = numpy.reshape(Xt, [-1, M])# reshape into 1-dim samples, which makes perturbation across all models easier.
             if not R is None:                       # same for relevance scores, if given
                 Rt = R[IcurrentClass,...]
-                Rt = np.reshape(Rt, [-1, M])
+                Rt = numpy.reshape(Rt, [-1, M])
             else:
                 Rt = R
             ORDERS = orderfxn(Xt, Rt)    # compute a perturbation order, provided the given method.
@@ -138,12 +138,12 @@ def perturbations(nn, X, Y, R, CHANGE, repetitions, orderfxn, noisefxn, noisepar
                     Xt[i,ORDERS[i][change_start:change_end]] = noisefxn(Xt[i, ORDERS[i][change_start:change_end]], noiseparam)
 
 
-                Yp = nn.forward(np.reshape(Xt, Xtshape))                                # reconstruct original shape and predict
+                Yp = nn.forward(numpy.reshape(Xt, Xtshape))                                # reconstruct original shape and predict
                 Yp = nn.modules[-2].Y if nn.modules[-1].__class__ == SoftMax else Yp    # collect presoftmax-prediction, if we have a softmax layer. Softmax can be added later manually, if needed
                 YpredPerturbed[IcurrentClass,:,t,r] = Yp                                # save the current results in the output tensor
 
     #return YpredPerturbed
-    return YpredPerturbed.astype(np.float16) # reduce the memory footprint a bit.
+    return YpredPerturbed.astype(numpy.float16) # reduce the memory footprint a bit.
 
 
 
@@ -184,7 +184,7 @@ def run(workerparams):
     #compare computed and precomputed prediction scores before doing anything else
     assert acc(Ypred, modeloutputs['Ypred']) == 1.0                                                                                                                         #computed and stored predictions should match.
     assert acc(Ypred, Y) == acc(modeloutputs['Ypred'],Y), "{} {} {}".format(acc(Ypred, Y), acc(modeloutputs['Ypred'], Y), acc(Y, modeloutputs['Ypred'])- acc(Y, Ypred))     #second test for that
-    np.testing.assert_allclose(Ypred, modeloutputs['Ypred'])                                                                                                                #third, more detailed test.
+    numpy.testing.assert_allclose(Ypred, modeloutputs['Ypred'])                                                                                                                #third, more detailed test.
 
     print('    split', S, ': [5] sanity check passed. model performance is at {}% [time: {}]'.format(100*acc(Ypred, Y), time.time() - t_start))
 

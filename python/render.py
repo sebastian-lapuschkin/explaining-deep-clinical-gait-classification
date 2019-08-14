@@ -10,7 +10,7 @@
 provides methods to draw heatmaps beautifully.
 '''
 
-import numpy as np
+import numpy as numpy
 import matplotlib.cm
 from matplotlib.cm import ScalarMappable
 import skimage.io
@@ -42,9 +42,9 @@ def vec2im(V, shape = () ):
     '''
 
     if len(shape) < 2:
-        shape = [int(np.sqrt(V.size))]*2
+        shape = [int(numpy.sqrt(V.size))]*2
 
-    return np.reshape(V, shape)
+    return numpy.reshape(V, shape)
 
 
 def enlarge_image(img, scaling = 3):
@@ -76,7 +76,7 @@ def enlarge_image(img, scaling = 3):
     if len(img.shape) == 2:
         H,W = img.shape
 
-        out = np.zeros((scaling*H, scaling*W))
+        out = numpy.zeros((scaling*H, scaling*W))
         for h in range(H):
             fh = scaling*h
             for w in range(W):
@@ -86,7 +86,7 @@ def enlarge_image(img, scaling = 3):
     elif len(img.shape) == 3:
         H,W,D = img.shape
 
-        out = np.zeros((scaling*H, scaling*W,D))
+        out = numpy.zeros((scaling*H, scaling*W,D))
         for h in range(H):
             fh = scaling*h
             for w in range(W):
@@ -209,7 +209,7 @@ def hm_to_rgb(R, X = None, scaling = 3, shape = (), sigma = 2, cmap = 'jet', nor
         rgb =  custom_maps[cmap](R)
     else:
         if normalize:
-            R = R / np.max(np.abs(R)) # normalize to [-1,1] wrt to max relevance magnitude
+            R = R / numpy.max(numpy.abs(R)) # normalize to [-1,1] wrt to max relevance magnitude
             R = (R + 1.)/2. # shift/normalize to [0,1] for color mapping
 
         #create color map object from name string
@@ -224,13 +224,13 @@ def hm_to_rgb(R, X = None, scaling = 3, shape = (), sigma = 2, cmap = 'jet', nor
         xdims = X.shape
         Rdims = R.shape
 
-        if not np.all(xdims == Rdims):
+        if not numpy.all(xdims == Rdims):
             print('transformed heatmap and data dimension mismatch. data dimensions differ?')
             print('R.shape = ',Rdims, 'X.shape = ', xdims)
             print('skipping drawing of outline\n')
         else:
             edges = canny(X, sigma=sigma)
-            edges = np.invert(np.dstack([edges]*3))*1.0
+            edges = numpy.invert(numpy.dstack([edges]*3))*1.0
             rgb *= edges # set outline pixels to black color
 
     return rgb
@@ -266,7 +266,7 @@ def save_image(rgb_images, path, gap = 2):
         if not sz:
             sz = rgb_images[i].shape
             image = rgb_images[i]
-            gap = np.zeros((sz[0],gap,sz[2]))
+            gap = numpy.zeros((sz[0],gap,sz[2]))
             continue
         if not sz[0] == rgb_images[i].shape[0] and sz[1] == rgb_images[i].shape[2]:
             print('image',i, 'differs in size. unable to perform horizontal alignment')
@@ -274,10 +274,10 @@ def save_image(rgb_images, path, gap = 2):
             print('got     : Hx_xD = {0}x_x{1}'.format(rgb_images[i].shape[0],rgb_images[i].shape[1]))
             print('skipping image\n')
         else:
-            image = np.hstack((image,gap,rgb_images[i]))
+            image = numpy.hstack((image,gap,rgb_images[i]))
 
     image *= 255
-    image = image.astype(np.uint8)
+    image = image.astype(numpy.uint8)
 
     print('saving image to ', path)
     skimage.io.imsave(path,image)
@@ -291,10 +291,10 @@ def save_image(rgb_images, path, gap = 2):
 def gregoire_gray_red(R):
     basegray = 0.8 #floating point gray
 
-    maxabs = np.max(R)
-    RGB = np.ones([R.shape[0], R.shape[1],3]) * basegray #uniform gray image.
+    maxabs = numpy.max(R)
+    RGB = numpy.ones([R.shape[0], R.shape[1],3]) * basegray #uniform gray image.
 
-    tvals = np.maximum(np.minimum(R/maxabs,1.0),-1.0)
+    tvals = numpy.maximum(numpy.minimum(R/maxabs,1.0),-1.0)
     negatives = R < 0
 
     RGB[negatives,0] += tvals[negatives]*basegray
@@ -310,8 +310,8 @@ def gregoire_gray_red(R):
 
 
 def gregoire_black_green(R):
-    maxabs = np.max(R)
-    RGB = np.zeros([R.shape[0], R.shape[1],3])
+    maxabs = numpy.max(R)
+    RGB = numpy.zeros([R.shape[0], R.shape[1],3])
 
     negatives = R<0
     RGB[negatives,2] = -R[negatives]/maxabs
@@ -323,51 +323,51 @@ def gregoire_black_green(R):
 
 
 def gregoire_black_firered(R):
-    R = R / np.max(np.abs(R))
+    R = R / numpy.max(numpy.abs(R))
     x = R
 
-    hrp  = np.clip(x-0.00,0,0.25)/0.25
-    hgp = np.clip(x-0.25,0,0.25)/0.25
-    hbp = np.clip(x-0.50,0,0.50)/0.50
+    hrp  = numpy.clip(x-0.00,0,0.25)/0.25
+    hgp = numpy.clip(x-0.25,0,0.25)/0.25
+    hbp = numpy.clip(x-0.50,0,0.50)/0.50
 
-    hbn = np.clip(-x-0.00,0,0.25)/0.25
-    hgn = np.clip(-x-0.25,0,0.25)/0.25
-    hrn = np.clip(-x-0.50,0,0.50)/0.50
+    hbn = numpy.clip(-x-0.00,0,0.25)/0.25
+    hgn = numpy.clip(-x-0.25,0,0.25)/0.25
+    hrn = numpy.clip(-x-0.50,0,0.50)/0.50
 
-    return np.concatenate([(hrp+hrn)[...,None],(hgp+hgn)[...,None],(hbp+hbn)[...,None]],axis = 2)
+    return numpy.concatenate([(hrp+hrn)[...,None],(hgp+hgn)[...,None],(hbp+hbn)[...,None]],axis = 2)
 
 
 def gregoire_gray_red2(R):
-    v = np.var(R)
+    v = numpy.var(R)
     R[R > 10*v] = 0
     R[R<0] = 0
-    R = R / np.max(R)
+    R = R / numpy.max(R)
     #(this is copypasta)
     x=R
 
     # positive relevance
-    hrp = 0.9 - np.clip(x-0.3,0,0.7)/0.7*0.5
-    hgp = 0.9 - np.clip(x-0.0,0,0.3)/0.3*0.5 - np.clip(x-0.3,0,0.7)/0.7*0.4
-    hbp = 0.9 - np.clip(x-0.0,0,0.3)/0.3*0.5 - np.clip(x-0.3,0,0.7)/0.7*0.4
+    hrp = 0.9 - numpy.clip(x-0.3,0,0.7)/0.7*0.5
+    hgp = 0.9 - numpy.clip(x-0.0,0,0.3)/0.3*0.5 - numpy.clip(x-0.3,0,0.7)/0.7*0.4
+    hbp = 0.9 - numpy.clip(x-0.0,0,0.3)/0.3*0.5 - numpy.clip(x-0.3,0,0.7)/0.7*0.4
 
     # negative relevance
-    hrn = 0.9 - np.clip(-x-0.0,0,0.3)/0.3*0.5 - np.clip(-x-0.3,0,0.7)/0.7*0.4
-    hgn = 0.9 - np.clip(-x-0.0,0,0.3)/0.3*0.5 - np.clip(-x-0.3,0,0.7)/0.7*0.4
-    hbn = 0.9 - np.clip(-x-0.3,0,0.7)/0.7*0.5
+    hrn = 0.9 - numpy.clip(-x-0.0,0,0.3)/0.3*0.5 - numpy.clip(-x-0.3,0,0.7)/0.7*0.4
+    hgn = 0.9 - numpy.clip(-x-0.0,0,0.3)/0.3*0.5 - numpy.clip(-x-0.3,0,0.7)/0.7*0.4
+    hbn = 0.9 - numpy.clip(-x-0.3,0,0.7)/0.7*0.5
 
     hr = hrp*(x>=0)+hrn*(x<0)
     hg = hgp*(x>=0)+hgn*(x<0)
     hb = hbp*(x>=0)+hbn*(x<0)
 
 
-    return np.concatenate([hr[...,None],hg[...,None],hb[...,None]],axis=2)
+    return numpy.concatenate([hr[...,None],hg[...,None],hb[...,None]],axis=2)
 
 
 
 def alex_black_yellow(R):
 
-    maxabs = np.max(R)
-    RGB = np.zeros([R.shape[0], R.shape[1],3])
+    maxabs = numpy.max(R)
+    RGB = numpy.zeros([R.shape[0], R.shape[1],3])
 
     negatives = R<0
     RGB[negatives,2] = -R[negatives]/maxabs

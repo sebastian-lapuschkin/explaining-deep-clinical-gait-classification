@@ -3,7 +3,7 @@ import sys
 import scipy.io as scio
 import model_io
 import time
-import numpy as np
+import numpy as numpy
 from multiprocessing import Pool
 import perturbation_experiments
 
