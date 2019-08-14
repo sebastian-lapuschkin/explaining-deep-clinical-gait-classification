@@ -23,11 +23,11 @@ import sys
 
 SKIPTHISMANY=0
 ROOTFOLDER='.'
-MODELSTOEVALUATE = ['2Layer']
+MODELSTOEVALUATE = ['cnnA']
 # skip to just do nothing and leave the results as is
 # load to load the model and reevaluate, recompute heatmaps
 # retrain to overwrite the old model and results
-DOTHISIFMODELEXISTS = 'skip'
+DOTHISIFMODELEXISTS = 'retrain'
 
 for param in sys.argv:
     if not '=' in param:
