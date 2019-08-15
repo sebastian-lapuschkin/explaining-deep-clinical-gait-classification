@@ -91,8 +91,8 @@ SubjectIndexSplits, InjuryIndexSplits, Permutation = helpers.create_index_splits
 
 #apply the permutation to the given data for the inputs and labels to match the splits again
 X_GRF_AV = X_GRF_AV[Permutation, ...]
-Y_Injury = Y_Injury[Permutation, ...]
-Y_Subject = Y_Subject[Permutation, ...]
+Y_Injury_trimmed = Y_Injury_trimmed[Permutation, ...]
+Y_Subject_trimmed = Y_Subject_trimmed[Permutation, ...]
 
 #transposing axes, to obtain N x time x channel axis ordering, as in Horst et al. 2019
 X_GRF_AV = numpy.transpose(X_GRF_AV, [0, 2, 1])
