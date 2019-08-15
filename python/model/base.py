@@ -1,0 +1,236 @@
+# module for collecting model definitions.
+from abc import ABC, abstractmethod #abstract base class
+import importlib.util as imp
+import helpers
+import os
+from modules import Sequential, Convolution, Linear
+import model_io
+
+class Model(ABC):
+
+    def __init__(self, root_dir, data_name, target_name, split_index):
+        """
+        Initializes model and populates lists of functions to execute.
+        """
+        self.root_dir       = root_dir
+        self.data_name      = data_name
+        self.target_name    = target_name
+        self.split_index    = split_index
+
+        self.model = None #variable for storing a loaded/trained model (lrp toolbox format: modules.Sequential).
+        self.use_gpu = imp.find_spec("cupy") is not None # use the GPU if desired/possible. default=True if cupy is available
+
+    def name(self):
+        """
+        generate a model name based on the names of
+        the model itself, the data, the prediction target and the split index
+
+        Parameters:
+        -----------
+            see Model.path_files
+        """
+        return '{}/{}/{}'.format(self.target_name, self.data_name, self.__class__.__name__)
+
+    def path_dir(self):
+        """
+        generate path to the directory containing the model-related files based on the names of
+        the model itself, the data, the prediction target and the split index
+
+        Parameters:
+        -----------
+            see Model.path_files
+        """
+        return '{}/{}/part-{}'.format(self.root_dir, self.name(), self.split_index)
+
+    def path_files(self):
+        """
+        generate path to the model-related files based on the names of
+        the model itself, the data, the prediction target and the split index
+
+        Parameters:
+        -----------
+
+        data_name: str - the name of the data/feature used for training
+
+        target_name: str - the name of the prediction target (ie problem)
+
+        split_index: int - the data split id of this model, ie. the split reserved for testing.
+
+        Returns:
+        --------
+        model_file_path: str
+        scores_file_path: str
+        outputs_file_path: str
+        """
+        dir_name = self.path_dir()
+        model_file_path     = dir_name + '/model.txt'   # model description
+        scores_file_path    = dir_name + '/scores.txt'  # model scores, e.g. accuracy and loss
+        outputs_file_path   = dir_name + '/outputs.mat' # model eval stats and relevances
+
+        return model_file_path, scores_file_path, outputs_file_path
+
+    def exists(self, explicit_path=None):
+        """
+        checks if pretrained model exists on disk
+        model path is determined via data_name, target_name or split_index.
+        can be overwritten when explicit_path is given
+        """
+
+        if explicit_path is not None:
+            path_to_model = explicit_path
+        else:
+            path_to_model = self.path_files()[0]
+
+        return os.path.isfile(path_to_model)
+
+    def load_model(self, explicit_path=None):
+        """
+        load model from disk (model file should exist)
+        model path is determined via data_name, target_name or split_index.
+        can be overwritten when explicit_path is given
+        """
+
+        if explicit_path is not None:
+            path_to_model = explicit_path
+        else:
+            path_to_model = self.path_files()[0]
+
+        assert self.exists(explicit_path=path_to_model), "No file found at {}".format(path_to_model)
+        self.model = model_io.read(path_to_model) # caution! prefers GPU, if available!
+        if not self.use_gpu: self.model.to_numpy()
+
+    def save_model(self, explicit_path=None):
+        """
+        save the model to disk
+        model path is determined via data_name, target_name or split_index.
+        can be overwritten when explicit_path is given
+        """
+
+        if explicit_path is not None:
+            path_to_model = explicit_path
+        else:
+            path_to_model = self.path_files()[0]
+
+        helpers.ensure_dir_exists(os.path.dirname(path_to_model))
+        model_io.write(self.model, path_to_model, fmt='txt')
+
+    @abstractmethod
+    def train_model(self, x_train, y_train, x_val, y_val):
+        """
+        build and train the model.
+        convert to lrp-toolbox-dnn: modules.Sequential (required!).
+        overwrite it during inheritance to specify.
+        """
+        raise NotImplementedError()
+
+    def evaluate_model(self, x_test, y_test, target_shape):
+        """
+        test model and computes relevance maps
+
+        Parameters:
+        -----------
+
+        x_test: array - shaped such that it is ready for consumption by the model
+
+        y_test: array - expected test labels
+
+        target_shape: list or tuple - the target output shape of the test data and relevance maps.
+
+        Returns:
+        --------
+
+        results, packed in dictionary, as numpy arrays
+        """
+
+        assert isinstance(self.model, Sequential), "self.model should be modules.sequential.Sequentialm but is {}. ensure correct type by converting model after training.".format(type(self.model))
+        # remove the softmax output of the model.
+        # this does not change the ranking of the outputs but is required for most LRP methods
+        # self.model is required to be a modules.Sequential
+        results = {} #prepare results dictionary
+
+        self.model.drop_softmax_output_layer()
+        print('...forward pass for {} test samples'.format(x_test.shape[0]))
+        y_pred = self.model.forward(x_test) # this is also a requirement for LRP
+
+        #evaluate accuracy and loss on cpu-copyies of prediction vectors
+        y_pred_c, y_test_c = helpers.arrays_to_numpy(y_pred, y_test)
+        results['acc']    = helpers.accuracy(y_test_c, y_pred_c)
+        results['loss_l1'] = helpers.l1loss(y_test_c, y_pred_c)
+        results['y_pred'] = y_pred_c
+
+        # prepare initial relevance vectors for actual class and dominantly predicted class, on model-device (gpu or cpu)
+        R_init_act = y_pred * y_test #assumes y_test to be binary matrix
+
+        y_dom = (y_pred == y_pred.max(axis=1, keepdims=True))
+        R_init_dom = y_pred * y_dom #assumes prediction maxima are unique per sample
+
+
+        # compute epsilon-lrp for all model layers
+        for m in self.model.modules: m.set_lrp_parameters(lrp_var='epsilon', param=1e-5)
+        print('...lrp (eps) for actual classes')
+        results['R_pred_act_epsilon'] = self.model.lrp(R_init_act)
+
+        print('...lrp (eps) for dominant classes')
+        results['R_pred_act_epsilon'] = self.model.lrp(R_init_dom)
+
+        # compute CNN composite rules, if model has convolution layes
+        has_convolutions = False
+        for m in self.model.modules:
+            has_convolutions = has_convolutions or isinstance(m, Convolution)
+
+        if has_convolutions:
+            # convolution layers found.
+            # preparing alpha2beta-1 for those layers
+            for m in self.model.modules:
+                if isinstance(m, Convolution):
+                    m.set_lrp_parameters(lrp_var='alpha', param=2.0)
+
+            print('...lrp (composite:alpha=2) for actual classes')
+            results['R_pred_act_composite_alpha2'] = self.model.lrp(R_init_act)
+
+            print('...lrp (composite:alpha=2) for dominant classes')
+            results['R_pred_dom_composite_alpha2'] = self.model.lrp(R_init_dom)
+
+            # switching alpha1beta0 for those layers
+            for m in self.model.modules:
+                if isinstance(m, Convolution):
+                    m.set_lrp_parameters(lrp_var='alpha', param=1.0)
+
+            print('...lrp (composite:alpha=1) for actual classes')
+            results['R_pred_act_composite_alpha1'] = self.model.lrp(R_init_act)
+
+            print('...lrp (composite:alpha=1) for dominant classes')
+            results['R_pred_dom_composite_alpha1'] = self.model.lrp(R_init_dom)
+
+        print('...copying collected results to CPU, reshaping when necessary')
+        for key in results.keys():
+            tmp = helpers.arrays_to_numpy(results[key])[0]
+            if key.startswith('R'):
+                tmp.reshape(target_shape)
+            results[key] = tmp
+
+        return results
+
+
+    def preprocess_data(self, x_train, x_val, x_test,
+                              y_train, y_val, y_test):
+        """
+        prepare data and labels as input to the model.
+        default: do nothing, except moving data to preferred device
+        overwrite to specify
+        caution return data in order as given!
+        """
+        data = (x_train, x_val, x_test, y_train, y_val, y_test)
+        if self.use_gpu:
+            data = helpers.arrays_to_cupy(*data)
+        return data
+
+    def postprocess_data(self, *args, **kwargs):
+        """
+        prepare data and labels as after processing by the model to the model.
+        purpose of this can be the "undoing" of the changes made by the preprocessing.
+        e.g. in order to restore the original shape of the data.
+        default: do nothing, except moving data back to cpu
+        overwrite to specify
+        """
+        return helpers.arrays_to_numpy(*args)

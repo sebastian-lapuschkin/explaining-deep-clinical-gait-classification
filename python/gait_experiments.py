@@ -23,7 +23,7 @@ import sys
 
 SKIPTHISMANY=0
 ROOTFOLDER='.'
-MODELSTOEVALUATE = ['cnnA']
+MODELSTOEVALUATE = ['test']
 # skip to just do nothing and leave the results as is
 # load to load the model and reevaluate, recompute heatmaps
 # retrain to overwrite the old model and results
@@ -42,7 +42,7 @@ for param in sys.argv:
             ROOTFOLDER = v
         elif 'model' in k:
             print('setting model to evaluate to', v)
-            MODELSTOEVALUATE = v # TODO REWORK handling of this THIS
+            MODELSTOEVALUATE += [v] # TODO REWORK handling of this THIS
 
         #TODO: add "what if model already exists" to list of passable arguments for behavioral control
 
@@ -52,7 +52,7 @@ for param in sys.argv:
 ################################
 
 
-def trim_empty_classes(Y):
+def trim_empty_classes(Y): #TODO: move this function to helpers
     # expects an input array shaped Y x C. removes label columns for classes without samples.
     n_per_col = Y.sum(axis=0)
     empty_cols = n_per_col == 0
@@ -69,7 +69,8 @@ gaitdata = scio.loadmat('{}/data/DatasetC_Classification_Norm_5_Normal-Ankle-Hip
 
 # Feature -> Bodenreaktionskraft
 X_GRF_AV = gaitdata['Feature']                       # 1142 x 101 x 6
-Label_GRF_AV = gaitdata['Feature_GRF_AV_Label']             # 1 x 1 x 6 channel label
+Label_GRF_AV = gaitdata['Feature_GRF_AV_Label'][0][0]             # x 6 channel label
+
 
 # Targets -> Subject labels und gender labels
 Y_Subject = gaitdata['Target_Subject']                    # 1142 x 57, binary labels
@@ -81,14 +82,17 @@ Y_Injury = gaitdata['Target_Injury']                        # 1142 x 1 , binary 
 #use a random seed to make partitioning deterministic
 RANDOMSEED = 1234
 
-Y_Injury = trim_empty_classes(Y_Injury)
-Y_Subject = trim_empty_classes(Y_Subject)
-SubjectIndexSplits, InjuryIndexSplits, Permutation = helpers.create_index_splits(Y_Subject, Y_Injury, splits=8, seed=RANDOMSEED)
+Y_Injury_trimmed = trim_empty_classes(Y_Injury)
+Y_Subject_trimmed = trim_empty_classes(Y_Subject) #TODO careful with that!
+SubjectIndexSplits, InjuryIndexSplits, Permutation = helpers.create_index_splits(Y_Subject_trimmed, Y_Injury_trimmed, splits=8, seed=RANDOMSEED)
+
+#print(InjuryIndexSplits, type(InjuryIndexSplits), type(InjuryIndexSplits[0]))
+#exit()
 
 #apply the permutation to the given data for the inputs and labels to match the splits again
 X_GRF_AV = X_GRF_AV[Permutation, ...]
-Y_Injury = Y_Injury[Permutation, ...]
-Y_Subject = Y_Subject[Permutation, ...]
+Y_Injury_trimmed = Y_Injury_trimmed[Permutation, ...]
+Y_Subject_trimmed = Y_Subject_trimmed[Permutation, ...]
 
 #transposing axes, to obtain N x time x channel axis ordering, as in Horst et al. 2019
 X_GRF_AV = numpy.transpose(X_GRF_AV, [0, 2, 1])
@@ -97,20 +101,36 @@ X_GRF_AV = numpy.transpose(X_GRF_AV, [0, 2, 1])
 #create dictionaries for easier batch access for training and testing.
 X = {'GRF_AV': X_GRF_AV}
 
-Y = {'Injury': Y_Injury}
+Y = {'Injury': Y_Injury_trimmed}
 
 L = {'GRF_AV': Label_GRF_AV}
 
 S = {'Injury': InjuryIndexSplits,
      'Subject': SubjectIndexSplits}
 
+if 'test' in MODELSTOEVALUATE:
+    print('in test code path')
+    from model import * #import all known model architectures
+    import train_test_cycle
 
-
-
+    train_test_cycle.run_train_test_cycle(
+        X=X_GRF_AV,
+        Y=Y_Injury_trimmed,
+        L=Label_GRF_AV,
+        LS=Y_Subject,
+        S=InjuryIndexSplits,
+        model_class=LinearSVM,
+        output_root_dir='./test_output',
+        data_name='GRF_AV',
+        target_name='Injury',
+        do_this_if_model_exists='retrain'
+        )
+    #eval_score_logs.run('./test_output')
+    exit()
 
 if 'linear' in MODELSTOEVALUATE:
     DAYFOLDER = './Normal-Ankle-Hip-Knee-2019-08-05-S{}'.format(RANDOMSEED)
-    #training.run_linear_SVM_L2_C1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
+    training.run_linear_SVM_L2_C1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
     #training.run_linear_SVM_L2_C0p1_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
     #training.run_linear_SVM_L2_C10_SquareHinge(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
     #training.run_linear(X, Y, L, S, DAYFOLDER, ifModelExists=DOTHISIFMODELEXISTS)
