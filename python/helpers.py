@@ -1,4 +1,8 @@
-import numpy as numpy
+
+import importlib.util as imp
+import numpy
+if imp.find_spec("cupy"): import cupy
+import os
 
 def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     """ this method subdivides the given labels into optimal groups
@@ -97,3 +101,31 @@ def convIOdims(D,F,S):
     F = float(F)
     S = float(S)
     return (D-F)/S + 1
+
+
+def ensure_dir_exists(path_to_dir):
+    if not os.path.isdir(path_to_dir):
+        print('Target directory {} does not exist. Creating.'.format(path_to_dir))
+        os.makedirs(path_to_dir)
+    # else:
+    #    print('Target directory {} exists.'.format(path_to_dir))
+
+
+def arrays_to_cupy(*args):
+    assert imp.find_spec("cupy"), "module cupy not found/installed."
+    return tuple([cupy.array(a) for a in args])
+
+def arrays_to_numpy(*args):
+    if not imp.find_spec("cupy"): #cupy has not been installed and imported -> arrays should be numpy
+        return args
+    else:
+        return tuple([cupy.asnumpy(a) for a in args])
+
+
+def l1loss(y_test, y_pred):
+    return numpy.abs(y_pred - y_test).sum()/y_test.shape[0]
+
+def accuracy(y_test, y_pred):
+    y_test = numpy.argmax(y_test, axis=1)
+    y_pred = numpy.argmax(y_pred, axis=1)
+    return numpy.mean(y_test == y_pred)
