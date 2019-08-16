@@ -49,6 +49,7 @@ class FullyConnectedArchitectureBase(ModelArchitecture):
 class FullyConnectedTrainingDefault(ModelTraining):
     #this clas provides the until now default training scheme for MLPs
     def train_model(self, x_train, y_train, x_val, y_val):
+        print('training {} model (3 epochs, default setting)'.format(self.__class__.__name__))
         self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=5, lrate=0.005)  # train the model
         self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=5, lrate=0.001)  # slower training once the model has converged somewhat
         self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=5, lrate=0.0005) # one last epoch
@@ -56,6 +57,7 @@ class FullyConnectedTrainingDefault(ModelTraining):
 class FullyConnectedTrainingQuickTest(ModelTraining):
     #very short, rudimentary model training for testing
     def train_model(self, x_train, y_train, x_val, y_val):
+        print('training {} model (quick test)'.format(self.__class__.__name__))
         self.model.train(x_train, y_train, iters=10)
 
 
@@ -64,14 +66,66 @@ class FullyConnectedTrainingQuickTest(ModelTraining):
 # MLP architecture specifications
 #################################
 
-class LinearMLP(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
+class MlpLinear(FullyConnectedArchitectureBase, FullyConnectedTrainingQuickTest):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_gpu = False # GPU execution overhead is not worth it.
 
     def build_model(self, x_shape, y_shape):
         self.assert_shapes(x_shape, y_shape)
-        n_dims = x_shape[1]
-        n_classes = y_shape[1]
+        n_dims = x_shape[1];    n_classes = y_shape[1]
+
         self.model = Sequential([Linear(n_dims, n_classes)])
         if not self.use_gpu: self.model.to_numpy()
+
+
+###############################################################
+# MLP Template class for all architectures with 2 hidden layers
+###############################################################
+
+class Mlp2LayerTemplate(FullyConnectedArchitectureBase, FullyConnectedTrainingQuickTest):
+    # 2 hidden layers of X neurons
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.n_hidden = None #define number of hidden units in implementing classes
+
+    def build_model(self, x_shape, y_shape):
+        self.assert_shapes(x_shape, y_shape)
+        n_dims = x_shape[1]
+        n_classes = y_shape[1]
+
+        self.model = Sequential([
+            Linear(n_dims, self.n_hidden), Rect(),
+            Linear(self.n_hidden, n_classes), SoftMax()]
+            )
+        if not self.use_gpu: self.model.to_numpy()
+
+################################################################
+# MLP classes with 2 hidden layers and hidden unit specification
+################################################################
+
+class Mlp2Layer64Unit(Mlp2LayerTemplate):
+    # 2 hidden layers of 64 neurons
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.n_hidden = 64
+
+class Mlp2Layer128Unit(Mlp2LayerTemplate):
+    # 2 hidden layers of 512 neurons
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.n_hidden = 128
+
+class Mlp2Layer256Unit(Mlp2LayerTemplate):
+    # 2 hidden layers of 256 neurons
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.n_hidden = 256
+
+class Mlp2Layer512Unit(Mlp2LayerTemplate):
+    # 2 hidden layers of 256 neurons
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.n_hidden = 512
+
+

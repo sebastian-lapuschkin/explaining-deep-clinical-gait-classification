@@ -10,7 +10,7 @@ from abc import abstractmethod
 # parameterized classes below.
 ###########
 
-class LinearSVMBase(ModelArchitecture, ModelTraining):
+class SvmLinearTemplate(ModelArchitecture, ModelTraining):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,14 +30,14 @@ class LinearSVMBase(ModelArchitecture, ModelTraining):
 
     def train_model(self, x_train, y_train, x_val, y_val):
         # train model using sklearn
-        print('training svm model')
+        print('training {} model'.format(self.__class__.__name__))
         self.model.fit(x_train, y_train)
         self.model = self._convert_to_nn(self.model, y_train, x_val)
 
 
     def _convert_to_nn(self, svm_model, y_train, x_val):
         #convert to linear NN
-        print('converting svm model to linear NN')
+        print('converting {} model to linear NN'.format(self.__class__.__name__))
         W = svm_model.coef_.T
         B = svm_model.intercept_
 
@@ -81,7 +81,7 @@ class LinearSVMBase(ModelArchitecture, ModelTraining):
 # Svm model parameterization examples, with different regularizer weightings C and L2 normalization
 ###########
 
-class LinearSvmL2C1e0(LinearSVMBase):
+class SvmLinearL2C1e0(SvmLinearTemplate):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -89,7 +89,7 @@ class LinearSvmL2C1e0(LinearSVMBase):
     def build_model(self, *args, **kwargs):
         self.model =  sklearn.svm.LinearSVC(penalty='l2', C=1e0)
 
-class LinearSvmL2C1em1(LinearSVMBase):
+class SvmLinearL2C1em1(SvmLinearTemplate):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -97,7 +97,7 @@ class LinearSvmL2C1em1(LinearSVMBase):
     def build_model(self, *args, **kwargs):
         self.model =  sklearn.svm.LinearSVC(penalty='l2', C=1e-1)
 
-class LinearSvmL2C1ep1(LinearSVMBase):
+class SvmLinearL2C1ep1(SvmLinearTemplate):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
