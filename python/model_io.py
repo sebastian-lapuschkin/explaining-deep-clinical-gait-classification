@@ -286,10 +286,7 @@ def write(model, path, fmt = None):
     if fmt is None:
         fmt = os.path.splitext(path)[1].replace('.','').lower()
 
-
     _write_as[fmt](model, path)
-    #NOTE: move model back to original device. not an optimal solution.
-    if not np == numpy: model.to_cupy()
 
 
 

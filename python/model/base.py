@@ -164,6 +164,7 @@ class ModelArchitecture(ABC):
 
         helpers.ensure_dir_exists(os.path.dirname(path_to_model))
         model_io.write(self.model, path_to_model, fmt='txt')
+        if self.use_gpu: self.model.to_cupy()
 
     def evaluate_model(self, x_test, y_test, target_shape):
         """
