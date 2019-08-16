@@ -86,7 +86,7 @@ class MlpLinear(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
 # MLP Template class for all architectures with 2 hidden layers
 ###############################################################
 
-class Mlp2LayerTemplate(FullyConnectedArchitectureBase, FullyConnectedTrainingQuickTest):
+class Mlp2LayerTemplate(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
     # 2 hidden layers of X neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
