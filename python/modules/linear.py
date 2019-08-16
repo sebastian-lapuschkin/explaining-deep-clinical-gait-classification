@@ -64,7 +64,7 @@ class Linear(Module):
     def to_numpy(self):
         global np
         print('module scope np is {}'.format(np)) #remove after debugging
-        if np == numpy or not imp.find_spec("cupy"):
+        if not imp.find_spec("cupy"):
             pass #nothing to do if there is no cupy. model should exist as numpy arrays
         else:
             self.W = cupy.asnumpy(self.W)

@@ -52,7 +52,7 @@ class SumPool(Module):
 
     def to_numpy(self):
         global np
-        if np == numpy or not imp.find_spec("cupy"):
+        if not imp.find_spec("cupy"):
             pass #nothing to do if there is no cupy. model should exist as numpy arrays
         else:
             if hasattr(self, 'X') and self.X is not None: self.X = cupy.asnumpy(self.X)

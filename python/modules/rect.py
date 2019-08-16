@@ -38,7 +38,7 @@ class Rect(Module):
     def to_numpy(self):
         global np
         print('module scope np is {}'.format(np)) #remove after debugging
-        if np == numpy or not imp.find_spec("cupy"):
+        if not imp.find_spec("cupy"):
             pass #nothing to do if there is no cupy. model should exist as numpy arrays
         else:
             if hasattr(self, 'Y') and self.Y is not None: self.Y = cupy.asnumpy(self.Y)

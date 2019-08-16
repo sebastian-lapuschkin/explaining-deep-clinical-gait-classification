@@ -43,7 +43,7 @@ class Flatten(Module):
         Shape change according to C-order.
         '''
         self.inputshape = X.shape # N x H x W x D
-        return np.reshape(X,[self.inputshape[0], numpy.prod(self.inputshape[1:])])
+        return np.reshape(X, [self.inputshape[0], numpy.prod(self.inputshape[1:])])
 
     def lrp(self,R, *args, **kwargs):
         '''
@@ -51,7 +51,7 @@ class Flatten(Module):
         '''
         # just propagate R further down.
         # makes sure subroutines never get called.
-        return np.reshape(R,self.inputshape)
+        return np.reshape(R, self.inputshape)
 
     def to_cupy(self):
         if imp.find_spec("cupy"):
