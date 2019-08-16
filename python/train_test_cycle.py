@@ -100,6 +100,7 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
 
 
         if not model.exists() or (model.exists() and do_this_if_model_exists == 'retrain'):
+            model.build_model(x_train.shape, y_train.shape)
             model.train_model(x_train, y_train, x_val, y_val)
             model.save_model()
         else:

@@ -114,6 +114,7 @@ if 'test' in MODELSTOEVALUATE:
     import train_test_cycle
 
     architectures = [LinearSvmL2C1e0, LinearSvmL2C1em1, LinearSvmL2C1ep1]
+    architectures = [LinearMLP]
     for arch in architectures:
         # this load of parameters could also be packed into a dict and thenn passed as **param_dict for simplicity. TODO: add example
         train_test_cycle.run_train_test_cycle(
@@ -126,7 +127,7 @@ if 'test' in MODELSTOEVALUATE:
             output_root_dir='./test_output',
             data_name='GRF_AV',
             target_name='Injury',
-            do_this_if_model_exists='skip'
+            do_this_if_model_exists='retrain'
             )
     eval_score_logs.run('./test_output')
     exit()
