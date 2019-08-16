@@ -20,9 +20,9 @@ class LinearSVMBase(ModelArchitecture, ModelTraining):
         self.model = None #variable for storing a loaded/trained model (lrp toolbox format: modules.Sequential).
         self.use_gpu = False
 
-    def _sanity_check_model_conversion(self, svm_model, x_val):
+    def _sanity_check_model_conversion(self, svm_model, nn_model, x_val):
         y_pred_svm = svm_model.decision_function(x_val)
-        y_pred_nn  = self.model.forward(x_val)
+        y_pred_nn  = nn_model.forward(x_val)
 
         rtol = 1e-7
         if y_pred_nn.shape[1] == 2:
@@ -38,10 +38,14 @@ class LinearSVMBase(ModelArchitecture, ModelTraining):
         self.build_model()
         self.model.fit(x_train, y_train)
 
+        self.model = self._convert_to_nn(self.model, y_train, x_val)
+
+
+    def _convert_to_nn(self, svm_model, y_train, x_val):
         #convert to linear NN
         print('converting svm model to linear NN')
-        W = self.model.coef_.T
-        B = self.model.intercept_
+        W = svm_model.coef_.T
+        B = svm_model.intercept_
 
         if numpy.unique(y_train).size == 2:
             linear_layer = Linear(W.shape[0], 2)
@@ -53,12 +57,13 @@ class LinearSVMBase(ModelArchitecture, ModelTraining):
             linear_layer.B = B
 
         svm_model = self.model
-        self.model = Sequential([linear_layer])
-        if not self.use_gpu: self.model.to_numpy()
+        nn_model = Sequential([linear_layer])
+        if not self.use_gpu: nn_model.to_numpy()
 
         #sanity check model conversion
-        self._sanity_check_model_conversion(svm_model, x_val)
+        self._sanity_check_model_conversion(svm_model, nn_model, x_val)
         print('model conversion sanity check passed')
+        return nn_model
 
 
     def preprocess_data(self, x_train, x_val, x_test,
