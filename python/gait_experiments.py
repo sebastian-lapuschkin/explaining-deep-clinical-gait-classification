@@ -127,7 +127,7 @@ if 'test' in MODELSTOEVALUATE:
             output_root_dir='./test_output',
             data_name='GRF_AV',
             target_name='Injury',
-            do_this_if_model_exists='retrain'
+            do_this_if_model_exists='evaluate'
             )
     eval_score_logs.run('./test_output')
     exit()
