@@ -54,7 +54,10 @@ class Flatten(Module):
         return np.reshape(R,self.inputshape)
 
     def to_cupy(self):
-        pass
+        if imp.find_spec("cupy"):
+            global np
+            np = cupy
 
     def to_numpy(self):
-        pass
+        global np
+        np = numpy
