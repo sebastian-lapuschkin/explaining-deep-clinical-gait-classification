@@ -13,12 +13,8 @@ from abc import abstractmethod
 class LinearSVMBase(ModelArchitecture, ModelTraining):
 
     def __init__(self, *args, **kwargs):
-        """
-        Initializes model and populates lists of functions to execute.
-        """
         super().__init__(*args, **kwargs)
-        self.model = None #variable for storing a loaded/trained model (lrp toolbox format: modules.Sequential).
-        self.use_gpu = False
+        self.use_gpu = False #force CPU execution
 
     def _sanity_check_model_conversion(self, svm_model, nn_model, x_val):
         y_pred_svm = svm_model.decision_function(x_val)
@@ -35,9 +31,7 @@ class LinearSVMBase(ModelArchitecture, ModelTraining):
     def train_model(self, x_train, y_train, x_val, y_val):
         # train model using sklearn
         print('training svm model')
-        self.build_model()
         self.model.fit(x_train, y_train)
-
         self.model = self._convert_to_nn(self.model, y_train, x_val)
 
 
@@ -70,8 +64,7 @@ class LinearSVMBase(ModelArchitecture, ModelTraining):
                               y_train, y_val, y_test):
         """
         prepare data and labels as input to the model.
-        default: do nothing, except moving data to preferred device
-        overwrite to specify
+        convert input multi-dim arrays into vectors
         """
         x_train = numpy.reshape(x_train, [x_train.shape[0], -1])
         x_val = numpy.reshape(x_val, [x_val.shape[0], -1])
@@ -83,15 +76,6 @@ class LinearSVMBase(ModelArchitecture, ModelTraining):
 
         return (x_train, x_val, x_test, y_train, y_val, y_test)
 
-
-    def postprocess_data(self, *args, **kwargs):
-        """
-        prepare data and labels as after processing by the model to the model.
-        e.g. in order to restore the original shape of the data.
-        default: do nothing, except moving data back to cpu
-        overwrite to specify
-        """
-        return args
 
 ###########
 # Svm model parameterization examples, with different regularizer weightings C and L2 normalization

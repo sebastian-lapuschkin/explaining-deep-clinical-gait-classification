@@ -17,7 +17,8 @@ class ModelTraining(ABC):
 
     This should allow an easy replacement of model trainng regime.
     """
-    def __init__(self, *args, **kwargs): pass
+    def __init__(self, *args, **kwargs):
+        self.model = None #ModelTraining will also require access to self.model for training it. this variable is shared with ModelArchitecture
 
     @abstractmethod
     def train_model(self, x_train, y_train, x_val, y_val):
@@ -51,6 +52,24 @@ class ModelArchitecture(ABC):
 
         self.model = None #variable for storing a loaded/trained model (lrp toolbox format: modules.Sequential).
         self.use_gpu = imp.find_spec("cupy") is not None # use the GPU if desired/possible. default=True if cupy is available
+
+    @abstractmethod
+    def build_model(self, x_shape, y_shape):
+        """
+        build the model.
+        overwrite this for impementing a model architecture.
+        probably best called at the beginning of the overwritten train_model
+        method, eg if information about data dimensions are required
+        passable parameters may depend on the implementing classes
+
+        Parameters:
+        -----------
+
+        x_shape: tuple. the shape of a data batch, usually (batchsize, data-axes....)
+
+        y_shape: tuple. the shape of a label batch, usually (batchsize, number_of_classes)
+        """
+        pass
 
     def name(self):
         """
@@ -145,18 +164,6 @@ class ModelArchitecture(ABC):
 
         helpers.ensure_dir_exists(os.path.dirname(path_to_model))
         model_io.write(self.model, path_to_model, fmt='txt')
-
-    @abstractmethod
-    def build_model(self, *args, **kwargs):
-        """
-        build the model.
-        overwrite this for impementing a model architecture.
-        probably best called at the beginning of the overwritten train_model
-        method, eg if information about data dimensions are required
-        passable parameters may depend on the implementing classes
-        """
-        pass
-
 
     def evaluate_model(self, x_test, y_test, target_shape):
         """
@@ -269,3 +276,4 @@ class ModelArchitecture(ABC):
         overwrite to specify
         """
         return helpers.arrays_to_numpy(*args)
+        #TODO: not sure whether this is required or not.
