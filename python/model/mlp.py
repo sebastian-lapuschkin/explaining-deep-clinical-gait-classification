@@ -66,7 +66,7 @@ class FullyConnectedTrainingQuickTest(ModelTraining):
 # MLP architecture specifications
 #################################
 
-class MlpLinear(FullyConnectedArchitectureBase, FullyConnectedTrainingQuickTest):
+class MlpLinear(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_gpu = False # GPU execution overhead is not worth it.
