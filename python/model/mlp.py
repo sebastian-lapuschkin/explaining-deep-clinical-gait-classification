@@ -31,8 +31,13 @@ class FullyConnectedArchitectureBase(ModelArchitecture):
         x_test = numpy.reshape(x_test, [x_test.shape[0], -1])
 
         data = (x_train, x_val, x_test, y_train, y_val, y_test)
-        #move data to GPU if GPU execution is desired/possible
-        if self.use_gpu: data = helpers.arrays_to_cupy(*data)
+
+        if self.use_gpu:
+            #move data to GPU if GPU execution is desired/possible
+            data = helpers.arrays_to_cupy(*data)
+        else:
+            #otherwise, make sure the data is available to the CPU
+            data = helpers.arrays_to_numpy(*data)
 
         return data
 
@@ -178,14 +183,12 @@ class Mlp3Layer64Unit(Mlp3LayerTemplate):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_hidden = 64
-        self.use_gpu = False #not worth using the gpu yet
 
 class Mlp3Layer128Unit(Mlp3LayerTemplate):
     # 2 hidden layers of 512 neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_hidden = 128
-        self.use_gpu = False #not worth using the gpu yet
 
 class Mlp3Layer256Unit(Mlp3LayerTemplate):
     # 2 hidden layers of 256 neurons
