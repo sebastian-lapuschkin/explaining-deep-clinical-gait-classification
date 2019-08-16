@@ -148,7 +148,10 @@ class ModelArchitecture(ABC):
 
         assert self.exists(explicit_path=path_to_model), "No file found at {}".format(path_to_model)
         self.model = model_io.read(path_to_model) # caution! prefers GPU, if available!
-        if not self.use_gpu: self.model.to_numpy()
+        if self.use_gpu:
+            self.model.to_cupy()
+        else:
+            self.model.to_numpy()
 
     def save_model(self, explicit_path=None):
         """
