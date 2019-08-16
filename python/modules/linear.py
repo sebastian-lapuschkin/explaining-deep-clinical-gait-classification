@@ -50,7 +50,6 @@ class Linear(Module):
 
     def to_cupy(self):
         global np
-        print('module scope np is {}'.format(np)) #remove after debugging
         assert imp.find_spec("cupy"), "module cupy not found."
         self.W = cupy.array(self.W)
         self.B = cupy.array(self.B)
@@ -63,7 +62,6 @@ class Linear(Module):
 
     def to_numpy(self):
         global np
-        print('module scope np is {}'.format(np)) #remove after debugging
         if not imp.find_spec("cupy"):
             pass #nothing to do if there is no cupy. model should exist as numpy arrays
         else:

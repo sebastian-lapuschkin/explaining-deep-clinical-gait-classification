@@ -93,7 +93,6 @@ def read(path, fmt = None):
         fmt = os.path.splitext(path)[1].replace('.','').lower()
 
     model = _read_as[fmt](path)
-    print('READING: np env is {}'.format(np)) #check env.
     if not np == numpy: #np = cupy
         model.to_cupy()
     return model
@@ -281,7 +280,6 @@ def write(model, path, fmt = None):
         specification of the plain text representation of neural network models
     '''
 
-    print('WRITING: np env is {}'.format(np)) #check env.
     model.clean()
     if not np == numpy: #np = cupy
         model.to_numpy() #TODO reconvert after writing?

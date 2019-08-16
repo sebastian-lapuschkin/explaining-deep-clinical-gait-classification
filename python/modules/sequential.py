@@ -52,7 +52,6 @@ class Sequential(Module):
     def to_numpy(self):
         global np
         for m in self.modules:
-            print('converting module: {}'.format(m))
             m.to_numpy()
         np = numpy # ensure correct numerics backend
 
