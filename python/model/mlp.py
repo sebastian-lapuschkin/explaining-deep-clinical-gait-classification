@@ -4,6 +4,7 @@ import numpy
 import importlib.util as imp
 if imp.find_spec("cupy"): import cupy # import cupy, if available
 from modules import * #import all NN modules
+import helpers
 
 
 
@@ -29,7 +30,11 @@ class FullyConnectedArchitectureBase(ModelArchitecture):
         x_val = numpy.reshape(x_val, [x_val.shape[0], -1])
         x_test = numpy.reshape(x_test, [x_test.shape[0], -1])
 
-        return (x_train, x_val, x_test, y_train, y_val, y_test)
+        data = (x_train, x_val, x_test, y_train, y_val, y_test)
+        #move data to GPU if GPU execution is desired/possible
+        if self.use_gpu: data = helpers.arrays_to_cupy(data)
+
+        return data
 
     def assert_shapes(self, x_shape, y_shape):
         """ assert the shapes of input data for all fully connected models """
