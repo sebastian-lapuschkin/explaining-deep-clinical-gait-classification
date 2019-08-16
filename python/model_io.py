@@ -93,7 +93,7 @@ def read(path, fmt = None):
         fmt = os.path.splitext(path)[1].replace('.','').lower()
 
     model = _read_as[fmt](path)
-    if not np == numpy: #np = cupy
+    if imp.find_spec("cupy"):
         model.to_cupy()
     return model
 
@@ -287,7 +287,6 @@ def write(model, path, fmt = None):
         fmt = os.path.splitext(path)[1].replace('.','').lower()
 
     _write_as[fmt](model, path)
-
 
 
 def _write_pickled(model, path):
