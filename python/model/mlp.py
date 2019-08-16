@@ -32,7 +32,7 @@ class FullyConnectedArchitectureBase(ModelArchitecture):
 
         data = (x_train, x_val, x_test, y_train, y_val, y_test)
         #move data to GPU if GPU execution is desired/possible
-        if self.use_gpu: data = helpers.arrays_to_cupy(data)
+        if self.use_gpu: data = helpers.arrays_to_cupy(*data)
 
         return data
 
