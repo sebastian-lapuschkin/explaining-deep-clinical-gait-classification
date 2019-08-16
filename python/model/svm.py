@@ -2,10 +2,15 @@ from .base import Model
 import sklearn
 import numpy
 from modules import Linear, Sequential
+from abc import abstractmethod
 
 
+###########
+# Abstract base class for Linear SVMs.
+# parameterized classes below.
+###########
 
-class LinearSVM(Model):
+class LinearSVMBase(Model):
 
     def __init__(self, *args, **kwargs):
         """
@@ -14,12 +19,6 @@ class LinearSVM(Model):
         super().__init__(*args, **kwargs)
         self.model = None #variable for storing a loaded/trained model (lrp toolbox format: modules.Sequential).
         self.use_gpu = False
-
-    def _build_svm_model(self):
-        """
-        specialized SVM classes overwrite this.
-        """
-        self.model = sklearn.svm.LinearSVC()
 
     def _sanity_check_model_conversion(self, svm_model, x_val):
         y_pred_svm = svm_model.decision_function(x_val)
@@ -36,7 +35,7 @@ class LinearSVM(Model):
     def train_model(self, x_train, y_train, x_val, y_val):
         # train model using sklearn
         print('training svm model')
-        self._build_svm_model()
+        self.build_model()
         self.model.fit(x_train, y_train)
 
         #convert to linear NN
@@ -87,4 +86,32 @@ class LinearSVM(Model):
         default: do nothing, except moving data back to cpu
         overwrite to specify
         """
-        return None
+        return args
+
+###########
+# Svm model parameterization examples, with different regularizer weightings C and L2 normalization
+###########
+
+class LinearSvmL2C1e0(LinearSVMBase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def build_model(self, *args, **kwargs):
+        self.model =  sklearn.svm.LinearSVC(penalty='l2', C=1e0)
+
+class LinearSvmL2C1em1(LinearSVMBase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def build_model(self, *args, **kwargs):
+        self.model =  sklearn.svm.LinearSVC(penalty='l2', C=1e-1)
+
+class LinearSvmL2C1ep1(LinearSVMBase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def build_model(self, *args, **kwargs):
+        self.model =  sklearn.svm.LinearSVC(penalty='l2', C=1e+1)

@@ -115,10 +115,22 @@ class Model(ABC):
         model_io.write(self.model, path_to_model, fmt='txt')
 
     @abstractmethod
+    def build_model(self, *args, **kwargs):
+        """
+        build the model.
+        overwrite this for impementing a model architecture.
+        probably best called at the beginning of the overwritten train_model
+        method, eg if information about data dimensions are required
+        passable parameters may depend on the implementing classes
+        """
+        pass
+
+    @abstractmethod
     def train_model(self, x_train, y_train, x_val, y_val):
         """
-        build and train the model.
-        convert to lrp-toolbox-dnn: modules.Sequential (required!).
+        train the model.
+        requires the model to be built before training.
+        convert to lrp-toolbox-dnn after trainng: modules.Sequential (required!).
         overwrite it during inheritance to specify.
         """
         raise NotImplementedError()
@@ -202,7 +214,7 @@ class Model(ABC):
             print('...lrp (composite:alpha=1) for dominant classes')
             results['R_pred_dom_composite_alpha1'] = self.model.lrp(R_init_dom)
 
-        print('...copying collected results to CPU, reshaping when necessary')
+        print('...copying collected results to CPU and reshaping if necessary')
         for key in results.keys():
             tmp = helpers.arrays_to_numpy(results[key])[0]
             if key.startswith('R'):
