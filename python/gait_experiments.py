@@ -116,7 +116,7 @@ if 'test' in MODELSTOEVALUATE:
     #architectures = [SvmLinearL2C1e0, SvmLinearL2C1em1, SvmLinearL2C1ep1]
     #architectures = [MlpLinear, Mlp2Layer64Unit, Mlp2Layer128Unit, Mlp2Layer256Unit, Mlp2Layer512Unit]
     architectures = [Mlp2Layer768Unit]
-    architectures += [Mlp3Layer64Unit, Mlp3Layer128Unit, Mlp3Layer256Unit, Mlp3Layer512Unit, Mlp3Layer768Unit]
+    architectures = [Mlp3Layer64Unit, Mlp3Layer128Unit, Mlp3Layer256Unit, Mlp3Layer512Unit, Mlp3Layer768Unit]
     for arch in architectures:
         # this load of parameters could also be packed into a dict and thenn passed as **param_dict for simplicity. TODO: add example
         train_test_cycle.run_train_test_cycle(

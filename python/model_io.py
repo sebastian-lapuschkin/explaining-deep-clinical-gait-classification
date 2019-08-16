@@ -93,6 +93,7 @@ def read(path, fmt = None):
         fmt = os.path.splitext(path)[1].replace('.','').lower()
 
     model = _read_as[fmt](path)
+    print('np env is {}'.format(np))
     if not np == numpy: #np = cupy
         model.to_cupy()
     return model
