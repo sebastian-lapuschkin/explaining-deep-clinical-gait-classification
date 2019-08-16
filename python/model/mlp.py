@@ -49,15 +49,16 @@ class FullyConnectedArchitectureBase(ModelArchitecture):
 
 #####################################
 # Training schemes for the MLP models
+# TODO: refactor into own module if additional shared training schemes pop up
 #####################################
 
 class FullyConnectedTrainingDefault(ModelTraining):
     #this clas provides the until now default training scheme for MLPs
     def train_model(self, x_train, y_train, x_val, y_val):
         print('training {} model (3 epochs, default setting)'.format(self.__class__.__name__))
-        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=5, lrate=0.005)  # train the model
-        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=5, lrate=0.001)  # slower training once the model has converged somewhat
-        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=5, lrate=0.0005) # one last epoch
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=16, lrate=0.005)  # train the model
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=32, lrate=0.001)  # slower training once the model has converged somewhat
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=64, lrate=0.0005) # one last epoch
 
 class FullyConnectedTrainingQuickTest(ModelTraining):
     #very short, rudimentary model training for testing
