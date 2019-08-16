@@ -76,7 +76,10 @@ class MlpLinear(FullyConnectedArchitectureBase, FullyConnectedTrainingQuickTest)
         n_dims = x_shape[1];    n_classes = y_shape[1]
 
         self.model = Sequential([Linear(n_dims, n_classes)])
-        if not self.use_gpu: self.model.to_numpy()
+        if not self.use_gpu:
+            self.model.to_numpy()
+        else:
+            self.model.to_cupy()
 
 
 ###############################################################
@@ -98,7 +101,10 @@ class Mlp2LayerTemplate(FullyConnectedArchitectureBase, FullyConnectedTrainingQu
             Linear(n_dims, self.n_hidden), Rect(),
             Linear(self.n_hidden, n_classes), SoftMax()]
             )
-        if not self.use_gpu: self.model.to_numpy()
+        if not self.use_gpu:
+            self.model.to_numpy()
+        else:
+            self.model.to_cupy()
 
 ################################################################
 # MLP classes with 2 hidden layers and hidden unit specification
