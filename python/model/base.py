@@ -6,7 +6,39 @@ import os
 from modules import Sequential, Convolution, Linear
 import model_io
 
-class Model(ABC):
+class ModelTraining(ABC):
+    """
+    this class defines the training protocol of a model,
+    together with the required pre-and post processing steps for the data,
+    and a (probably for all models) standardized evaluation scheme.
+
+    This class is intended to be used in a multiple inheritance scheme together with ModelArchitecture,
+    where ModelArchitecture should be inherited from first and ModelTrainer second.
+
+    This should allow an easy replacement of model trainng regime.
+    """
+    def __init__(self, *args, **kwargs): pass
+
+    @abstractmethod
+    def train_model(self, x_train, y_train, x_val, y_val):
+        """
+        train the model.
+        requires the model to be built before training.
+        convert to lrp-toolbox-dnn after trainng: modules.Sequential (required!).
+        overwrite it during inheritance to specify.
+        """
+        raise NotImplementedError()
+
+
+class ModelArchitecture(ABC):
+    """
+    this class defines the architecture of the model,
+    together with the required pre-and post processing steps for the data,
+    and a (probably for all models) standardized evaluation scheme.
+
+    This class is intended to be used in a multiple inheritance scheme together with ModelTrainer,
+    where ModelArchitecture should be inherited from first and ModelTrainer second
+    """
 
     def __init__(self, root_dir, data_name, target_name, split_index):
         """
@@ -125,15 +157,6 @@ class Model(ABC):
         """
         pass
 
-    @abstractmethod
-    def train_model(self, x_train, y_train, x_val, y_val):
-        """
-        train the model.
-        requires the model to be built before training.
-        convert to lrp-toolbox-dnn after trainng: modules.Sequential (required!).
-        overwrite it during inheritance to specify.
-        """
-        raise NotImplementedError()
 
     def evaluate_model(self, x_test, y_test, target_shape):
         """

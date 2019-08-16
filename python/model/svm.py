@@ -1,4 +1,4 @@
-from .base import Model
+from .base import ModelArchitecture, ModelTraining
 import sklearn
 import numpy
 from modules import Linear, Sequential
@@ -10,7 +10,7 @@ from abc import abstractmethod
 # parameterized classes below.
 ###########
 
-class LinearSVMBase(Model):
+class LinearSVMBase(ModelArchitecture, ModelTraining):
 
     def __init__(self, *args, **kwargs):
         """
