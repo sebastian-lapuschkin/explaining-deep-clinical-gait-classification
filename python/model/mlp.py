@@ -153,7 +153,7 @@ class Mlp2Layer768Unit(Mlp2LayerTemplate):
 # MLP Template class for all RELU-architectures with 3 hidden layers
 ####################################################################
 
-class Mlp3LayerTemplate(FullyConnectedArchitectureBase, FullyConnectedTrainingQuickTest):
+class Mlp3LayerTemplate(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
     # 3 hidden layers of X neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
