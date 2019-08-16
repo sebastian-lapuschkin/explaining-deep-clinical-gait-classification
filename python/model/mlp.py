@@ -183,6 +183,7 @@ class Mlp3Layer64Unit(Mlp3LayerTemplate):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_hidden = 64
+        self.use_gpu = False #not worth using the gpu yet
 
 class Mlp3Layer128Unit(Mlp3LayerTemplate):
     # 2 hidden layers of 512 neurons
