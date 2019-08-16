@@ -67,6 +67,7 @@ class FullyConnectedTrainingQuickTest(ModelTraining):
 class LinearMLP(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.use_gpu = False # GPU execution overhead is not worth it.
 
     def build_model(self, x_shape, y_shape):
         self.assert_shapes(x_shape, y_shape)
