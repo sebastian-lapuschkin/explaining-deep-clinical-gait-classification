@@ -13,7 +13,6 @@ class FullyConnectedTrainingDefault(ModelTraining):
         self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=5, lrate=0.001, status=500)  # slower training once the model has converged somewhat
         self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=5, lrate=0.0005, status=500) # one last epoch
 
-
 class FullyConnectedTrainingIncreaseBatchSize(ModelTraining):
     # instead of only decreasing the lrate, we also increase the batch size and start with a larger batch size to begin with
     def train_model(self, x_train, y_train, x_val, y_val):
