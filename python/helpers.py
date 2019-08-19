@@ -1,4 +1,8 @@
-import numpy as np
+
+import importlib.util as imp
+import numpy
+if imp.find_spec("cupy"): import cupy
+import os
 
 def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     """ this method subdivides the given labels into optimal groups
@@ -19,11 +23,11 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     _, I = Y_Injury.shape
 
     #create global permutation sequence
-    Permutation = np.arange(N)
+    Permutation = numpy.arange(N)
 
     if seed is not None: #reseed the random generator
-        np.random.seed(seed)
-        Permutation = np.random.permutation(Permutation)
+        numpy.random.seed(seed)
+        Permutation = numpy.random.permutation(Permutation)
 
     #permute label matrices. also return this thing!
     Y_Subject = Y_Subject[Permutation,...]
@@ -33,12 +37,12 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     SubjectIndexSplits = [None]*splits
 
     #1) create a split over subject labels first by iterating over all person labels and subdividing them as equally as possible.
-    for i in xrange(P):
-        pIndices = np.where(Y_Subject[:,i] == 1)[0]
+    for i in range(P):
+        pIndices = numpy.where(Y_Subject[:,i] == 1)[0]
 
         #compute an approx equally sized partitioning.
-        partitioning = np.linspace(0, len(pIndices), splits+1, dtype=int)
-        for si in xrange(splits):
+        partitioning = numpy.linspace(0, len(pIndices), splits+1, dtype=int)
+        for si in range(splits):
             #make sure index lists exist
             if SubjectIndexSplits[si] is None:
                 SubjectIndexSplits[si] = []
@@ -54,7 +58,7 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
     #2) create a split over injury labels, balancing injury as good as possible but by avoiding the same subject label in more than one bin.
     #for injury recognition, we want to avoid the model to learn gait criteria of subjects and classify by that bias.
     #first split into injury groups and use them as queues
-    injuryQueues = [np.where(Y_Injury[:, i] == 1)[0].tolist() for i in range(I)]
+    injuryQueues = [numpy.where(Y_Injury[:, i] == 1)[0].tolist() for i in range(I)]
     InjuryIndexSplits = [None]*splits
     currentSplit = 0
 
@@ -72,9 +76,9 @@ def create_index_splits(Y_Subject, Y_Injury, splits = 10, seed=None):
 
             #process lists/subjects:
             #find out who the next person is. get all those entries.
-            pindex = np.where(Y_Subject[iQ[0], :])[0]
+            pindex = numpy.where(Y_Subject[iQ[0], :])[0]
             #get all the indices for that person.
-            pIndices = np.where(Y_Subject[:, pindex])[0]
+            pIndices = numpy.where(Y_Subject[:, pindex])[0]
 
             #remove this person from its respective queue
             for p in pIndices:
@@ -97,3 +101,58 @@ def convIOdims(D,F,S):
     F = float(F)
     S = float(S)
     return (D-F)/S + 1
+
+
+def ensure_dir_exists(path_to_dir):
+    if not os.path.isdir(path_to_dir):
+        print('Target directory {} does not exist. Creating.'.format(path_to_dir))
+        os.makedirs(path_to_dir)
+    # else:
+    #    print('Target directory {} exists.'.format(path_to_dir))
+
+def trim_empty_classes(Y):
+    # expects an input array shaped Y x C. removes label columns for classes without samples.
+    n_per_col = Y.sum(axis=0)
+    empty_cols = n_per_col == 0
+    if numpy.any(empty_cols):
+        print('{} Empty columns detected in label matrix shaped {}. Columns are: {}. Removing.'.format(empty_cols.sum(), Y.shape, numpy.where(empty_cols)[0]))
+        Y = Y[:,~empty_cols]
+        print('    shape is {} post column removal.'.format(Y.shape))
+        return Y
+    else:
+        print('No empty columns detected in label matrix shaped {}'.format(Y.shape))
+
+def arrays_to_cupy(*args):
+    assert imp.find_spec("cupy"), "module cupy not found/installed."
+    return tuple([cupy.array(a) for a in args])
+
+def arrays_to_numpy(*args):
+    if not imp.find_spec("cupy"): #cupy has not been installed and imported -> arrays should be numpy
+        return args
+    else:
+        return tuple([cupy.asnumpy(a) for a in args])
+
+
+def force_device(model, arrays, device=None):
+    #enforces the use of a specific device (cpu or gpu) for given models or arrays
+    #converts the model in-place
+    #returns the transferred arrays
+    if device is None:
+        return arrays
+    elif isinstance(device, str) and device.lower() == 'cpu':
+        print('Forcing model and associated arrays to CPU')
+        model.to_cpu()
+        return arrays_to_numpy(*arrays)
+    elif isinstance(device, str) and device.lower() == 'gpu':
+        print('Forcing model and associated arrays to GPU')
+        assert imp.find_spec("cupy") is not None, "Model can not be forced to execute on GPU device. No GPU device present"
+        model.to_gpu()
+        return arrays_to_cupy(*arrays)
+
+def l1loss(y_test, y_pred):
+    return numpy.abs(y_pred - y_test).sum()/y_test.shape[0]
+
+def accuracy(y_test, y_pred):
+    y_test = numpy.argmax(y_test, axis=1)
+    y_pred = numpy.argmax(y_pred, axis=1)
+    return numpy.mean(y_test == y_pred)

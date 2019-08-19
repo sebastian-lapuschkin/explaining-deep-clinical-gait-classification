@@ -3,7 +3,7 @@ import sys
 import scipy.io as scio
 import model_io
 import time
-import numpy as np
+import numpy as numpy
 from multiprocessing import Pool
 import perturbation_experiments
 
@@ -27,19 +27,19 @@ if __name__ == '__main__':
         if not '=' in param:
             continue
         else:
-            print 'parsing parameter pair', param
+            print('parsing parameter pair', param)
             k,v = param.split('=')
             if 'folder' in k:
                 if os.path.isdir(v):
                     DAYFOLDER = v
                 else:
-                    print '    folder',v,'does not exist.'
+                    print('    folder',v,'does not exist.')
                     exit()
             elif 'arch' in k:
                 ARCHITECTURE = v
             elif 'target' in k:
                 if not v in ['Gender', 'Subject']:
-                    print '    target must be "gender" or "subject"'
+                    print('    target must be "gender" or "subject"')
                     exit()
                 else:
                     TARGET = v
@@ -48,30 +48,30 @@ if __name__ == '__main__':
             elif 'debug' in k:
                 DEBUG = int(v)
             else:
-                print 'unknown parameter key', k
+                print('unknown parameter key', k)
                 exit()
 
 
     # assert selection. and paths. load stuff.
     assert os.path.isdir(DAYFOLDER), '{} does not exist'.format(DAYFOLDER)
 
-    print 'loading input data', DATA
+    print('loading input data', DATA)
     data = DAYFOLDER + '/data.mat'
     assert os.path.isfile(data), '{} does not exist'.format(data)
     data = scio.loadmat(data) # dictionary datatype -> nparray
     #select relevant input data
-    assert DATA in data, 'data typ {} not available in dataset. all targets: {}'.format(DATA, data.keys())
+    assert DATA in data, 'data typ {} not available in dataset. all targets: {}'.format(DATA, list(data.keys()))
     data = data[DATA]
 
-    print 'loading target', TARGET
+    print('loading target', TARGET)
     targets = DAYFOLDER + '/targets.mat'
     assert os.path.isfile(targets), '{} does not exist'.format(targets)
     targets = scio.loadmat(targets) # dictionary class type -> nparray
     #select relevant stuff.
-    assert TARGET in targets, 'prediction target {} not available in dataset. all targets: {}'.format(TARGET, targets.keys())
+    assert TARGET in targets, 'prediction target {} not available in dataset. all targets: {}'.format(TARGET, list(targets.keys()))
     targets = targets[TARGET]
 
-    print 'loading splits for', TARGET
+    print('loading splits for', TARGET)
     splits = DAYFOLDER + '/splits.mat'
     assert os.path.isfile(splits), '{} does not exist'.format(splits)
     splits = scio.loadmat(splits) # dictionary target -> nparray
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     splits = splits[TARGET] # 1 x 10 object type numpy array.
 
 
-    print 'locating resources / preparing worker packages'
+    print('locating resources / preparing worker packages')
     #check paths
     targetfolder = DAYFOLDER + '/' + TARGET
     assert os.path.isdir(targetfolder), '{} does not exist'.format(targetfolder)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     outputfolder = [None]*N
 
     #check model file availability and collect paths for splits/workers
-    for i in xrange(N):
+    for i in range(N):
         splitfolder = modelfolder + '/part-{}'.format(i)
         assert os.path.isdir(splitfolder), '{} does not exist'.format(splitfolder)
         outputfolder[i] = splitfolder
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     workerparams = [None]*N
     #pack parameters for workers
-    for i in xrange(N):
+    for i in range(N):
 
         testsplit = splits[0,i][0]
         workerparams[i] = { 'split_no':i,
@@ -124,27 +124,27 @@ if __name__ == '__main__':
 
     t_start = time.time()
     if DEBUG:
-        print 'debugging single run'
+        print('debugging single run')
         results = []
-        for i in xrange(len(workerparams)):
+        for i in range(len(workerparams)):
             r = perturbation_experiments.run(workerparams[i])
             results.append(r)
             #break
     else:
-        print 'creating worker pool of size', N
+        print('creating worker pool of size', N)
         pool = Pool(N)
 
-        print 'executing jobs'
+        print('executing jobs')
         results  = pool.map(perturbation_experiments.run, workerparams)
 
 
-    print 'writing results sequentially... [time: {}]'.format(time.time() - t_start)
+    print('writing results sequentially... [time: {}]'.format(time.time() - t_start))
     for r in results:
         destination, matdict = r # unpack tuple
-        print '    writing {} [time: {}]'.format(destination, time.time() - t_start)
+        print('    writing {} [time: {}]'.format(destination, time.time() - t_start))
         scio.savemat(destination, matdict)
 
-    print 'done after {}s'.format(time.time() - t_start)
+    print('done after {}s'.format(time.time() - t_start))
 
 
 #python perturbations.py folder=BASELINE-LINEAR-S1234 arch=Linear data=GRF_AV target=Gender debug=1

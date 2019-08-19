@@ -9,8 +9,14 @@
 @license : BSD-2-Clause
 '''
 
+from .module import Module
+import numpy
 import numpy as np
-from module import Module
+import importlib.util as imp
+if imp.find_spec("cupy"):
+    import cupy
+    import cupy as np
+na = np.newaxis
 
 # -------------------------------
 # Max Pooling layer
@@ -35,6 +41,22 @@ class MaxPool(Module):
 
         self.pool = pool
         self.stride = stride
+
+    def to_cupy(self):
+        global np
+        assert imp.find_spec("cupy"), "module cupy not found."
+        if hasattr(self, 'X') and self.X is not None: self.X = cupy.array(self.X)
+        if hasattr(self, 'Y') and self.Y is not None: self.Y = cupy.array(self.Y)
+        np = cupy
+
+    def to_numpy(self):
+        global np
+        if not imp.find_spec("cupy"):
+            pass #nothing to do if there is no cupy. model should exist as numpy arrays
+        else:
+            if hasattr(self, 'X') and self.X is not None: self.X = cupy.asnumpy(self.X)
+            if hasattr(self, 'Y') and self.Y is not None: self.Y = cupy.asnumpy(self.Y)
+            np = numpy
 
 
     def forward(self,X,*args,**kwargs):
@@ -61,14 +83,14 @@ class MaxPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = (H - hpool) // hstride + 1
+        Wout = (W - wpool) // wstride + 1
 
         #initialize pooled output
         self.Y = np.zeros((N,Hout,Wout,D))
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 self.Y[:,i,j,:] = X[:, i*hstride:i*hstride+hpool: , j*wstride:j*wstride+wpool: , : ].max(axis=(1,2))
         return self.Y
 
@@ -102,14 +124,14 @@ class MaxPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = (H - hpool) // hstride + 1
+        Wout = (W - wpool) // wstride + 1
 
         #distribute the gradient towards the max activation(s)
         #the max activation value is already known via self.Y
         DX = np.zeros_like(self.X,dtype=np.float)
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 DX[:,i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool,:] += DY[:,i:i+1,j:j+1,:] * (self.Y[:,i:i+1,j:j+1,:] == self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ])
         return DX
 
@@ -128,13 +150,13 @@ class MaxPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = (H - hpool) // hstride + 1
+        Wout = (W - wpool) // wstride + 1
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = self.Y[:,i:i+1,j:j+1,:] == self.X[:, i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool , : ]
                 Zs = Z.sum(axis=(1,2),keepdims=True,dtype=np.float) #thanks user wodtko for reporting this bug/fix
                 Rx[:,i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool,:] += (Z / Zs) * R[:,i:i+1,j:j+1,:]
@@ -142,9 +164,7 @@ class MaxPool(Module):
 
 
     def _simple_lrp(self,R):
-        return _simple_lrp_slow(R)
-
-
+        return self._simple_lrp_slow(R)
 
     def _flat_lrp(self,R):
         '''
@@ -156,13 +176,13 @@ class MaxPool(Module):
         hstride, wstride = self.stride
 
         #assume the given pooling and stride parameters are carefully chosen.
-        Hout = (H - hpool) / hstride + 1
-        Wout = (W - wpool) / wstride + 1
+        Hout = (H - hpool) // hstride + 1
+        Wout = (W - wpool) // wstride + 1
 
         Rx = np.zeros_like(self.X,dtype=np.float)
 
-        for i in xrange(Hout):
-            for j in xrange(Wout):
+        for i in range(Hout):
+            for j in range(Wout):
                 Z = np.ones([N,hpool,wpool,D])
                 Zs = Z.sum(axis=(1,2),keepdims=True)
                 Rx[:,i*hstride:i*hstride+hpool , j*wstride:j*wstride+wpool,:] += (Z / Zs) * R[:,i:i+1,j:j+1,:]

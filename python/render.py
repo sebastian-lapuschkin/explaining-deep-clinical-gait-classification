@@ -10,7 +10,7 @@
 provides methods to draw heatmaps beautifully.
 '''
 
-import numpy as np
+import numpy as numpy
 import matplotlib.cm
 from matplotlib.cm import ScalarMappable
 import skimage.io
@@ -42,9 +42,9 @@ def vec2im(V, shape = () ):
     '''
 
     if len(shape) < 2:
-        shape = [int(np.sqrt(V.size))]*2
+        shape = [int(numpy.sqrt(V.size))]*2
 
-    return np.reshape(V, shape)
+    return numpy.reshape(V, shape)
 
 
 def enlarge_image(img, scaling = 3):
@@ -71,12 +71,12 @@ def enlarge_image(img, scaling = 3):
     '''
 
     if scaling < 1 or not isinstance(scaling,int):
-        print 'scaling factor needs to be an int >= 1'
+        print('scaling factor needs to be an int >= 1')
 
     if len(img.shape) == 2:
         H,W = img.shape
 
-        out = np.zeros((scaling*H, scaling*W))
+        out = numpy.zeros((scaling*H, scaling*W))
         for h in range(H):
             fh = scaling*h
             for w in range(W):
@@ -86,7 +86,7 @@ def enlarge_image(img, scaling = 3):
     elif len(img.shape) == 3:
         H,W,D = img.shape
 
-        out = np.zeros((scaling*H, scaling*W,D))
+        out = numpy.zeros((scaling*H, scaling*W,D))
         for h in range(H):
             fh = scaling*h
             for w in range(W):
@@ -203,16 +203,20 @@ def hm_to_rgb(R, X = None, scaling = 3, shape = (), sigma = 2, cmap = 'jet', nor
         three-dimensional array of shape [scaling*H x scaling*W x 3] , where H*W == M*N
     '''
 
-    #create color map object from name string
-    cmap = eval('matplotlib.cm.{}'.format(cmap))
-
-    if normalize:
-        R = R / np.max(np.abs(R)) # normalize to [-1,1] wrt to max relevance magnitude
-        R = (R + 1.)/2. # shift/normalize to [0,1] for color mapping
-
-
     R = enlarge_image(vec2im(R,shape), scaling)
-    rgb = cmap(R.flatten())[...,0:3].reshape([R.shape[0],R.shape[1],3])
+
+    if cmap in custom_maps:
+        rgb =  custom_maps[cmap](R)
+    else:
+        if normalize:
+            R = R / numpy.max(numpy.abs(R)) # normalize to [-1,1] wrt to max relevance magnitude
+            R = (R + 1.)/2. # shift/normalize to [0,1] for color mapping
+
+        #create color map object from name string
+        cmap = eval('matplotlib.cm.{}'.format(cmap))
+
+        # apply colormap
+        rgb = cmap(R.flatten())[...,0:3].reshape([R.shape[0],R.shape[1],3])
     #rgb = repaint_corner_pixels(rgb, scaling) #obsolete due to directly calling the color map with [0,1]-normalized inputs
 
     if not X is None: #compute the outline of the input
@@ -220,13 +224,13 @@ def hm_to_rgb(R, X = None, scaling = 3, shape = (), sigma = 2, cmap = 'jet', nor
         xdims = X.shape
         Rdims = R.shape
 
-        if not np.all(xdims == Rdims):
-            print 'transformed heatmap and data dimension mismatch. data dimensions differ?'
-            print 'R.shape = ',Rdims, 'X.shape = ', xdims
-            print 'skipping drawing of outline\n'
+        if not numpy.all(xdims == Rdims):
+            print('transformed heatmap and data dimension mismatch. data dimensions differ?')
+            print('R.shape = ',Rdims, 'X.shape = ', xdims)
+            print('skipping drawing of outline\n')
         else:
             edges = canny(X, sigma=sigma)
-            edges = np.invert(np.dstack([edges]*3))*1.0
+            edges = numpy.invert(numpy.dstack([edges]*3))*1.0
             rgb *= edges # set outline pixels to black color
 
     return rgb
@@ -258,27 +262,126 @@ def save_image(rgb_images, path, gap = 2):
 
     sz = []
     image = []
-    for i in xrange(len(rgb_images)):
+    for i in range(len(rgb_images)):
         if not sz:
             sz = rgb_images[i].shape
             image = rgb_images[i]
-            gap = np.zeros((sz[0],gap,sz[2]))
+            gap = numpy.zeros((sz[0],gap,sz[2]))
             continue
         if not sz[0] == rgb_images[i].shape[0] and sz[1] == rgb_images[i].shape[2]:
-            print 'image',i, 'differs in size. unable to perform horizontal alignment'
-            print 'expected: Hx_xD = {0}x_x{1}'.format(sz[0],sz[1])
-            print 'got     : Hx_xD = {0}x_x{1}'.format(rgb_images[i].shape[0],rgb_images[i].shape[1])
-            print 'skipping image\n'
+            print('image',i, 'differs in size. unable to perform horizontal alignment')
+            print('expected: Hx_xD = {0}x_x{1}'.format(sz[0],sz[1]))
+            print('got     : Hx_xD = {0}x_x{1}'.format(rgb_images[i].shape[0],rgb_images[i].shape[1]))
+            print('skipping image\n')
         else:
-            image = np.hstack((image,gap,rgb_images[i]))
+            image = numpy.hstack((image,gap,rgb_images[i]))
 
     image *= 255
-    image = image.astype(np.uint8)
+    image = image.astype(numpy.uint8)
 
-    print 'saving image to ', path
+    print('saving image to ', path)
     skimage.io.imsave(path,image)
     return image
 
 
+# ################## #
+# custom color maps: #
+# ################## #
+
+def gregoire_gray_red(R):
+    basegray = 0.8 #floating point gray
+
+    maxabs = numpy.max(R)
+    RGB = numpy.ones([R.shape[0], R.shape[1],3]) * basegray #uniform gray image.
+
+    tvals = numpy.maximum(numpy.minimum(R/maxabs,1.0),-1.0)
+    negatives = R < 0
+
+    RGB[negatives,0] += tvals[negatives]*basegray
+    RGB[negatives,1] += tvals[negatives]*basegray
+    RGB[negatives,2] += -tvals[negatives]*(1-basegray)
+
+    positives = R>=0
+    RGB[positives,0] += tvals[positives]*(1-basegray)
+    RGB[positives,1] += -tvals[positives]*basegray
+    RGB[positives,2] += -tvals[positives]*basegray
+
+    return RGB
 
 
+def gregoire_black_green(R):
+    maxabs = numpy.max(R)
+    RGB = numpy.zeros([R.shape[0], R.shape[1],3])
+
+    negatives = R<0
+    RGB[negatives,2] = -R[negatives]/maxabs
+
+    positives = R>=0
+    RGB[positives,1] = R[positives]/maxabs
+
+    return RGB
+
+
+def gregoire_black_firered(R):
+    R = R / numpy.max(numpy.abs(R))
+    x = R
+
+    hrp  = numpy.clip(x-0.00,0,0.25)/0.25
+    hgp = numpy.clip(x-0.25,0,0.25)/0.25
+    hbp = numpy.clip(x-0.50,0,0.50)/0.50
+
+    hbn = numpy.clip(-x-0.00,0,0.25)/0.25
+    hgn = numpy.clip(-x-0.25,0,0.25)/0.25
+    hrn = numpy.clip(-x-0.50,0,0.50)/0.50
+
+    return numpy.concatenate([(hrp+hrn)[...,None],(hgp+hgn)[...,None],(hbp+hbn)[...,None]],axis = 2)
+
+
+def gregoire_gray_red2(R):
+    v = numpy.var(R)
+    R[R > 10*v] = 0
+    R[R<0] = 0
+    R = R / numpy.max(R)
+    #(this is copypasta)
+    x=R
+
+    # positive relevance
+    hrp = 0.9 - numpy.clip(x-0.3,0,0.7)/0.7*0.5
+    hgp = 0.9 - numpy.clip(x-0.0,0,0.3)/0.3*0.5 - numpy.clip(x-0.3,0,0.7)/0.7*0.4
+    hbp = 0.9 - numpy.clip(x-0.0,0,0.3)/0.3*0.5 - numpy.clip(x-0.3,0,0.7)/0.7*0.4
+
+    # negative relevance
+    hrn = 0.9 - numpy.clip(-x-0.0,0,0.3)/0.3*0.5 - numpy.clip(-x-0.3,0,0.7)/0.7*0.4
+    hgn = 0.9 - numpy.clip(-x-0.0,0,0.3)/0.3*0.5 - numpy.clip(-x-0.3,0,0.7)/0.7*0.4
+    hbn = 0.9 - numpy.clip(-x-0.3,0,0.7)/0.7*0.5
+
+    hr = hrp*(x>=0)+hrn*(x<0)
+    hg = hgp*(x>=0)+hgn*(x<0)
+    hb = hbp*(x>=0)+hbn*(x<0)
+
+
+    return numpy.concatenate([hr[...,None],hg[...,None],hb[...,None]],axis=2)
+
+
+
+def alex_black_yellow(R):
+
+    maxabs = numpy.max(R)
+    RGB = numpy.zeros([R.shape[0], R.shape[1],3])
+
+    negatives = R<0
+    RGB[negatives,2] = -R[negatives]/maxabs
+
+    positives = R>=0
+    RGB[positives,0] = R[positives]/maxabs
+    RGB[positives,1] = R[positives]/maxabs
+
+    return RGB
+
+
+#list of supported color map names. the maps need to be implemented ABOVE this line because of PYTHON
+custom_maps = {'gray-red':gregoire_gray_red,\
+'gray-red2':gregoire_gray_red2,\
+'black-green':gregoire_black_green,\
+'black-firered':gregoire_black_firered,\
+'blue-black-yellow':alex_black_yellow}
