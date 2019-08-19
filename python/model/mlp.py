@@ -51,7 +51,7 @@ class FullyConnectedArchitectureBase(ModelArchitecture):
 # MLP architecture specifications
 #################################
 
-class MlpLinear(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
+class MlpLinear(FullyConnectedArchitectureBase, NeuralNetworkTrainingDefault):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_gpu = False # GPU execution overhead is not worth it.
@@ -72,7 +72,7 @@ class MlpLinear(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
 # MLP Template class for all RELU-architectures with 2 hidden layers
 ####################################################################
 
-class Mlp2LayerTemplate(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
+class Mlp2LayerTemplate(FullyConnectedArchitectureBase, NeuralNetworkTrainingDefault):
     # 2 hidden layers of X neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -134,7 +134,7 @@ class Mlp2Layer768Unit(Mlp2LayerTemplate):
 # MLP Template class for all RELU-architectures with 3 hidden layers
 ####################################################################
 
-class Mlp3LayerTemplate(FullyConnectedArchitectureBase, FullyConnectedTrainingDefault):
+class Mlp3LayerTemplate(FullyConnectedArchitectureBase, NeuralNetworkTrainingDefault):
     # 3 hidden layers of X neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
