@@ -67,6 +67,7 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
 
     # save data, labels and split information in output directory.
     if save_data_in_output_dir:
+        print('Saving training and evaluation data to {}'.format(output_root_dir))
         helpers.ensure_dir_exists(output_root_dir)
         scipy.io.savemat('{}/data.mat'.format(output_root_dir), {'X':X})
         scipy.io.savemat('{}/targets.mat'.format(output_root_dir), {'Y':Y})

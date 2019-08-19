@@ -34,3 +34,13 @@ class NeuralNetworkTrainingQuickTest(ModelTraining):
         x_train, y_train, x_val, y_val = helpers.force_device(self, (x_train, y_train, x_val, y_val), force_device)
         print('training {} model (quick test)'.format(self.__class__.__name__))
         self.model.train(x_train, y_train, iters=10)
+
+#all below classes need to be registered below and vice versa in order to use the creator-pattern
+def get_training(name):
+    if name is None: return None
+    trainings = {
+        "NeuralNetworkTrainingDefault".lower():NeuralNetworkTrainingDefault,
+        "NeuralNetworkTrainingIncreaseBatchSize".lower():NeuralNetworkTrainingIncreaseBatchSize,
+        "NeuralNetworkTrainingQuickTest".lower():NeuralNetworkTrainingQuickTest
+    }
+    return trainings[name.lower()]
