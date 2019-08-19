@@ -28,7 +28,7 @@ class SvmLinearTemplate(ModelArchitecture, ModelTraining):
             numpy.testing.assert_allclose(y_pred_svm, y_pred_nn, rtol, err_msg='Predictions of Trained SVM model and converted NN model are NOT equal!')
 
 
-    def train_model(self, x_train, y_train, x_val, y_val):
+    def train_model(self, x_train, y_train, x_val, y_val, *args, **kwargs):
         # train model using sklearn
         print('training {} model'.format(self.__class__.__name__))
         self.model.fit(x_train, y_train)

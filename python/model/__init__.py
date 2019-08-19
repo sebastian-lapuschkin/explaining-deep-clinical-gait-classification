@@ -26,3 +26,4 @@ from .cnn import CnnAshort
 #CNN-C models (2d-convolutional models)
 from .cnn import CnnC3
 from .cnn import CnnC6
+from .cnn import CnnC3_3

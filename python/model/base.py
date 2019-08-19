@@ -21,12 +21,13 @@ class ModelTraining(ABC):
         self.model = None #ModelTraining will also require access to self.model for training it. this variable is shared with ModelArchitecture
 
     @abstractmethod
-    def train_model(self, x_train, y_train, x_val, y_val):
+    def train_model(self, x_train, y_train, x_val, y_val, force_device):
         """
         train the model.
         requires the model to be built before training.
         convert to lrp-toolbox-dnn after trainng: modules.Sequential (required!).
         overwrite it during inheritance to specify.
+        force_device may (if supported) force the training execution either on cpu or gpu.
         """
         raise NotImplementedError()
 
@@ -169,7 +170,7 @@ class ModelArchitecture(ABC):
         model_io.write(self.model, path_to_model, fmt='txt')
         if self.use_gpu: self.model.to_cupy()
 
-    def evaluate_model(self, x_test, y_test, target_shape):
+    def evaluate_model(self, x_test, y_test, target_shape, force_device=None):
         """
         test model and computes relevance maps
 
@@ -182,6 +183,9 @@ class ModelArchitecture(ABC):
 
         target_shape: list or tuple - the target output shape of the test data and relevance maps.
 
+        force_device: str - (optional) force execution of the evaluation either on cpu or gpu.
+            accepted values: "cpu", "gpu" respectively. None does nothing.
+
         Returns:
         --------
 
@@ -193,6 +197,9 @@ class ModelArchitecture(ABC):
         # this does not change the ranking of the outputs but is required for most LRP methods
         # self.model is required to be a modules.Sequential
         results = {} #prepare results dictionary
+
+        #force model to specific device, if so desired.
+        x_test, y_test = helpers.force_device(self, (x_test, y_test), force_device)
 
         self.model.drop_softmax_output_layer()
         print('...forward pass for {} test samples'.format(x_test.shape[0]))
@@ -281,3 +288,15 @@ class ModelArchitecture(ABC):
         """
         return helpers.arrays_to_numpy(*args)
         #TODO: not sure whether this is required or not.
+
+    def to_gpu(self, *args, **kwargs):
+        """
+        attempts to transfer the model to gpu
+        """
+        self.model.to_cupy()
+
+    def to_cpu(self, *args, **kwargs):
+        """
+        attempts to transfer the model to cpu
+        """
+        self.model.to_numpy()

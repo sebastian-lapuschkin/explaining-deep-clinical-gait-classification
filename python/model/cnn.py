@@ -147,3 +147,27 @@ class CnnC6(ConvolutionalArchitectureBase, NeuralNetworkTrainingDefault):
             self.model.to_numpy()
         else:
             self.model.to_cupy()
+
+
+class CnnC3_3(ConvolutionalArchitectureBase, NeuralNetworkTrainingDefault):
+    # same as CnnC3, but with a stride of 3. in the vertical axis.
+    # that means that left and and right body hemisphere are processed
+    # non-overlappingly.
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_gpu = False
+
+    def build_model(self, x_shape, y_shape):
+        #samples are expected in shape 101 x 6 x 1 ie x_shape should be N x 101 x 6 x 1
+        self.assert_shapes(x_shape, y_shape)
+        assert x_shape[1:] == (101, 6, 1)
+        n_classes = y_shape[1]
+
+        h1 = Convolution(filtersize=(3,3,1,32), stride=(1,3))  # h1 output: 99 x 2 x 32 = 3072
+        h2 = Convolution(filtersize=(3,2,32,32), stride=(1,1)) # h2 output: 97 x 1 x 32 = 3104
+        h3 = Linear(3104,n_classes)
+        self.model = Sequential([h1, Rect(), h2, Rect(), Flatten(), h3, SoftMax()])
+        if not self.use_gpu:
+            self.model.to_numpy()
+        else:
+            self.model.to_cupy()

@@ -122,6 +122,22 @@ def arrays_to_numpy(*args):
         return tuple([cupy.asnumpy(a) for a in args])
 
 
+def force_device(model, arrays, device=None):
+    #enforces the use of a specific device (cpu or gpu) for given models or arrays
+    #converts the model in-place
+    #returns the transferred arrays
+    if device is None:
+        return arrays
+    elif isinstance(device, str) and device.lower() == 'cpu':
+        print('Forcing model and associated arrays to CPU')
+        model.to_cpu()
+        return arrays_to_numpy(*arrays)
+    elif isinstance(device, str) and device.lower() == 'gpu':
+        print('Forcing model and associated arrays to GPU')
+        assert imp.find_spec("cupy") is not None, "Model can not be forced to execute on GPU device. No GPU device present"
+        model.to_gpu()
+        return arrays_to_cupy(*arrays)
+
 def l1loss(y_test, y_pred):
     return numpy.abs(y_pred - y_test).sum()/y_test.shape[0]
 

@@ -11,7 +11,8 @@ from model.base import ModelTraining
 def run_train_test_cycle(X, Y, L, LS, S, model_class,
                         output_root_dir, data_name, target_name,
                         training_programme=None,
-                        do_this_if_model_exists='skip', save_data_in_output_dir=True):
+                        do_this_if_model_exists='skip', save_data_in_output_dir=True,
+                        force_device_for_training=None, force_device_for_evaluation=None):
     """
     This script trains and evaluates a model using the given data X,Y over all splits as determined in S
 
@@ -51,6 +52,11 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
         skip (completely skip, do nothing)
 
     save_data_in_output_dir: bool - controls wheter to save the experimental data (X, Y, L, LS, S) in the output directory
+
+    force_device_for_training: str - values can be either gpu or cpu. force the use of this device during training.
+
+    force_device_for_evaluation: str - values can either gpu or cpu. force the use of this device during evaluaton.
+        here, the use of the GPU is almost always recommended due to the large batch size to be processed.
     """
 
     # some basic sanity checks
@@ -110,13 +116,13 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
             if training_programme is not None:
                 #this instance-based monkey-patching is not the best way to do it, but probably the most flexible one.
                 model.train_model = types.MethodType(training_programme.train_model, model)
-            model.train_model(x_train, y_train, x_val, y_val)
+            model.train_model(x_train, y_train, x_val, y_val, force_device=force_device_for_training)
             model.save_model()
         else:
             model.load_model()
 
         # compute test scores and relevance maps for model.
-        results = model.evaluate_model(x_test, y_test, x_test_shape_orig)
+        results = model.evaluate_model(x_test, y_test, x_test_shape_orig, force_device=force_device_for_evaluation)
 
         # measure time for training/evaluation cycle
         t_end = time.time()

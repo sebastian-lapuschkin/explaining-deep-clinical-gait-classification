@@ -116,9 +116,11 @@ if 'test' in MODELSTOEVALUATE:
 
     architectures = []
     #architectures += [SvmLinearL2C1e0, SvmLinearL2C1em1, SvmLinearL2C1ep1]
-    architectures += [MlpLinear, Mlp2Layer64Unit, Mlp2Layer128Unit, Mlp2Layer256Unit, Mlp2Layer512Unit, Mlp2Layer768Unit]
-    architectures += [Mlp3Layer64Unit, Mlp3Layer128Unit, Mlp3Layer256Unit, Mlp3Layer512Unit, Mlp3Layer768Unit]
-    architectures += [] #TODO add CNN models
+    #architectures += [MlpLinear, Mlp2Layer64Unit, Mlp2Layer128Unit, Mlp2Layer256Unit, Mlp2Layer512Unit, Mlp2Layer768Unit]
+    #architectures += [Mlp3Layer64Unit, Mlp3Layer128Unit, Mlp3Layer256Unit, Mlp3Layer512Unit, Mlp3Layer768Unit]
+    #architectures += [CnnA3, CnnA6]
+    #architectures += [CnnC3, CnnC6]
+    architectures += [CnnC3_3]
 
     for arch in architectures:
 
@@ -133,8 +135,9 @@ if 'test' in MODELSTOEVALUATE:
             output_root_dir='./test_output',
             data_name='GRF_AV',
             target_name='Injury',
-            training_programme=NeuralNetworkTrainingQuickTest,
-            do_this_if_model_exists='retrain'
+            training_programme=None, # NeuralNetworkTrainingQuickTest
+            do_this_if_model_exists='retrain',
+            force_device_for_evaluation='gpu' #computing heatmaps on gpu is always worth it for any model. requires a gpu, obviously
             )
     eval_score_logs.run('./test_output')
     exit()
