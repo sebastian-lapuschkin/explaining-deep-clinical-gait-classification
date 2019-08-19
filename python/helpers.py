@@ -110,6 +110,17 @@ def ensure_dir_exists(path_to_dir):
     # else:
     #    print('Target directory {} exists.'.format(path_to_dir))
 
+def trim_empty_classes(Y):
+    # expects an input array shaped Y x C. removes label columns for classes without samples.
+    n_per_col = Y.sum(axis=0)
+    empty_cols = n_per_col == 0
+    if numpy.any(empty_cols):
+        print('{} Empty columns detected in label matrix shaped {}. Columns are: {}. Removing.'.format(empty_cols.sum(), Y.shape, numpy.where(empty_cols)[0]))
+        Y = Y[:,~empty_cols]
+        print('    shape is {} post column removal.'.format(Y.shape))
+        return Y
+    else:
+        print('No empty columns detected in label matrix shaped {}'.format(Y.shape))
 
 def arrays_to_cupy(*args):
     assert imp.find_spec("cupy"), "module cupy not found/installed."
