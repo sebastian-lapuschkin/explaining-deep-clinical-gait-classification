@@ -3,11 +3,14 @@
 import helpers
 import scipy
 import time
+import types
 import sys
+from model.base import ModelTraining
 
 
 def run_train_test_cycle(X, Y, L, LS, S, model_class,
                         output_root_dir, data_name, target_name,
+                        training_programme=None,
                         do_this_if_model_exists='skip', save_data_in_output_dir=True):
     """
     This script trains and evaluates a model using the given data X,Y over all splits as determined in S
@@ -37,6 +40,9 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
     data_name: str - what is the data/feature type called? e.g. GRF or JA_X_Lower, ...
 
     target_name: str - what is the prediction target called? e.g. Subject, Gender or Injury, ...
+
+    training_programme: (optional) ModelTraining class - If this parameter is not None, the model's default training regime will be overwritten
+        with the passed ModelTraining class' train_model() function
 
     do_this_if_model_exists: str - variable controlling the training/evaluation behaviour if a trained model already exists
         at the model output location. options:
@@ -101,6 +107,9 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
 
         if not model.exists() or (model.exists() and do_this_if_model_exists == 'retrain'):
             model.build_model(x_train.shape, y_train.shape)
+            if training_programme is not None:
+                #this instance-based monkey-patching is not the best way to do it, but probably the most flexible one.
+                model.train_model = types.MethodType(training_programme.train_model, model)
             model.train_model(x_train, y_train, x_val, y_val)
             model.save_model()
         else:

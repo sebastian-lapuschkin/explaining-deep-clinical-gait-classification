@@ -111,14 +111,17 @@ S = {'Injury': InjuryIndexSplits,
 if 'test' in MODELSTOEVALUATE:
     print('in test code path')
     from model import * #import all known model architectures
+    from model.training import * # import all known nn-training-programmes
     import train_test_cycle
 
     architectures = []
     #architectures += [SvmLinearL2C1e0, SvmLinearL2C1em1, SvmLinearL2C1ep1]
-    #architectures += [MlpLinear, Mlp2Layer64Unit, Mlp2Layer128Unit, Mlp2Layer256Unit, Mlp2Layer512Unit, Mlp2Layer768Unit]
+    architectures += [MlpLinear, Mlp2Layer64Unit, Mlp2Layer128Unit, Mlp2Layer256Unit, Mlp2Layer512Unit, Mlp2Layer768Unit]
     architectures += [Mlp3Layer64Unit, Mlp3Layer128Unit, Mlp3Layer256Unit, Mlp3Layer512Unit, Mlp3Layer768Unit]
     architectures += [] #TODO add CNN models
+
     for arch in architectures:
+
         # this load of parameters could also be packed into a dict and thenn passed as **param_dict for simplicity. TODO: add example
         train_test_cycle.run_train_test_cycle(
             X=X_GRF_AV,
@@ -130,6 +133,7 @@ if 'test' in MODELSTOEVALUATE:
             output_root_dir='./test_output',
             data_name='GRF_AV',
             target_name='Injury',
+            training_programme=NeuralNetworkTrainingQuickTest,
             do_this_if_model_exists='retrain'
             )
     eval_score_logs.run('./test_output')
