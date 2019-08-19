@@ -10,7 +10,7 @@ import helpers
 
 
 ######################################
-# Abstract base class for Linear SVMs.
+# Abstract base class for MLPs.
 # parameterized classes below.
 ######################################
 
@@ -39,7 +39,7 @@ class FullyConnectedArchitectureBase(ModelArchitecture):
 
     def assert_shapes(self, x_shape, y_shape):
         """ assert the shapes of input data for all fully connected models """
-        assert len(x_shape) >= 2, "Expected at least 2-dimensional shape tuple for MLP type models (Flatten layer takes care of the rest, but got x_shape={}".format(x_shape)
+        assert len(x_shape) >= 2, "Expected at least 2-dimensional shape tuple for MLP type models (Flatten layer takes care of the rest), but got x_shape={}".format(x_shape)
         assert len(y_shape) == 2, "Expected 2-dimensional shape tuple for MLP type models, but got y_shape={}".format(y_shape)
 
 
