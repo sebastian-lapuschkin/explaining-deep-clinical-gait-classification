@@ -1,5 +1,5 @@
 from .base import ModelArchitecture, ModelTraining
-import sklearn
+import sklearn.svm
 import numpy
 from modules import Linear, Sequential
 from abc import abstractmethod
