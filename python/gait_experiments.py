@@ -49,6 +49,8 @@ ARGS = parser.parse_args()
 #           "Main"
 ################################
 
+#TODO: ISOLATE DATA LOADING INTO CLASS
+
 #load matlab data as dictionary using scipy
 gaitdata = scio.loadmat(ARGS.data_path)
 
@@ -101,14 +103,21 @@ elif isinstance(training_regime, str):
     training_regime = model.training.get_training(training_regime)
     #try to get class from string name
 
+#register and then select available features
+#TODO: REFACTOR INTO A DATA LOADING CLASS
+X, X_channel_labels = {'GRF_AV': (X_GRF_AV, Label_GRF_AV)}[ARGS.data_name]
+
+#register and then select available targets
+#TODO: REFACTOR INTO A DATA LOADING CLASS
+Y, Y_splits = {'Injury': (Y_Injury_trimmed, InjuryIndexSplits) , 'Subject': (Y_Subject_trimmed, SubjectIndexSplits)}[ARGS.target_name]
 
 # this load of parameters could also be packed into a dict and thenn passed as **param_dict, if this were to be automated further.
 train_test_cycle.run_train_test_cycle(
-        X=X_GRF_AV,
-        Y=Y_Injury_trimmed,
-        L=Label_GRF_AV,
+        X=X,
+        Y=Y,
+        L=X_channel_labels,
         LS=Y_Subject,
-        S=InjuryIndexSplits,
+        S=Y_splits,
         model_class=arch,
         output_root_dir=ARGS.output_dir,
         data_name=ARGS.data_name,
