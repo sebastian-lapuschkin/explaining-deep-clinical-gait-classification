@@ -20,12 +20,14 @@ import numpy as numpy # no cupy import here, stay on the CPU in the main script.
 import scipy.io as scio # scientific python package, which supports mat-file IO within python
 import helpers
 import eval_score_logs
+import datetime
 
 import model
 from model import *
 from model.base import ModelArchitecture, ModelTraining
 import train_test_cycle         #import main loop
 
+current_datetime = datetime.datetime.now()
 #setting up an argument parser for controllale command line calls
 import argparse
 parser = argparse.ArgumentParser(description="Train and evaluate Models on human gait recordings!")
@@ -41,7 +43,8 @@ parser.add_argument('-tn', '--target_name', type=str, default='Injury', help='Th
 parser.add_argument('-sd', '--save_data', type=bool, default=True, help='Whether to save the training and split data at the output directory root or not. Default: True')
 parser.add_argument('-ft', '--force_training_device', type=str, default=None, help='Force training to be performed on a specific device, despite the default chosen numeric backend? Options: cpu, gpu, None. Default: None: Pick as defined in model definition.')
 parser.add_argument('-fe', '--force_evaluation_device', type=str, default=None, help='Force evaluat to be performed on a specific device, despite the default chosen numeric backend? Options: cpu, gpu, None. Default: None. NOTE: Execution on GPU is beneficial in almost all cases, due to the massive across-batch-parallelism.')
-
+parser.add_argument('-rc', '--record_call', type=bool, default=False, help='Whether to record the current call to this script in an ouput file specified via -rf or --record-file. Default: False. Only records in case the script terminates gracefully')
+parser.add_argument('-rf', '--record_file', type=str, default='./command_history.txt', help='Determines the file name into which the current call to this script is recorded')
 ARGS = parser.parse_args()
 
 
@@ -129,3 +132,15 @@ train_test_cycle.run_train_test_cycle(
         force_device_for_evaluation=ARGS.force_evaluation_device#computing heatmaps on gpu is always worth it for any model. requires a gpu, obviously
 )
 eval_score_logs.run(ARGS.output_dir)
+
+#record function call and parameters if we arrived here
+
+if ARGS.record_call:
+    print('Recording current call configuration to {}'.format(ARGS.record_file))
+    helpers.ensure_dir_exists(os.path.dirname(ARGS.record_file))
+    with open(ARGS.record_file, 'a') as f:
+        argline = ' '.join(['--{} {}'.format(a, getattr(ARGS,a)) for a in vars(ARGS)])
+        line = '{} : python {} {}'.format(current_datetime,
+                                       sys.modules[__name__].__file__,
+                                       argline)
+        f.write('{}\n\n'.format(line))
