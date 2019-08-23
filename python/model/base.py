@@ -224,7 +224,7 @@ class ModelArchitecture(ABC):
         results['R_pred_act_epsilon'] = self.model.lrp(R_init_act)
 
         print('...lrp (eps) for dominant classes')
-        results['R_pred_act_epsilon'] = self.model.lrp(R_init_dom)
+        results['R_pred_dom_epsilon'] = self.model.lrp(R_init_dom)
 
         # compute CNN composite rules, if model has convolution layes
         has_convolutions = False
