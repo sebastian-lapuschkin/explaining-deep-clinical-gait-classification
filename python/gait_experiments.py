@@ -104,7 +104,7 @@ if training_regime is None or isinstance(training_regime, ModelTraining):
     pass #default training behavior of the architecture class, or training class
 elif isinstance(training_regime, str):
     if training_regime.lower() == 'none':
-        pass #default training behavior of the architecture class, or training class
+        training_regime = None #default training behavior of the architecture class, or training class
     else:
         training_regime = model.training.get_training(training_regime)
     #try to get class from string name
