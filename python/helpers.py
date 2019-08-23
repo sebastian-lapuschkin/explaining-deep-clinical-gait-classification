@@ -139,6 +139,8 @@ def force_device(model, arrays, device=None):
     #returns the transferred arrays
     if device is None:
         return arrays
+    elif isinstance(device, str) and device.lower() == 'none':
+        return arrays
     elif isinstance(device, str) and device.lower() == 'cpu':
         print('Forcing model and associated arrays to CPU')
         model.to_cpu()
@@ -148,6 +150,8 @@ def force_device(model, arrays, device=None):
         assert imp.find_spec("cupy") is not None, "Model can not be forced to execute on GPU device. No GPU device present"
         model.to_gpu()
         return arrays_to_cupy(*arrays)
+    else:
+        raise ValueError("Unsure how to interpret input value '{}' in helpers.force_device".format(device))
 
 def l1loss(y_test, y_pred):
     return numpy.abs(y_pred - y_test).sum()/y_test.shape[0]
