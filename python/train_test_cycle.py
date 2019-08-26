@@ -123,7 +123,7 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
             model.load_model()
 
         # compute test scores and relevance maps for model.
-        results = model.evaluate_model(x_test, y_test, x_test_shape_orig, force_device=force_device_for_evaluation)
+        results = model.evaluate_model(x_test, y_test, force_device=force_device_for_evaluation)
 
         # measure time for training/evaluation cycle
         t_end = time.time()
