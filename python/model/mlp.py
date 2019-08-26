@@ -43,6 +43,10 @@ class FullyConnectedArchitectureBase(ModelArchitecture):
         assert len(y_shape) == 2, "Expected 2-dimensional shape tuple for MLP type models, but got y_shape={}".format(y_shape)
 
 
+    def postprocess_relevance(self, *args, **kwargs):
+        relevance = helpers.arrays_to_numpy(*args)
+        return relevance
+
 
 
 

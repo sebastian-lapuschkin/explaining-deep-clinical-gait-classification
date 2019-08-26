@@ -1,7 +1,8 @@
 from .base import ModelArchitecture, ModelTraining
 import sklearn.svm
 import numpy
-from modules import Linear, Sequential
+import helpers
+from modules import Linear, Sequential, Flatten
 from abc import abstractmethod
 
 
@@ -17,7 +18,12 @@ class SvmLinearTemplate(ModelArchitecture, ModelTraining):
         self.use_gpu = False #force CPU execution
 
     def _sanity_check_model_conversion(self, svm_model, nn_model, x_val):
-        y_pred_svm = svm_model.decision_function(x_val)
+
+        #use flatten layer to vectorize multi-dim array
+        flatten = Flatten()
+        flatten.to_numpy()
+
+        y_pred_svm = svm_model.decision_function(flatten.forward(x_val))
         y_pred_nn  = nn_model.forward(x_val)
 
         rtol = 1e-7
@@ -31,6 +37,12 @@ class SvmLinearTemplate(ModelArchitecture, ModelTraining):
     def train_model(self, x_train, y_train, x_val, y_val, *args, **kwargs):
         # train model using sklearn
         print('training {} model'.format(self.__class__.__name__))
+
+        #use flatten layer to vectorize multi-dim array
+        flatten = Flatten()
+        flatten.to_numpy()
+
+        x_train = flatten.forward(x_train)
         self.model.fit(x_train, y_train)
         self.model = self._convert_to_nn(self.model, y_train, x_val)
 
@@ -51,7 +63,7 @@ class SvmLinearTemplate(ModelArchitecture, ModelTraining):
             linear_layer.B = B
 
         svm_model = self.model
-        nn_model = Sequential([linear_layer])
+        nn_model = Sequential([Flatten(), linear_layer])
         if not self.use_gpu: nn_model.to_numpy()
 
         #sanity check model conversion
@@ -66,15 +78,18 @@ class SvmLinearTemplate(ModelArchitecture, ModelTraining):
         prepare data and labels as input to the model.
         convert input multi-dim arrays into vectors
         """
-        x_train = numpy.reshape(x_train, [x_train.shape[0], -1])
-        x_val = numpy.reshape(x_val, [x_val.shape[0], -1])
-        x_test = numpy.reshape(x_test, [x_test.shape[0], -1])
 
         # only training labels need to be altered, since testing will be done on the svm-reformulation
         # test and validation labels need to be preserved
         y_train = numpy.argmax(y_train, axis = 1)
 
         return (x_train, x_val, x_test, y_train, y_val, y_test)
+
+
+    def postprocess_relevance(self, *args, **kwargs):
+        relevance = helpers.arrays_to_numpy(*args)
+        return relevance
+
 
 
 ###########

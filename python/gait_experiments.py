@@ -58,11 +58,11 @@ ARGS = parser.parse_args()
 gaitdata = scio.loadmat(ARGS.data_path)
 
 # Feature -> Bodenreaktionskraft
-X_GRF_AV = gaitdata['Feature']                          # 1142 x 101 x 6
+X_GRF_AV = gaitdata['Feature']
 Label_GRF_AV = gaitdata['Feature_GRF_AV_Label'][0][0]   # x 6 channel label
 
 #transposing axes, to obtain N x time x channel axis ordering, as in Horst et al. 2019
-X_GRF_AV = numpy.transpose(X_GRF_AV, [0, 2, 1])
+X_GRF_AV = numpy.transpose(X_GRF_AV, [0, 2, 1])         # N x 101 x 6
 
 # Targets -> Subject labels und gender labels
 Y_Subject = gaitdata['Target_Subject']                  # 1142 x 57, binary labels

@@ -170,7 +170,7 @@ class ModelArchitecture(ABC):
         model_io.write(self.model, path_to_model, fmt='txt')
         if self.use_gpu: self.model.to_cupy()
 
-    def evaluate_model(self, x_test, y_test, target_shape, force_device=None):
+    def evaluate_model(self, x_test, y_test, force_device=None):
         """
         test model and computes relevance maps
 
@@ -259,7 +259,7 @@ class ModelArchitecture(ABC):
         for key in results.keys():
             tmp = helpers.arrays_to_numpy(results[key])[0]
             if key.startswith('R'):
-                tmp.reshape(target_shape)
+                tmp = self.postprocess_relevance(tmp)[0]
             results[key] = tmp
 
         return results
@@ -278,16 +278,11 @@ class ModelArchitecture(ABC):
             data = helpers.arrays_to_cupy(*data)
         return data
 
-    def postprocess_data(self, *args, **kwargs):
+    def postprocess_relevance(self, *args, **kwargs):
         """
-        prepare data and labels as after processing by the model to the model.
-        purpose of this can be the "undoing" of the changes made by the preprocessing.
-        e.g. in order to restore the original shape of the data.
-        default: do nothing, except moving data back to cpu
-        overwrite to specify
+        postprocess relvance values by bringing them into a shape aligned to the data.
         """
         return helpers.arrays_to_numpy(*args)
-        #TODO: not sure whether this is required or not.
 
     def to_gpu(self, *args, **kwargs):
         """
