@@ -39,6 +39,11 @@ class ConvolutionalArchitectureBase(ModelArchitecture):
 
         return data
 
+    def postprocess_relevance(self, *args):
+        relevance = helpers.arrays_to_numpy(*args)
+        #select previously added dummy axis explicitly
+        return tuple([r[..., 0] for r in relevance])
+
     def assert_shapes(self, x_shape, y_shape):
         """ assert the shapes of input data for all fully connected models """
         assert len(x_shape) == 4, "Expected 4-dimensional shape tuple for MLP type models, but got x_shape={}".format(x_shape)
