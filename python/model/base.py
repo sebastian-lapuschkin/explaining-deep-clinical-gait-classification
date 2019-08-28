@@ -201,15 +201,21 @@ class ModelArchitecture(ABC):
         #force model to specific device, if so desired.
         x_test, y_test = helpers.force_device(self, (x_test, y_test), force_device)
 
-        self.model.drop_softmax_output_layer()
-        print('...forward pass for {} test samples'.format(x_test.shape[0]))
-        y_pred = self.model.forward(x_test) # this is also a requirement for LRP
+        print('...forward pass for {} test samples for model performance eval'.format(x_test.shape[0]))
+        y_pred = self.model.forward(x_test)
 
         #evaluate accuracy and loss on cpu-copyies of prediction vectors
         y_pred_c, y_test_c = helpers.arrays_to_numpy(y_pred, y_test)
         results['acc']    = helpers.accuracy(y_test_c, y_pred_c)
         results['loss_l1'] = helpers.l1loss(y_test_c, y_pred_c)
         results['y_pred'] = y_pred_c
+
+        #NOTE: drop softmax layer after forward for performance measures to obtain competetive loss values
+        self.model.drop_softmax_output_layer()
+
+        #NOTE: second forward pass without softmax for relevance computation
+        print('...forward pass for {} test samples (without softmax) for LRP'.format(x_test.shape[0]))
+        y_pred = self.model.forward(x_test) # this is also a requirement for LRP
 
         # prepare initial relevance vectors for actual class and dominantly predicted class, on model-device (gpu or cpu)
         R_init_act = y_pred * y_test #assumes y_test to be binary matrix
