@@ -161,36 +161,80 @@ class Mlp3LayerTemplate(FullyConnectedArchitectureBase, NeuralNetworkTrainingDef
             self.model.to_cupy()
 
 ################################################################
-# MLP classes with 2 hidden layers and hidden unit specification
+# MLP classes with 3 hidden layers and hidden unit specification
 ################################################################
 
 class Mlp3Layer64Unit(Mlp3LayerTemplate):
-    # 2 hidden layers of 64 neurons
+    # 3 hidden layers of 64 neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_hidden = 64
 
 class Mlp3Layer128Unit(Mlp3LayerTemplate):
-    # 2 hidden layers of 512 neurons
+    # 3 hidden layers of 512 neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_hidden = 128
 
 class Mlp3Layer256Unit(Mlp3LayerTemplate):
-    # 2 hidden layers of 256 neurons
+    # 3 hidden layers of 256 neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_hidden = 256
 
 class Mlp3Layer512Unit(Mlp3LayerTemplate):
-    # 2 hidden layers of 256 neurons
+    # 3 hidden layers of 256 neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_hidden = 512
 
 class Mlp3Layer768Unit(Mlp3LayerTemplate):
-    # 2 hidden layers of 256 neurons
+    # 3 hidden layers of 256 neurons
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_hidden = 768
 
+
+
+##############################################################################################################
+# MLP classes with 3 hidden layers and hidden unit specification, longer training, larger batches, more epochs
+##############################################################################################################
+
+# NOTE: inheriting the training procedure first effectively picks the training from NeuralNetworkTrainingIncreaseBatchSize
+# since this class now provides the first match for a .train() method
+class Mlp3Layer64UnitLongerTraining(NeuralNetworkTrainingIncreaseBatchSize, Mlp3Layer64Unit):
+    pass
+
+class Mlp3Layer128UnitLongerTraining(NeuralNetworkTrainingIncreaseBatchSize, Mlp3Layer128Unit):
+    pass
+
+class Mlp3Layer256UnitLongerTraining(NeuralNetworkTrainingIncreaseBatchSize, Mlp3Layer256Unit):
+    pass
+
+class Mlp3Layer512UnitLongerTraining(NeuralNetworkTrainingIncreaseBatchSize, Mlp3Layer512Unit):
+    pass
+
+class Mlp3Layer768UnitLongerTraining(NeuralNetworkTrainingIncreaseBatchSize, Mlp3Layer768Unit):
+    pass
+
+
+##############################################################################################################
+# MLP classes with 3 hidden layers and hidden unit specification, longer training, larger batches, more epochs
+##############################################################################################################
+
+# NOTE: inheriting the training procedure first effectively picks the training from NeuralNetworkTrainingIncreaseBatchSize
+# since this class now provides the first match for a .train() method
+class Mlp3Layer64UnitLongerTrainingDecreaseBatchSize(NeuralNetworkTrainingDecreaseBatchSize, Mlp3Layer64Unit):
+    pass
+
+class Mlp3Layer128UnitLongerTrainingDecreaseBatchSize(NeuralNetworkTrainingDecreaseBatchSize, Mlp3Layer128Unit):
+    pass
+
+class Mlp3Layer256UnitLongerTrainingDecreaseBatchSize(NeuralNetworkTrainingDecreaseBatchSize, Mlp3Layer256Unit):
+    pass
+
+class Mlp3Layer512UnitLongerTrainingDecreaseBatchSize(NeuralNetworkTrainingDecreaseBatchSize, Mlp3Layer512Unit):
+    pass
+
+class Mlp3Layer768UnitLongerTrainingDecreaseBatchSize(NeuralNetworkTrainingDecreaseBatchSize, Mlp3Layer768Unit):
+    pass

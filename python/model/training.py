@@ -23,10 +23,20 @@ class NeuralNetworkTrainingIncreaseBatchSize(ModelTraining):
     def train_model(self, x_train, y_train, x_val, y_val, force_device=None):
         print('training {} model (3 epochs, increasing batch size per epoch)'.format(self.__class__.__name__))
         x_train, y_train, x_val, y_val = helpers.force_device(self, (x_train, y_train, x_val, y_val), force_device)
-        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=16, lrate=0.005, status=500)  # train the model
-        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=32, lrate=0.001, status=500)  # slower training once the model has converged somewhat
-        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=64, lrate=0.0005, status=500) # one last epoch
-        #NOTE increasing the batch size might help, or not, or actually hurt performance, who knows. needs testing.
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=16, lrate=0.005, status=1000, iters=50000, convergence=10)  # train the model
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=32, lrate=0.001, status=1000, iters=50000, convergence=10)  # slower training once the model has converged somewhat
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=64, lrate=0.0005, status=1000, iters=50000, convergence=10) # one last epoch
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=128, lrate=0.0005, status=1000, iters=50000, convergence=10) # one last last epoch
+
+class NeuralNetworkTrainingDecreaseBatchSize(ModelTraining):
+    # instead of only decreasing the lrate, we also increase the batch size and start with a larger batch size to begin with
+    def train_model(self, x_train, y_train, x_val, y_val, force_device=None):
+        print('training {} model (3 epochs, decreasing batch size per epoch)'.format(self.__class__.__name__))
+        x_train, y_train, x_val, y_val = helpers.force_device(self, (x_train, y_train, x_val, y_val), force_device)
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=128, lrate=0.005, status=1000, iters=50000, convergence=10)  # train the model
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=64, lrate=0.001, status=1000, iters=50000, convergence=10)  # slower training once the model has converged somewhat
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=32, lrate=0.0005, status=1000, iters=50000, convergence=10) # one last epoch
+        self.model.train(x_train, y_train, Xval=x_val, Yval=y_val, batchsize=8, lrate=0.0005, status=1000, iters=50000, convergence=10) # one last last epoch
 
 class NeuralNetworkTrainingQuickTest(ModelTraining):
     # very short, rudimentary model training for testing

@@ -22,6 +22,18 @@ from .mlp import Mlp3Layer256Unit
 from .mlp import Mlp3Layer512Unit
 from .mlp import Mlp3Layer768Unit
 
+from .mlp import Mlp3Layer64UnitLongerTraining
+from .mlp import Mlp3Layer128UnitLongerTraining
+from .mlp import Mlp3Layer256UnitLongerTraining
+from .mlp import Mlp3Layer512UnitLongerTraining
+from .mlp import Mlp3Layer768UnitLongerTraining
+
+from .mlp import Mlp3Layer64UnitLongerTrainingDecreaseBatchSize
+from .mlp import Mlp3Layer128UnitLongerTrainingDecreaseBatchSize
+from .mlp import Mlp3Layer256UnitLongerTrainingDecreaseBatchSize
+from .mlp import Mlp3Layer512UnitLongerTrainingDecreaseBatchSize
+from .mlp import Mlp3Layer768UnitLongerTrainingDecreaseBatchSize
+
 #CNN-A models (reading all input channels at once, moving over time axis)
 from .cnn import CnnA3
 from .cnn import CnnA6
@@ -56,6 +68,19 @@ def get_architecture(name):
         "Mlp3Layer256Unit".lower():Mlp3Layer256Unit,
         "Mlp3Layer512Unit".lower():Mlp3Layer512Unit,
         "Mlp3Layer768Unit".lower():Mlp3Layer768Unit,
+
+        "Mlp3Layer64UnitLongerTraining".lower():Mlp3Layer64UnitLongerTraining,
+        "Mlp3Layer128UnitLongerTraining".lower():Mlp3Layer128UnitLongerTraining,
+        "Mlp3Layer256UnitLongerTraining".lower():Mlp3Layer256UnitLongerTraining,
+        "Mlp3Layer512UnitLongerTraining".lower():Mlp3Layer512UnitLongerTraining,
+        "Mlp3Layer768UnitLongerTraining".lower():Mlp3Layer768UnitLongerTraining,
+
+        "Mlp3Layer64UnitLongerTrainingDecreaseBatchSize".lower():Mlp3Layer64UnitLongerTrainingDecreaseBatchSize,
+        "Mlp3Layer128UnitLongerTrainingDecreaseBatchSize".lower():Mlp3Layer128UnitLongerTrainingDecreaseBatchSize,
+        "Mlp3Layer256UnitLongerTrainingDecreaseBatchSize".lower():Mlp3Layer256UnitLongerTrainingDecreaseBatchSize,
+        "Mlp3Layer512UnitLongerTrainingDecreaseBatchSize".lower():Mlp3Layer512UnitLongerTrainingDecreaseBatchSize,
+        "Mlp3Layer768UnitLongerTrainingDecreaseBatchSize".lower():Mlp3Layer768UnitLongerTrainingDecreaseBatchSize,
+
 
         "CnnA3".lower():CnnA3,
         "CnnA6".lower():CnnA6,
