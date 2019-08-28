@@ -1,6 +1,10 @@
 #SVM models
 from .svm import SvmLinearL2C1e0
 from .svm import SvmLinearL2C1em1
+from .svm import SvmLinearL2C5em2
+from .svm import SvmLinearL2C1em2
+from .svm import SvmLinearL2C5em3
+from .svm import SvmLinearL2C1em3
 from .svm import SvmLinearL2C1ep1
 
 #MLP models
@@ -33,6 +37,10 @@ def get_architecture(name):
     architectures = {
         'SvmLinearL2C1e0'.lower():SvmLinearL2C1e0,
         'SvmLinearL2C1em1'.lower():SvmLinearL2C1em1,
+        'SvmLinearL2C5em2'.lower():SvmLinearL2C5em2,
+        'SvmLinearL2C1em2'.lower():SvmLinearL2C1em2,
+        'SvmLinearL2C5em3'.lower():SvmLinearL2C5em3,
+        'SvmLinearL2C1em3'.lower():SvmLinearL2C1em3,
         'SvmLinearL2C1ep1'.lower():SvmLinearL2C1ep1,
 
         'MlpLinear'.lower():MlpLinear,

@@ -112,6 +112,38 @@ class SvmLinearL2C1em1(SvmLinearTemplate):
     def build_model(self, *args, **kwargs):
         self.model =  sklearn.svm.LinearSVC(penalty='l2', C=1e-1)
 
+class SvmLinearL2C1em2(SvmLinearTemplate):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def build_model(self, *args, **kwargs):
+        self.model =  sklearn.svm.LinearSVC(penalty='l2', C=1e-2)
+
+class SvmLinearL2C5em2(SvmLinearTemplate):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def build_model(self, *args, **kwargs):
+        self.model =  sklearn.svm.LinearSVC(penalty='l2', C=5e-2)
+
+class SvmLinearL2C1em3(SvmLinearTemplate):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def build_model(self, *args, **kwargs):
+        self.model =  sklearn.svm.LinearSVC(penalty='l2', C=1e-3)
+
+class SvmLinearL2C5em3(SvmLinearTemplate):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def build_model(self, *args, **kwargs):
+        self.model =  sklearn.svm.LinearSVC(penalty='l2', C=5e-3)
+
 class SvmLinearL2C1ep1(SvmLinearTemplate):
 
     def __init__(self, *args, **kwargs):
