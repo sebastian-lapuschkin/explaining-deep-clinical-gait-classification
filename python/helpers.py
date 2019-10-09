@@ -121,6 +121,7 @@ def trim_empty_classes(Y):
         return Y
     else:
         print('No empty columns detected in label matrix shaped {}'.format(Y.shape))
+        return Y
 
 def arrays_to_cupy(*args):
     assert imp.find_spec("cupy"), "module cupy not found/installed."
