@@ -249,10 +249,10 @@ class ModelArchitecture(ABC):
                     break
 
             print('...lrp (eps+flat) for actual classes')
-            results['R_pred_act_epsilon+flat'] = self.model.lrp(R_init_act)
+            results['R_pred_act_epsilon_flat'] = self.model.lrp(R_init_act)
 
             print('...lrp (eps+flat) for dominant classes')
-            results['R_pred_dom_epsilon+flat'] = self.model.lrp(R_init_dom)
+            results['R_pred_dom_epsilon_flat'] = self.model.lrp(R_init_dom)
 
 
 
@@ -275,10 +275,10 @@ class ModelArchitecture(ABC):
                     break
 
             print('...lrp (composite:alpha=2+flat) for actual classes')
-            results['R_pred_act_composite_alpha2+flat'] = self.model.lrp(R_init_act)
+            results['R_pred_act_composite_alpha2_flat'] = self.model.lrp(R_init_act)
 
             print('...lrp (composite:alpha=2+flat) for dominant classes')
-            results['R_pred_dom_composite_alpha2+flat'] = self.model.lrp(R_init_dom)
+            results['R_pred_dom_composite_alpha2_flat'] = self.model.lrp(R_init_dom)
 
 
 
@@ -301,10 +301,10 @@ class ModelArchitecture(ABC):
                     break
 
             print('...lrp (composite:alpha=1+flat) for actual classes')
-            results['R_pred_act_composite_alpha1+flat'] = self.model.lrp(R_init_act)
+            results['R_pred_act_composite_alpha1_flat'] = self.model.lrp(R_init_act)
 
             print('...lrp (composite:alpha=1+flat) for dominant classes')
-            results['R_pred_dom_composite_alpha1+flat'] = self.model.lrp(R_init_dom)
+            results['R_pred_dom_composite_alpha1_flat'] = self.model.lrp(R_init_dom)
 
 
 
