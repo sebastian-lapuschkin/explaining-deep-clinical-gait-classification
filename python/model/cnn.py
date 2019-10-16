@@ -231,6 +231,7 @@ class CnnC3_3(Convolution2DArchitectureBase, NeuralNetworkTrainingDefault):
 class Cnn1DC3(Convolution1DArchitectureBase, NeuralNetworkTrainingDefault):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.use_gpu = False
 
     def build_model(self, x_shape, y_shape):
         #samples are expected in shape 606 x 1 ie x_shape should be N x 606 x 1
@@ -258,6 +259,7 @@ class Cnn1DC3(Convolution1DArchitectureBase, NeuralNetworkTrainingDefault):
 class Cnn1DC6(Convolution1DArchitectureBase, NeuralNetworkTrainingDefault):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.use_gpu = False
 
     def build_model(self, x_shape, y_shape):
         #samples are expected in shape 606 x 1 ie x_shape should be N x 606 x 1
