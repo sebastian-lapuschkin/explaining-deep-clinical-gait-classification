@@ -46,6 +46,7 @@ from .cnn import CnnC3_3
 
 from .cnn import Cnn1DC3
 from .cnn import Cnn1DC6
+from .cnn import Cnn1DC8
 
 
 
@@ -96,7 +97,8 @@ def get_architecture(name):
         "CnnC3_3".lower():CnnC3_3,
 
         "Cnn1DC3".lower():Cnn1DC3,
-        "Cnn1DC6".lower():Cnn1DC6
+        "Cnn1DC6".lower():Cnn1DC6,
+        "Cnn1DC8".lower():Cnn1DC8
     }
 
     return architectures[name.lower()]
