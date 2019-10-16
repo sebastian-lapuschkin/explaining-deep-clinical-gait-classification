@@ -39,10 +39,15 @@ from .cnn import CnnA3
 from .cnn import CnnA6
 from .cnn import CnnAshort
 
-#CNN-C models (2d-convolutional models)
+#CNN-C models (1d- and 2d-convolutional models)
 from .cnn import CnnC3
 from .cnn import CnnC6
 from .cnn import CnnC3_3
+
+from .cnn import Cnn1DC3
+from .cnn import Cnn1DC6
+
+
 
 #all below classes need to be registered below and vice versa in order to use the creator-pattern
 def get_architecture(name):
@@ -88,7 +93,10 @@ def get_architecture(name):
 
         "CnnC3".lower():CnnC3,
         "CnnC6".lower():CnnC6,
-        "CnnC3_3".lower():CnnC3_3
+        "CnnC3_3".lower():CnnC3_3,
+
+        "Cnn1DC3".lower():Cnn1DC3,
+        "Cnn1DC6".lower():Cnn1DC6
     }
 
     return architectures[name.lower()]
