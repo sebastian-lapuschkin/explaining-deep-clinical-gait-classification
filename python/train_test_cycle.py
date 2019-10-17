@@ -62,7 +62,7 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
     # some basic sanity checks
     assert Y.shape[0] == X.shape[0] == LS.shape[0], 'Number of samples differ between labels Y (n={}), data X (n={}) and subject labels LS (n={})'.format(L.shape[0], X.shape[0], LS.shape[0])
     assert len(L) == X.shape[2], 'Number of provided channel names/labels in L (c={}) differs from number of channels in data X(c={})'.format(len(L), X.shape[2])
-    assert sum([len(s) for s in S]) == X.shape[0], 'Number of samples distributed over splits in S (n={}) differs from number of samples in X'.format(sum([len(s) for s in S]), X.shape[0])
+    assert sum([len(s) for s in S]) == X.shape[0], 'Number of samples distributed over splits in S (n={}) differs from number of samples in X ({})'.format(sum([len(s) for s in S]), X.shape[0])
 
 
     # save data, labels and split information in output directory.
