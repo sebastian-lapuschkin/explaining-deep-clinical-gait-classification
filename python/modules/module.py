@@ -167,6 +167,9 @@ class Module:
     def _ww_lrp(self,R):
         raise NotImplementedError('_ww_lrp missing in ' + self.__class__.__name__)
 
+    def _zB_lrp(self,R):
+        raise NotImplementedError('_zB_lrp missing in ' + self.__class__.__name__)
+
     def _epsilon_lrp(self,R,param):
         raise NotImplementedError('_epsilon_lrp missing in ' + self.__class__.__name__)
 
