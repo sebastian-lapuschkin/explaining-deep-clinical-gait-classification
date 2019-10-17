@@ -108,6 +108,7 @@ class Module:
             'alphabeta' or 'alpha' for weighting positive and negative contributions separately. param specifies alpha with alpha + beta = 1
             'flat' projects an upper layer neuron's relevance uniformly over its receptive field.
             'ww' or 'w^2' only considers the square weights w_ij^2 as qantities to distribute relevances with.
+            'zB' or 'zb' which considers the data's bounds during decomposition. Should be used in the input only. Derived from DTD.
 
         param : double
             the respective parameter for the lrp method of choice
@@ -133,6 +134,8 @@ class Module:
             return self._flat_lrp(R)
         elif lrp_var.lower() == 'ww' or lrp_var.lower() == 'w^2':
             return self._ww_lrp(R)
+        elif lrp_var.lower() == 'zb':
+            return self._zb_lrp(R)
 
         elif lrp_var.lower() == 'epsilon':
             return self._epsilon_lrp(R,param)
