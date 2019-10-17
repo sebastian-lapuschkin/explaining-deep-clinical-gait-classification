@@ -135,7 +135,7 @@ class Module:
         elif lrp_var.lower() == 'ww' or lrp_var.lower() == 'w^2':
             return self._ww_lrp(R)
         elif lrp_var.lower() == 'zb':
-            return self._zb_lrp(R)
+            return self._zb_lrp(R,param)
 
         elif lrp_var.lower() == 'epsilon':
             return self._epsilon_lrp(R,param)
@@ -167,7 +167,7 @@ class Module:
     def _ww_lrp(self,R):
         raise NotImplementedError('_ww_lrp missing in ' + self.__class__.__name__)
 
-    def _zb_lrp(self,R):
+    def _zb_lrp(self,R,param):
         raise NotImplementedError('_zB_lrp missing in ' + self.__class__.__name__)
 
     def _epsilon_lrp(self,R,param):
