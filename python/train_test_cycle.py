@@ -123,7 +123,9 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
             model.load_model()
 
         # compute test scores and relevance maps for model.
-        results = model.evaluate_model(x_test, y_test, force_device=force_device_for_evaluation)
+        results = model.evaluate_model(x_test, y_test,
+                                       force_device=force_device_for_evaluation,
+                                       lower_upper=helpers.get_channel_wise_bounds(x_train)) # compute and give data bounds computed from training data.
 
         # measure time for training/evaluation cycle
         t_end = time.time()

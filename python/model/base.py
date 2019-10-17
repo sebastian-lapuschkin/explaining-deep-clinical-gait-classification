@@ -170,7 +170,7 @@ class ModelArchitecture(ABC):
         model_io.write(self.model, path_to_model, fmt='txt')
         if self.use_gpu: self.model.to_cupy()
 
-    def evaluate_model(self, x_test, y_test, force_device=None):
+    def evaluate_model(self, x_test, y_test, force_device=None, lower_upper = None):
         """
         test model and computes relevance maps
 
@@ -185,6 +185,11 @@ class ModelArchitecture(ABC):
 
         force_device: str - (optional) force execution of the evaluation either on cpu or gpu.
             accepted values: "cpu", "gpu" respectively. None does nothing.
+
+        lower_upper: (array of float, array of float) - (optional): lower and upper bounds of the inputs, for LRP_zB.
+            automagically inferred from x_test.
+            arrays should match the feature dimensionality of the inputs, including broadcastable axes.
+            e.g. if x_test is shaped (N, featuredims), then the bounds should be shaped (1, featuredims)
 
         Returns:
         --------
@@ -210,7 +215,7 @@ class ModelArchitecture(ABC):
         results['loss_l1'] = helpers.l1loss(y_test_c, y_pred_c)
         results['y_pred'] = y_pred_c
 
-        #NOTE: drop softmax layer after forward for performance measures to obtain competetive loss values
+        #NOTE: drop softmax layer AFTER forward for performance measures to obtain competetive loss values
         self.model.drop_softmax_output_layer()
 
         #NOTE: second forward pass without softmax for relevance computation
@@ -232,6 +237,30 @@ class ModelArchitecture(ABC):
         print('...lrp (eps) for dominant classes')
         results['R_pred_dom_epsilon'] = self.model.lrp(R_init_dom)
 
+        # eps + zB (lowest convolution/flatten layer) for all models here.
+
+        # infer lower and upper bounds from data, if not given
+        if not lower_upper:
+            print('    ...inferring per-channel lower and upper bounds for zB from test data. THIS IS PROBABLY NOT OPTIMAL')
+            lower_upper = helpers.get_channel_wise_bounds(x_test)
+        else:
+            print('    ...using input lower and upper bounds for zB')
+        lower_upper = helpers.force_device(self, lower_upper, force_device)
+
+        # configure the lowest weighted layer to be decomposed with zB. This should be the one nearest to the input.
+        # We are not just taking the first layer, since the MLP models are starting with a Flatten layer for reshaping the data.
+        for m in self.model.modules:
+            if isinstance(m, [Linear, Convolution]):
+                m.set_lrp_parameters(lrp_var='zB', param=lower_upper)
+                break
+
+        print('...lrp (eps + zB) for actual classes')
+        results['R_pred_act_epsilon_zb'] = self.model.lrp(R_init_act)
+
+        print('...lrp (eps + zB) for dominant classes')
+        results['R_pred_dom_epsilon_zb'] = self.model.lrp(R_init_dom)
+
+
         # compute CNN composite rules, if model has convolution layes
         has_convolutions = False
         for m in self.model.modules:
@@ -240,9 +269,9 @@ class ModelArchitecture(ABC):
         if has_convolutions:
             # convolution layers found.
 
-
             # epsilon-lrp with flat decomposition in the lowest convolution layers
             # process lowest convolution layer with FLAT lrp
+            # for "normal" cnns, this should overwrite the previously set zB rule
             for m in self.model.modules:
                 if isinstance(m, Convolution):
                     m.set_lrp_parameters(lrp_var='flat')
@@ -281,6 +310,19 @@ class ModelArchitecture(ABC):
             results['R_pred_dom_composite_alpha2_flat'] = self.model.lrp(R_init_dom)
 
 
+            #process lowest convolution layer with zB lrp
+            for m in self.model.modules:
+                if isinstance(m, Convolution):
+                    m.set_lrp_parameters(lrp_var='zB', param=lower_upper)
+                    break
+
+            print('...lrp (composite:alpha=2+zB) for actual classes')
+            results['R_pred_act_composite_alpha2_zB'] = self.model.lrp(R_init_act)
+
+            print('...lrp (composite:alpha=2+zB) for dominant classes')
+            results['R_pred_dom_composite_alpha2_zB'] = self.model.lrp(R_init_dom)
+
+
 
 
             # switching alpha1beta0 for those layers
@@ -306,6 +348,18 @@ class ModelArchitecture(ABC):
             print('...lrp (composite:alpha=1+flat) for dominant classes')
             results['R_pred_dom_composite_alpha1_flat'] = self.model.lrp(R_init_dom)
 
+
+            #process lowest convolution layer with zB lrp
+            for m in self.model.modules:
+                if isinstance(m, Convolution):
+                    m.set_lrp_parameters(lrp_var='zB', param=lower_upper)
+                    break
+
+            print('...lrp (composite:alpha=1+zB) for actual classes')
+            results['R_pred_act_composite_alpha1_zB'] = self.model.lrp(R_init_act)
+
+            print('...lrp (composite:alpha=1+zB) for dominant classes')
+            results['R_pred_dom_composite_alpha1_zB'] = self.model.lrp(R_init_dom)
 
 
         print('...copying collected results to CPU and reshaping if necessary')

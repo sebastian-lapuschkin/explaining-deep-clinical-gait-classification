@@ -154,6 +154,26 @@ def force_device(model, arrays, device=None):
     else:
         raise ValueError("Unsure how to interpret input value '{}' in helpers.force_device".format(device))
 
+def get_channel_wise_bounds(array):
+    """
+    Returns the channel-wise lower and upper bounds of some data, assuming a shape of
+    (batchsize, [feature dims])
+
+    Parameters:
+    -----------
+    array - numpy or cupy array of floats shaped (N, ...)
+
+
+    Returns:
+    --------
+    tuple of arrays (lower, upper), each shaped (1, ...)
+        the returned arrays are in CPU-accessible memory (ie numpy type arrays)
+    """
+    array = arrays_to_numpy(array)
+    lower = numpy.amin(array, axis=0, keepdims=True)
+    upper = numpy.amax(array, axis=0, keepdims=True)
+    return (lower, upper)
+
 def l1loss(y_test, y_pred):
     return numpy.abs(y_pred - y_test).sum()/y_test.shape[0]
 
