@@ -245,12 +245,15 @@ class ModelArchitecture(ABC):
             lower_upper = helpers.get_channel_wise_bounds(x_test)
         else:
             print('    ...using input lower and upper bounds for zB')
-        lower_upper = helpers.force_device(self, lower_upper, force_device)
+        if self.use_gpu:
+            lower_upper = helpers.arrays_to_cupy(*lower_upper)
+        else:
+            lower_upper = helpers.arrays_to_numpy(*lower_upper)
 
         # configure the lowest weighted layer to be decomposed with zB. This should be the one nearest to the input.
         # We are not just taking the first layer, since the MLP models are starting with a Flatten layer for reshaping the data.
         for m in self.model.modules:
-            if isinstance(m, [Linear, Convolution]):
+            if isinstance(m, (Linear, Convolution)):
                 m.set_lrp_parameters(lrp_var='zB', param=lower_upper)
                 break
 
@@ -396,9 +399,11 @@ class ModelArchitecture(ABC):
         attempts to transfer the model to gpu
         """
         self.model.to_cupy()
+        self.use_gpu = True
 
     def to_cpu(self, *args, **kwargs):
         """
         attempts to transfer the model to cpu
         """
         self.model.to_numpy()
+        self.use_gpu = False

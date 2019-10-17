@@ -169,7 +169,7 @@ def get_channel_wise_bounds(array):
     tuple of arrays (lower, upper), each shaped (1, ...)
         the returned arrays are in CPU-accessible memory (ie numpy type arrays)
     """
-    array = arrays_to_numpy(array)
+    array = arrays_to_numpy(array)[0]
     lower = numpy.amin(array, axis=0, keepdims=True)
     upper = numpy.amax(array, axis=0, keepdims=True)
     return (lower, upper)

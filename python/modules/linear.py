@@ -182,10 +182,53 @@ class Linear(Module):
         Zs = Z.sum(axis=1)[:,na,:]
         return ((Z / Zs) * R[:,na,:]).sum(axis=2)
 
+    def _zb_lrp(self,R,lower_upper):
+        '''
+        zB decomposition for input layers, from http://iphome.hhi.de/samek/pdf/MonXAI19.pdf
+        '''
+        lower, upper = lower_upper
+
+        x_shape = self.X.shape
+        lower_shape = lower.shape
+        upper_shape = upper.shape
+
+        # ensure shape of bounds is matching, try and signal attempted reshaping if not but conditions are promising.
+        assert lower_shape == upper_shape, "array shape of lower and upper bound differ: lower.shape = {} and upper.shape = {}".format(lower_shape, upper_shape)
+        assert lower_shape[0] == upper_shape[0] == 1, "batch-axis shape of lower and upper need to be 1, but have been {} and {}".format(lower_shape[0], upper_shape[0])
+
+        if not x_shape[1::] == lower_shape[1::]:
+            print('Linear._zb_lrp detects differently shaped features in inputs X and lower/upper bounds:')
+            print(x_shape[1::] , lower_shape[1::], upper_shape[1::])
+            if numpy.product(x_shape[1::]) == numpy.product(lower_shape[1::]):
+                print('   Number of features match. Attempting reshape.')
+                lower = lower.reshape([1, *x_shape[1::]])
+                upper = upper.reshape([1, *x_shape[1::]])
+                lower_shape = lower.shape
+                upper_shape = upper.shape
+
+        assert x_shape[1::] == lower_shape[1::] == upper_shape[1::], "Different feature shape detected between bounds and inputs! Axes 1:: differ!: X: {}, lower: {}, upper: {}".format(x_shape, lower_shape, upper_shape)
+
+        # now for the actual computations
+        W = self.W[na,:,:]
+        Wp = np.maximum(0,W)
+        Wm = np.minimum(0,W)
+
+        Zx = W * self.X[:,:,na] #localized preactivations
+        Zl = Wp * lower[...,na]
+        Zu = Wm * upper[...,na]
+
+        Zs = (Zx - Zl - Zu).sum(axis=1)[:,na,:]
+        Zs += 1e-16*((Zs >= 0)*2 - 1.) #add weak default stabilizer to denominator
+
+        Rs = R[:,na,:] / Zs #normalize relevance
+        return ((Zx - Zl - Zu)*Rs).sum(axis=2)
+
+
+
 
     def _ww_lrp(self,R):
         '''
-        LRR according to Eq(12) in https://arxiv.org/pdf/1512.02479v1.pdf
+        LRP according to Eq(12) in https://arxiv.org/pdf/1512.02479v1.pdf
         '''
         Z = self.W[na,:,:]**2
         Zs = Z.sum(axis=1)[:,na,:]
