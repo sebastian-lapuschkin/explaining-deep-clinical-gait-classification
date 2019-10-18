@@ -35,7 +35,7 @@ parser.add_argument('-d', '--data_path', type=str, default='./data/DatasetC_Clas
 parser.add_argument('-o', '--output_dir', type=str, default='./output', help='Sets the output directory root for models and results. Default: "./output"')
 parser.add_argument('-me', '--model_exists', type=str, default='skip', help='Sets the behavior of the code in case a model file has been found at the output location. "skip" (default) skips remaining execution loop and does nothing. "retrain" trains the model anew. "evaluate" only evaluates the model with test data')
 parser.add_argument('-rs', '--random_seed', type=int, default=1234, help='Sets a random seed for the random number generator. Default: 1234')
-parser.add_argument('-s', '--splits', type=int, default=5, help='The number of splits to divide the data into. Default: 5')
+parser.add_argument('-s', '--splits', type=int, default=10, help='The number of splits to divide the data into. Default: 5')
 parser.add_argument('-a', '--architecture', type=str, default='SvmLinearL2C1e0', help='The name of the model architecture to use/train/evaluate. Can be any joint-specialization of model.base.ModelArchitecture and model.base.ModelTraining. Default: SvmLinearL2C1e0 ')
 parser.add_argument('-tp', '--training_programme', type=str, default=None, help='The training regime for the (NN) model to follow. Can be any class from model.training or any class implementing model.base.ModelTraining. The default value None executes the training specified for the NN model as part of the class definition.')
 parser.add_argument('-dn', '--data_name', type=str, default='GRF_AV', help='The feature name of the data behind --data_path to be processed. Default: GRF_AV')
