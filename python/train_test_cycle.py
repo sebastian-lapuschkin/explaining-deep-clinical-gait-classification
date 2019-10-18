@@ -8,7 +8,7 @@ import sys
 from model.base import ModelTraining
 
 
-def run_train_test_cycle(X, Y, L, LS, S, model_class,
+def run_train_test_cycle(X, Y, L, LS, S, P, model_class,
                         output_root_dir, data_name, target_name,
                         training_programme=None,
                         do_this_if_model_exists='skip', save_data_in_output_dir=True,
@@ -33,6 +33,9 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
 
     S : list of lists - Contains indices determining the partitioning of the data.
         The outer lists groups the splits (ie len(S) groups of data) and each list element of S contains the indices of those lists.
+
+    P : np.ndarray - An numpy.ndarray shaped (N,) describing the permutation applied to the input data X and the target labels Y.
+        This allows referencing LS to Y and X.
 
     model: model_db.Model - a CLASS providing a set of required functions and the model architecture for executing the training and evaluation loop
 
@@ -74,6 +77,7 @@ def run_train_test_cycle(X, Y, L, LS, S, model_class,
         scipy.io.savemat('{}/channel_labels.mat'.format(output_root_dir), {'L':L})
         scipy.io.savemat('{}/subject_labels.mat'.format(output_root_dir), {'LS':LS})
         scipy.io.savemat('{}/splits.mat'.format(output_root_dir), {'S':S})
+        scipy.io.savemat('{}/permutation.mat'.format(output_root_dir), {'P':P})
 
     #prepare log to append anything happending in this session. kinda deprecated.
     logfile = open('{}/log.txt'.format(output_root_dir), 'a')

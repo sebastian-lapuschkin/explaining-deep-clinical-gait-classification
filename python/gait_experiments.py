@@ -124,6 +124,7 @@ train_test_cycle.run_train_test_cycle(
         L=X_channel_labels,
         LS=Y_Subject,
         S=Y_splits,
+        P=Permutation,
         model_class=arch,
         output_root_dir=ARGS.output_dir,
         data_name=ARGS.data_name,
