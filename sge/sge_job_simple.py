@@ -18,7 +18,7 @@ THREADS = 10
 CONDA = 'conda'
 ENV = 'gait'
 HERE = os.getcwd()
-JOBNAME = 'GAIT-'
+JOBNAME = None
 LOGDIR = '/home/fe/lapuschkin/logs-gait'
 SCRIPTDIR = '/home/fe/lapuschkin/scripts-gait'
 
@@ -54,13 +54,13 @@ if __name__ == '__main__':
         #generate script
         execthis    =  ['#!/bin/bash']
         execthis    =  ['source /home/fe/lapuschkin/.bashrc']           # enables conda for bash
-        execthis    += ['cd {}/python'.format(HERE)]                    # go to python root
+        execthis    += ['cd {}/../python'.format(HERE)]                    # go to python root
         execthis    += ['{} activate {}'.format(CONDA, ENV)]            # enter venv
         execthis    += ['python3 gait_experiments.py {}'.format(args)]  # call script with parameters.
         execthis    += ['{} deactivate'.format(CONDA)]                  # leave venv
         execthis = '\n'.join(execthis)
 
-        JOBNAME ='[{}/{}] of "{}"'.format(i+1,len(all_arg_lines), os.path.basename(ARGSFILE))
+        JOBNAME ='[{}_of_{}]_of_"{}"'.format(i+1,len(all_arg_lines), os.path.basename(ARGSFILE).replace(' ','_'))
         SCRIPTFILE='{}/{}-{}'.format(SCRIPTDIR, os.path.basename(ARGSFILE), i+1)
         print('    as file: {}'.format(SCRIPTFILE))
         print('    as name: {}'.format(JOBNAME))
@@ -82,18 +82,24 @@ if __name__ == '__main__':
         cmd += [SCRIPTFILE]
         print('    preparing to submit via command: {}'.format(cmd))
 
-        """
+        
         p = subprocess.Popen( cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE )
         ( stdout, stderr ) = p.communicate()
-        print('    ', p, stdout, stderr)
+        print('    ', 'P:', p, 'O:', stdout, 'E:',  stderr)
         if ( p.returncode == 0 ):
             id_job = stdout.decode('utf-8').split()[2]
         else:
             id_job = None
-        """
+
+        if len(stderr) > 0:
+            print('ERROR during job submission? "{}"'.format(stderr))
+            exit()
 
         print('    dispatched job {0} with id {1}'.format(JOBNAME, id_job))
+        
+
         print('    submitted job executes:')
-        print('    ', execthis)
+        print('\n'.join(['>>>> ' + e for e in execthis.split('\n')]))
         print()
+        
 

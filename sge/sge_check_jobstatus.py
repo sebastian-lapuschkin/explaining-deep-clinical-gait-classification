@@ -6,6 +6,8 @@ from datetime import datetime
 
 def query():
     QTEXT = subprocess.check_output(['qstat -u "*"'], shell=True)
+    QTEXT = QTEXT.decode("utf-8")
+    # print(QTEXT)
     QTEXT = QTEXT.split('\n')
 
     running = 0
@@ -37,17 +39,17 @@ def query():
 def status():
     running, waiting, groups, load, oldest_running, newest_running = query()
 
-    print 'JOB STATUS AT', datetime.now()
-    print ''
-    print 'running:', running
-    print 'waiting:', waiting
-    print 'groups:', groups
-    print 'cluster load:', load, '!'*((load-90000)/1000 + 1) if load > 90000 else ''
+    print ('JOB STATUS AT', datetime.now())
+    print ('')
+    print ('running:', running)
+    print ('waiting:', waiting)
+    print ('groups:', groups)
+    print ('cluster load:', load, '!'*((load-90000)/1000 + 1) if load > 90000 else '')
 
-    print ''
-    print 'oldest running:', oldest_running
-    print '|'
-    print 'newest_running:', newest_running
+    print ('')
+    print ('oldest running:', oldest_running)
+    print ('|')
+    print ('newest_running:', newest_running)
 
 if __name__ == '__main__':
     status()
