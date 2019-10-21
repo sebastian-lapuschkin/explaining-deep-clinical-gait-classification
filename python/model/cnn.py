@@ -495,3 +495,130 @@ class Cnn1DC8_CTanh(Convolution1DArchitectureBase, NeuralNetworkTrainingDefault)
             self.model.to_numpy()
         else:
             self.model.to_cupy()
+
+
+
+class Cnn1DC3_D(Convolution1DArchitectureBase, NeuralNetworkTrainingDefault):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_gpu = False
+
+    def build_model(self, x_shape, y_shape):
+        #samples are expected in shape 606 x 1 ie x_shape should be N x 606 x 1
+        self.assert_shapes(x_shape, y_shape)
+        assert x_shape[1:] == (606, 1, 1)
+        n_classes = y_shape[1]
+
+        h1 = Convolution(filtersize=(3,1,1,16), stride=(1,1))  # h1 output: 604 x 1 x 16
+        h2 = Convolution(filtersize=(3,1,16,24), stride=(1,1))  # h2 output: 602 x 1 x 24
+        h3 = Convolution(filtersize=(4,1,24,48), stride=(2,1))  # h2 output: 301 x 1 x 48
+        h4 = Convolution(filtersize=(4,1,48,48), stride=(3,1))  # h2 output: 99 x 1 x 48
+        h5 = Linear(99*48, 48*48)
+        h6 = Linear(48*48, 24*24)
+        h7 = Linear(24*24, n_classes)
+        self.model = Sequential([h1, Rect(),
+                                 h2, Rect(),
+                                 h3, Rect(),
+                                 h4, Rect(),
+                                 Flatten(),
+                                 h5, Rect(),
+                                 h6, Rect(),
+                                 h7,
+                                 SoftMax()])
+        if not self.use_gpu:
+            self.model.to_numpy()
+        else:
+            self.model.to_cupy()
+
+class Cnn1DC3_DTanh(Convolution1DArchitectureBase, NeuralNetworkTrainingDefault):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_gpu = False
+
+    def build_model(self, x_shape, y_shape):
+        #samples are expected in shape 606 x 1 ie x_shape should be N x 606 x 1
+        self.assert_shapes(x_shape, y_shape)
+        assert x_shape[1:] == (606, 1, 1)
+        n_classes = y_shape[1]
+
+        h1 = Convolution(filtersize=(3,1,1,16), stride=(1,1))  # h1 output: 604 x 1 x 16
+        h2 = Convolution(filtersize=(3,1,16,24), stride=(1,1))  # h2 output: 602 x 1 x 24
+        h3 = Convolution(filtersize=(4,1,24,48), stride=(2,1))  # h2 output: 301 x 1 x 48
+        h4 = Convolution(filtersize=(4,1,48,48), stride=(3,1))  # h2 output: 99 x 1 x 48
+        h5 = Linear(99*48, 48*48)
+        h6 = Linear(48*48, 24*24)
+        h7 = Linear(24*24, n_classes)
+        self.model = Sequential([h1, Tanh(),
+                                 h2, Tanh(),
+                                 h3, Tanh(),
+                                 h4, Tanh(),
+                                 Flatten(),
+                                 h5, Tanh(),
+                                 h6, Tanh(),
+                                 h7,
+                                 SoftMax()])
+        if not self.use_gpu:
+            self.model.to_numpy()
+        else:
+            self.model.to_cupy()
+
+class Cnn1DC8_D(Convolution1DArchitectureBase, NeuralNetworkTrainingDefault):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_gpu = False
+
+    def build_model(self, x_shape, y_shape):
+        #samples are expected in shape 606 x 1 ie x_shape should be N x 606 x 1
+        self.assert_shapes(x_shape, y_shape)
+        assert x_shape[1:] == (606, 1, 1)
+        n_classes = y_shape[1]
+
+        h1 = Convolution(filtersize=(8,1,1,24), stride=(2,1))  # h1 output: 300 x 1 x 16
+        h2 = Convolution(filtersize=(8,1,24,32), stride=(2,1))  # h2 output: 147 x 1 x 32
+        h3 = Convolution(filtersize=(6,1,32,48), stride=(3,1))  # h3 output: 48 x 1 x 48
+        h4 = Linear(48*48, 48*24)
+        h5 = Linear(48*24, 24*24)
+        h6 = Linear(24*24, n_classes)
+        self.model = Sequential([h1, Rect(),
+                                 h2, Rect(),
+                                 h3, Rect(),
+                                 Flatten(),
+                                 h4, Rect(),
+                                 h5, Rect(),
+                                 h6,
+                                 SoftMax()])
+        if not self.use_gpu:
+            self.model.to_numpy()
+        else:
+            self.model.to_cupy()
+
+
+class Cnn1DC8_DTanh(Convolution1DArchitectureBase, NeuralNetworkTrainingDefault):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.use_gpu = False
+
+    def build_model(self, x_shape, y_shape):
+        #samples are expected in shape 606 x 1 ie x_shape should be N x 606 x 1
+        self.assert_shapes(x_shape, y_shape)
+        assert x_shape[1:] == (606, 1, 1)
+        n_classes = y_shape[1]
+
+        h1 = Convolution(filtersize=(8,1,1,24), stride=(2,1))  # h1 output: 300 x 1 x 16
+        h2 = Convolution(filtersize=(8,1,24,32), stride=(2,1))  # h2 output: 147 x 1 x 32
+        h3 = Convolution(filtersize=(6,1,32,48), stride=(3,1))  # h3 output: 48 x 1 x 48
+        h4 = Linear(48*48, 48*24)
+        h5 = Linear(48*24, 24*24)
+        h6 = Linear(24*24, n_classes)
+        self.model = Sequential([h1, Tanh(),
+                                 h2, Tanh(),
+                                 h3, Tanh(),
+                                 Flatten(),
+                                 h4, Tanh(),
+                                 h5, Tanh(),
+                                 h6,
+                                 SoftMax()])
+        if not self.use_gpu:
+            self.model.to_numpy()
+        else:
+            self.model.to_cupy()

@@ -57,6 +57,13 @@ from .cnn import Cnn1DC3_CTanh
 from .cnn import Cnn1DC8_C
 from .cnn import Cnn1DC8_CTanh
 
+from .cnn import Cnn1DC3_D
+from .cnn import Cnn1DC3_DTanh
+
+from .cnn import Cnn1DC8_D
+from .cnn import Cnn1DC8_DTanh
+
+
 
 #all below classes need to be registered below and vice versa in order to use the creator-pattern
 def get_architecture(name):
@@ -116,6 +123,14 @@ def get_architecture(name):
 
         "Cnn1DC8_C".lower():Cnn1DC8_C,
         "Cnn1DC8_CTanh".lower():Cnn1DC8_CTanh,
+
+        "Cnn1DC3_D".lower():Cnn1DC3_D,
+        "Cnn1DC3_DTanh".lower():Cnn1DC3_DTanh,
+
+        "Cnn1DC8_D".lower():Cnn1DC8_D,
+        "Cnn1DC8_DTanh".lower():Cnn1DC8_DTanh,
+
+
     }
 
     return architectures[name.lower()]
