@@ -31,7 +31,7 @@ current_datetime = datetime.datetime.now()
 #setting up an argument parser for controllale command line calls
 import argparse
 parser = argparse.ArgumentParser(description="Train and evaluate Models on human gait recordings!")
-parser.add_argument('-d', '--data_path', type=str, default='./data/DatasetC_Classification_Norm_5_Normal-Ankle-Hip-Knee.mat', help='Sets the path to the dataset mat-file to be processed')
+parser.add_argument('-d', '--data_path', type=str, default='./data/2019_frontiers_small_dataset_v3_aff-unaff-nonorm_1-2_.mat', help='Sets the path to the dataset mat-file to be processed')
 parser.add_argument('-o', '--output_dir', type=str, default='./output', help='Sets the output directory root for models and results. Default: "./output"')
 parser.add_argument('-me', '--model_exists', type=str, default='skip', help='Sets the behavior of the code in case a model file has been found at the output location. "skip" (default) skips remaining execution loop and does nothing. "retrain" trains the model anew. "evaluate" only evaluates the model with test data')
 parser.add_argument('-rs', '--random_seed', type=int, default=1234, help='Sets a random seed for the random number generator. Default: 1234')
