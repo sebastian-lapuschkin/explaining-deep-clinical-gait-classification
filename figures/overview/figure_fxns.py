@@ -208,24 +208,32 @@ def draw_fig0 (fmt, variant='a',dpi=300):
         #maxamp *= 1.1
 
         ax.set_ylim([-maxamp, maxamp])
-        ax2 = ax.twinx()
+        #ax2 = ax.twinx()
 
         ax.yaxis.tick_right()
         ax.set_yticks([0]) #show single vertical grid line thresholding zero
         ax.set_yticklabels([]) #deactivate tick label texts (no info gained from this)
 
         ax.set_xticks([50.5 + 101*ii for ii in range(6)],minor=True)
+        #ax.set_xticks([],minor=True)
         ax.tick_params(axis='x', which='minor', length=0)
-        ax.set_xticklabels(bodyparts, minor=True, fontsize=6)
+
+        #ax.set_xticklabels(bodyparts, minor=True, fontsize=6)
+        ax.set_xticklabels([], minor=True, fontsize=6)
+
         ax.set_xticks(xticks, minor=False)
-        ax.set_xticklabels(xticks, minor=False, fontsize=7)
+        #ax.set_xticks([], minor=False)
+        #ax.set_xticklabels(xticks, minor=False, fontsize=7)
+        ax.set_xticklabels([], minor=False, fontsize=7)
+        ax.tick_params(axis='x', which='major', length=0)
+
         ax.set_ylabel('Relevance'.format(shortname),fontsize=8, color=plotcolor)
         ax.grid(True, linewidth=0.5, axis='x')
         ax.set_xlim(xlim)
 
-        ax2.set_yticks([], minor=False)
-        ax2.set_ylabel('on Input'.format(shortname),fontsize=8, color=plotcolor)
-        ax.set_ylabel('Relevance'.format(shortname),fontsize=8, color=plotcolor)
+        #ax2.set_yticks([], minor=False)
+        #ax2.set_ylabel('on Input'.format(shortname),fontsize=8, color=plotcolor)
+        ax.set_ylabel('on Input'.format(shortname),fontsize=8, color=plotcolor)
         #ax.set_title(dataname)
         plt.subplots_adjust(bottom=0.24,top=0.95, left=0.04, right=0.94)
 
