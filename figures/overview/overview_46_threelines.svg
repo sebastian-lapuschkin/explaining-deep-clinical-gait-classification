@@ -544,9 +544,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.5600002"
-     inkscape:cx="302.02194"
-     inkscape:cy="160.36199"
+     inkscape:zoom="1.2800001"
+     inkscape:cx="819.13808"
+     inkscape:cy="38.491352"
      inkscape:document-units="px"
      inkscape:current-layer="g4703"
      showgrid="false"
@@ -625,7 +625,7 @@
       <g
          id="g4472"
          inkscape:label="Figure-2 (horst)"
-         transform="matrix(0.74686385,0,0,-0.74686385,825.69852,605.58122)">
+         transform="matrix(0.93005956,0,0,-0.93005956,772.93825,605.58122)">
         <path
            d="M 0,0 H 288 V 50.4 H 0 Z"
            style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
