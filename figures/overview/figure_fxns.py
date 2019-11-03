@@ -35,31 +35,6 @@ def save_figure(filename, fmt, dpi):
         divisions += 1
     print('   (size: {}{})'.format(int(size_in_bytes), size_extensions[divisions]))
 
-    #apply compression, if it makes sense.
-    #if fmt == 'tiff':
-    #    print ' attempting lzw compression for tiff'
-    #    image = PIL.Image.open(filepath)
-    #    image.save(filepath, format=fmt, dpi=(dpi, dpi), compression="tiff_lzw")
-    #
-    #    size_in_bytes = os.path.getsize(filepath)
-    #    divisions=0
-    #    while size_in_bytes > 1024 and divisions < 3:
-    #        size_in_bytes = size_in_bytes/1024.
-    #        divisions += 1
-    #    print '   (size: {}{})'.format(int(size_in_bytes), size_extensions[divisions])
-
-    #elif fmt == 'pdf':
-    #
-    # TODO: deal with that later.
-    #
-
-
-
-
-
-
-
-
 
 def colormap(x, **kwargs):
     #NOTE define your color mapping function here.
@@ -113,6 +88,8 @@ def draw_fig0 (fmt, variant='a',dpi=300):
 
     data = scipy.io.loadmat('Overview_Figure_15_46_47.mat')
     shortname = 'GRF'
+    linewidth=1
+    dotsize=1.5
 
     bodyparts = []
     for f in ['aff.', 'unaff.']:
@@ -138,7 +115,7 @@ def draw_fig0 (fmt, variant='a',dpi=300):
             values = inputs[i]
             #markersize < 1 transforms dots to circles. stupid.
             plotcolor = 'blue'
-            ax.plot(values, color=plotcolor, linestyle='-', linewidth = 0.3)
+            ax.plot(values, color=plotcolor, linestyle='-', linewidth=linewidth)
 
         ax.set_ylim([-maxamp, maxamp])
         ax.set_yticks([-maxamp, 0, maxamp])
@@ -178,7 +155,7 @@ def draw_fig0 (fmt, variant='a',dpi=300):
             ax.scatter(x=x,
                         y=rel,
                         c=rel_colors[:,j,:],
-                        s=0.5,
+                        s=dotsize,
                         marker = '.',
                         edgecolor='none')
 
@@ -224,24 +201,31 @@ def draw_fig0 (fmt, variant='a',dpi=300):
             ax.scatter(x=x,
                        y=inp,
                        c=rel_colors[:,j,:],
-                       s=0.5,
+                       s=dotsize,
                        marker = '.',
                        edgecolor='none')
 
         #maxamp *= 1.1
+
         ax.set_ylim([-maxamp, maxamp])
+        ax2 = ax.twinx()
+
         ax.yaxis.tick_right()
         ax.set_yticks([0]) #show single vertical grid line thresholding zero
         ax.set_yticklabels([]) #deactivate tick label texts (no info gained from this)
+
         ax.set_xticks([50.5 + 101*ii for ii in range(6)],minor=True)
         ax.tick_params(axis='x', which='minor', length=0)
         ax.set_xticklabels(bodyparts, minor=True, fontsize=6)
         ax.set_xticks(xticks, minor=False)
         ax.set_xticklabels(xticks, minor=False, fontsize=7)
-        ax.yaxis.tick_right()
         ax.set_ylabel('Relevance'.format(shortname),fontsize=8, color=plotcolor)
         ax.grid(True, linewidth=0.5, axis='x')
         ax.set_xlim(xlim)
+
+        ax2.set_yticks([], minor=False)
+        ax2.set_ylabel('on Input'.format(shortname),fontsize=8, color=plotcolor)
+        ax.set_ylabel('Relevance'.format(shortname),fontsize=8, color=plotcolor)
         #ax.set_title(dataname)
         plt.subplots_adjust(bottom=0.24,top=0.95, left=0.04, right=0.94)
 
