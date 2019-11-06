@@ -121,12 +121,12 @@ def draw_fig0 (fmt, variant='a',dpi=300):
         ax.set_yticks([-maxamp, 0, maxamp])
         ticklabs = [str(s) for s in[-maxamp, 0, maxamp]]
         ticklabs = [' '*(2-len(s)) + s for s in ticklabs]
-        ax.set_yticklabels(ticklabs)
+        ax.set_yticklabels(ticklabs, fontsize=8)
         ax.set_xticks([50.5 + 101*ii for ii in range(6)],minor=True)
         ax.tick_params(axis='x', which='minor', length=0)
-        ax.set_xticklabels(bodyparts, minor=True, fontsize=6)
+        ax.set_xticklabels(bodyparts, minor=True, fontsize=4)
         ax.set_xticks(xticks, minor=False)
-        ax.set_xticklabels(xticks, minor=False, fontsize=7)
+        ax.set_xticklabels(xticks, minor=False, fontsize=5)
         ax.yaxis.tick_right()
         ax.set_ylabel('Input'.format(shortname),fontsize=8, color=plotcolor)
         ax.grid(True, linewidth=0.5, axis='x')
@@ -167,9 +167,9 @@ def draw_fig0 (fmt, variant='a',dpi=300):
         ax.set_yticklabels([]) #deactivate tick label texts (no info gained from this)
         ax.set_xticks([50.5 + 101*ii for ii in range(6)],minor=True)
         ax.tick_params(axis='x', which='minor', length=0)
-        ax.set_xticklabels(bodyparts, minor=True, fontsize=6)
+        ax.set_xticklabels(bodyparts, minor=True, fontsize=4)
         ax.set_xticks(xticks, minor=False)
-        ax.set_xticklabels(xticks, minor=False, fontsize=7)
+        ax.set_xticklabels(xticks, minor=False, fontsize=5)
         ax.yaxis.tick_right()
         ax.set_ylabel('Relevance'.format(shortname),fontsize=8, color=plotcolor)
         ax.grid(True, linewidth=0.5, axis='x')
@@ -218,14 +218,14 @@ def draw_fig0 (fmt, variant='a',dpi=300):
         #ax.set_xticks([],minor=True)
         ax.tick_params(axis='x', which='minor', length=0)
 
-        #ax.set_xticklabels(bodyparts, minor=True, fontsize=6)
-        ax.set_xticklabels([], minor=True, fontsize=6)
+        ax.set_xticklabels(bodyparts, minor=True, fontsize=4)
+        #ax.set_xticklabels([], minor=True, fontsize=6)
 
         ax.set_xticks(xticks, minor=False)
         #ax.set_xticks([], minor=False)
-        #ax.set_xticklabels(xticks, minor=False, fontsize=7)
-        ax.set_xticklabels([], minor=False, fontsize=7)
-        ax.tick_params(axis='x', which='major', length=0)
+        ax.set_xticklabels(xticks, minor=False, fontsize=5)
+        #ax.set_xticklabels([], minor=False, fontsize=7)
+        #ax.tick_params(axis='x', which='major', length=0)
 
         ax.set_ylabel('Relevance'.format(shortname),fontsize=8, color=plotcolor)
         ax.grid(True, linewidth=0.5, axis='x')
@@ -233,7 +233,7 @@ def draw_fig0 (fmt, variant='a',dpi=300):
 
         #ax2.set_yticks([], minor=False)
         #ax2.set_ylabel('on Input'.format(shortname),fontsize=8, color=plotcolor)
-        ax.set_ylabel('on Input'.format(shortname),fontsize=8, color=plotcolor)
+        #ax.set_ylabel('Releva'.format(shortname),fontsize=8, color=plotcolor)
         #ax.set_title(dataname)
         plt.subplots_adjust(bottom=0.24,top=0.95, left=0.04, right=0.94)
 
