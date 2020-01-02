@@ -1,4 +1,4 @@
-# On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence *
+# On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence
 
 ![overview figure](./figures/overview/overview_46.png)
 
@@ -21,6 +21,7 @@ This repository contains the python code for training and evaluation of models a
 }
 ```
 
+## Code, Data and Reproducibility
 
 Folder `figures` contains code and data for (generating) the overview figure shown in the paper.
 
@@ -47,7 +48,7 @@ Training- and evalation scripts for fully reproducing the data splits, models an
 provided with with files `python/gait_experiments_batch*.py`.
 The folder `sge` contains files `*.args`, presenting the mentioned training-evaluation runs as (probably more) handy command line parameters, one per line, either to be called directly as
 ```
-python gait_experiments ${ARGS_LINE}
+python gait_experiments.py ${ARGS_LINE}
 ```
 or to be submitted to a SUN Grid Engine with
 ```
