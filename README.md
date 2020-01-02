@@ -1,28 +1,30 @@
-# Explaining the Unique Nature of Individual Gait Patterns with Deep Learning, *NOW WITH INJURED PEOPLE!*
-**This currently very WIP repo's initial commit is a duplicate of  [https://github.com/sebastian-lapuschkin/interpretable-deep-gait](https://github.com/sebastian-lapuschkin/interpretable-deep-gait), commit  [e5fc853](https://github.com/sebastian-lapuschkin/interpretable-deep-gait/commit/e5fc8536779f6a86e348ea89c6b7b65db68f91bd)**
+# On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence *
 
-![overview figure](./figures/overview.png)
+![overview figure](./figures/overview/overview_46.png)
 
 This repository contains the python code for training and evaluation of models as presented in
-[Explaining the unique nature of individual gait patterns with deep learning](https://doi.org/10.1038/s41598-019-38748-8)
+[On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence](https://arxiv.org/abs/1912.07737)
 ```
-@article{horst2019explaining,
-  author = {Horst, Fabian and Lapuschkin, Sebastian and Samek, Wojciech and M{\"u}ller, Klaus-Robert and Sch{\"o}llhorn, Wolfgang I.},
-  title = {Explaining the Unique Nature of Individual Gait Patterns with Deep Learning},
-  journal = {Scientific Reports},
-  publisher = {Nature Publishing Group},
-  year = {2019},
-  number = {9},
-  pages = {2391},
-  doi = {10.1038/s41598-019-38748-8},
-  url = {https://doi.org/10.1038/s41598-019-38748-8}
+@article{horst2019understanding,
+  title={On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence},
+  author={Horst, Fabian and
+          Slijepcevic, Djordje and
+          Lapuschkin, Sebastian and
+          Raberger, Anna-Maria and
+          Zeppelzauer, Matthias and
+          Samek, Wojciech and
+          Breiteneder, Christian and
+          Sch{\"o}llhorn, Wolfgang I
+          and Horsak, Brian},
+  journal={arXiv preprint arXiv:1912.07737},
+  year={2019}
 }
 ```
 
 
-Folder `figures` contains code and data for (generating) the figures shown in the paper.
+Folder `figures` contains code and data for (generating) the overview figure shown in the paper.
 
-Folder `python` contains code for model training and evaluation, based on python2, as a derivation of the python sub-package of the [LRP Toolbox (version 1.2.0)](https://github.com/sebastian-lapuschkin). Should you use or extend this implementation please consider citing the toolbox, as well as our paper mentioned above.
+Folder `python` contains code for model training and evaluation, based on python3 and the python sub-package of the [LRP Toolbox (version 1.3.0rc2)](https://github.com/sebastian-lapuschkin). Should you use or extend this implementation please consider citing the toolbox, as well as our paper mentioned above.
 ```
 @article{lapuschkin2016toolbox,
     author  = {Lapuschkin, Sebastian and Binder, Alexander and Montavon, Gr{\'e}goire and M\"uller, Klaus-Robert and Samek, Wojciech},
@@ -36,23 +38,17 @@ Folder `python` contains code for model training and evaluation, based on python
 }
 ```
 
-The recorded gait data used in the paper is available from [the Mendeley Data Repository](http://dx.doi.org/10.17632/svx74xcrjr.1), or in compact vector format in the file `python/Gait_GRF_JA_Label.mat`, which is part of this repository.
-When using or refering to that data, please cite
+All recorded gait data used in the paper is available in folder `python/data`.
+Training- and evalation scripts for fully reproducing the data splits, models and prediction explanations are
+provided with with files `python/gait_experiments_batch*.py`.
+The folder `sge` contains files `*.args`, presenting the mentioned training-evaluation runs as (probably more) handy command line parameters, one per line, either to be called directly as
 ```
-@misc{horst2018public,
-	author = {Horst, Fabian and Lapuschkin, Sebastian and Samek, Wojciech and M\"uller, Klaus-Robert and Sch\"ollhorn, Wolfgang I},
-	title = {A public dataset of overground walking kinetics and full-body kinematics in healthy individuals},
-	year = {2018},
-	howpublished = {Mendeley Data Repository},
-	note = {\url{http://dx.doi.org/10.17632/svx74xcrjr.1}}
-}
+python gait_experiments ${ARGS_LINE}
 ```
+or to be submitted to a SUN Grid Engine with
+```
+python sge_job_simple.py your_file_of_choice.args
+```
+Some paths and variables need to be adjusted.
 
-
-Files describing the training, validation and test splits, the trained models on different feature sets (in part not discussed in the paper) and target labels (in part not discussed in the paper), as well as the model outputs, scores and analyses obtained via LRP and perturbation analysis can be downloaded from the following locations, grouped by model type:
-
-+ [linear.tar.gz (61G)](https://datacloud.hhi.fraunhofer.de/nextcloud/s/kcXRTa3QAKFHbyb) 
-+ [2-layer-mlp.tar.gz (58G)](https://datacloud.hhi.fraunhofer.de/nextcloud/s/W6ekYr2w49PHmA7) 
-+ [3-layer-mlp.tar.gz (59G)](https://datacloud.hhi.fraunhofer.de/nextcloud/s/9eg4x3L3YTw75si) 
-+ [cnns.tar.gz (45G)](https://datacloud.hhi.fraunhofer.de/nextcloud/s/oRnCfqEjzMRRPgZ) 
 
