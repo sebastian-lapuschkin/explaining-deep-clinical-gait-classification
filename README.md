@@ -28,7 +28,11 @@ Folder `figures` contains code and data for (generating) the overview figure sho
 Folder `python` contains code for model training and evaluation, based on python3 and the python sub-package of the [LRP Toolbox (version 1.3.0rc2)](https://github.com/sebastian-lapuschkin). Should you use or extend this implementation please consider citing the toolbox, as well as our paper mentioned above.
 ```
 @article{lapuschkin2016toolbox,
-    author  = {Lapuschkin, Sebastian and Binder, Alexander and Montavon, Gr{\'e}goire and M\"uller, Klaus-Robert and Samek, Wojciech},
+    author  = {Lapuschkin, Sebastian and
+               Binder, Alexander and
+               Montavon, Gr{\'e}goire and
+               M\"uller, Klaus-Robert and
+               Samek, Wojciech},
     title   = {The LRP Toolbox for Artificial Neural Networks},
     journal = {Journal of Machine Learning Research},
     year    = {2016},
