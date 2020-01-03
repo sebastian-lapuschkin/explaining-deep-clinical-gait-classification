@@ -48,8 +48,8 @@ Option A only considers CPU hardware, while option B enables GPU support
 for neural network training and evaluation. Comment/uncomment the lines appropriately.
 
 All recorded gait data used in the paper is available in folder `python/data`.
-Training- and evalation scripts for fully reproducing the data splits, models and prediction explanations are
-provided with with files `python/gait_experiments_batch*.py`.
+Training- and evaluation scripts for fully reproducing the data splits, models and prediction explanations are
+provided with files `python/gait_experiments_batch*.py`.
 The folder `sge` contains files `*.args`, presenting the mentioned training-evaluation runs as (probably more) handy command line parameters, one per line, either to be called directly as
 ```
 python gait_experiments.py ${ARGS_LINE}
