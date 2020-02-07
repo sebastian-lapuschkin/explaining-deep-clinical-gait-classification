@@ -3,9 +3,8 @@
 @author: Sebastian Lapuschkin
 @maintainer: Sebastian Lapuschkin
 @contact: sebastian.lapuschkin@hhi.fraunhofer.de, wojciech.samek@hhi.fraunhofer.de
-@date: 08.09.2017
 @version: 1.0
-@copyright: Copyright (c)  2015-2017, Sebastian Lapuschkin, Alexander Binder, Gregoire Montavon, Klaus-Robert Mueller, Wojciech Samek
+@copyright: Copyright (c)  2019, Sebastian Lapuschkin
 @license : BSD-2-Clause
 '''
 
@@ -81,6 +80,8 @@ Y_Subject_trimmed = Y_Subject_trimmed[Permutation, ...]
 #specify which architectures should be processed. caution: selecting ALL models at once might exceed GPU memory.
 #cupy apparently does not support mark-and-sweep garbage collection
 #I recommend executing one-model-at-a-time. Do you need a command line argument parser for that?
+#Yes, I need an argument parser to conveniently handle that stuff.
+#below lines in comment are deprecated. just ignore them.
 #architectures = []
 #architectures += [SvmLinearL2C1e0, SvmLinearL2C1em1, SvmLinearL2C1ep1]
 #architectures += [MlpLinear, Mlp2Layer64Unit, Mlp2Layer128Unit, Mlp2Layer256Unit, Mlp2Layer512Unit, Mlp2Layer768Unit]
@@ -110,7 +111,7 @@ elif isinstance(training_regime, str):
     #try to get class from string name
 
 #register and then select available features
-#TODO: REFACTOR INTO A DATA LOADING CLASS
+#TODO: REFACTOR INTO A DATA LOADING CLASS once there is more than one valid feature type
 X, X_channel_labels = {'GRF_AV': (X_GRF_AV, Label_GRF_AV)}[ARGS.data_name]
 
 #register and then select available targets
@@ -130,10 +131,10 @@ train_test_cycle.run_train_test_cycle(
         data_name=ARGS.data_name,
         target_name=ARGS.target_name,
         save_data_in_output_dir=ARGS.save_data,
-        training_programme=training_regime, #model training behavio can be exchanged (for NNs), eg by using NeuralNetworkTrainingQuickTest instead of None. define new behaviors in mode.training.py!
+        training_programme=training_regime, # model training behavio can be exchanged (for NNs), eg by using NeuralNetworkTrainingQuickTest instead of None. define new behaviors in model.training.py!
         do_this_if_model_exists=ARGS.model_exists,
         force_device_for_training=ARGS.force_training_device,
-        force_device_for_evaluation=ARGS.force_evaluation_device#computing heatmaps on gpu is always worth it for any model. requires a gpu, obviously
+        force_device_for_evaluation=ARGS.force_evaluation_device # computing heatmaps on gpu is always worth it for any model. requires a gpu, obviously
 )
 eval_score_logs.run(ARGS.output_dir)
 
