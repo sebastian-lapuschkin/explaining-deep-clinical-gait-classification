@@ -93,12 +93,14 @@ def draw_fig0 (fmt, variant='a',dpi=300):
 
     bodyparts = []
     for f in ['aff.', 'unaff.']:
-        for xyz in ['F_{ML}', 'F_{AP}', 'F_{V}']:
+        #for xyz in ['F_{ML}', 'F_{AP}', 'F_{V}']:
+        for xyz in ['GRF_{ML}', 'GRF_{AP}', 'GRF_{V}']:
             #bodyparts.append('{} foot {}'.format(f, xyz))
             bodyparts.append('${}~{}$'.format(f, xyz))
 
     #subject specific plots
-    for subject in [15, 46, 47]:
+   #for subject in [15, 46, 47]:
+    for subject in [46]:
         inputs = data['Feature_{}'.format(subject)]     # N x 606
         relevance = data['Rpred_{}'.format(subject)]    # N x 606
 
