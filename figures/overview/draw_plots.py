@@ -64,7 +64,7 @@ if __name__ == "__main__":
         if not isinstance(i,int):
             print('parameter figure must be an int or a list of ints but contains/was:', i, 'of type', type(i))
             exit(-1)
-    if figureformat not in ['eps', 'tiff', 'jpg', 'pdf', 'png']:
+    if figureformat not in ['eps', 'tiff', 'jpg', 'pdf', 'png', 'svg']:
         print('figure format not within acceptable parameters')
         exit(-1)
 
