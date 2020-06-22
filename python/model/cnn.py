@@ -66,9 +66,9 @@ class Convolution1DArchitectureBase(ModelArchitecture):
         """
 
         # convert 2d data to 1d data then add a 1-dim spatial axis and a 1-dim channel axis to training inputs
-        data = (self.input_shape_processor.forward(x_train)[..., None, None],
-                self.input_shape_processor.forward(x_val)[..., None, None],
-                self.input_shape_processor.forward(x_test)[..., None, None],
+        data = (self.input_shape_processor.forward(numpy.transpose(x_train, [0,2,1]))[..., None, None],
+                self.input_shape_processor.forward(numpy.transpose(x_val,   [0,2,1]))[..., None, None],
+                self.input_shape_processor.forward(numpy.transpose(x_test,  [0,2,1]))[..., None, None],
                 y_train,
                 y_val,
                 y_test)
@@ -86,7 +86,7 @@ class Convolution1DArchitectureBase(ModelArchitecture):
     def postprocess_relevance(self, *args):
         relevance = helpers.arrays_to_numpy(*args)
         #select previously added dummy axis explicitly for removal. then reshape to original signal again
-        return tuple([self.input_shape_processor.backward(r[..., 0, 0]) for r in relevance])
+        return tuple([numpy.transpose(self.input_shape_processor.backward(r[..., 0, 0]), [0,2,1]) for r in relevance])
 
 
     def assert_shapes(self, x_shape, y_shape):

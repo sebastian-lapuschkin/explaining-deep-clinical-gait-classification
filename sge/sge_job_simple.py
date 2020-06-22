@@ -14,7 +14,7 @@ import re
 import urllib.parse
 
 MEM = '20G'
-THREADS = 10
+THREADS = 20
 CONDA = 'conda'
 ENV = 'gait'
 HERE = os.getcwd()
