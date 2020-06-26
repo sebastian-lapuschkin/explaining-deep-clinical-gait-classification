@@ -1,0 +1,5 @@
+-d ./data/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_.mat -o ./output-rep-1/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ -a Cnn1DC8
+-d ./data/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_.mat -o ./output-rep-2/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ -a Cnn1DC8
+-d ./data/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_.mat -o ./output-rep-3/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ -a Cnn1DC8
+-d ./data/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_.mat -o ./output-rep-4/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ -a Cnn1DC8
+-d ./data/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_.mat -o ./output-rep-5/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ -a Cnn1DC8
