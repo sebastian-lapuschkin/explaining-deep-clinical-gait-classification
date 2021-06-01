@@ -1,6 +1,6 @@
 # Explaining Machine Learning Models for Clinical Gait Analysis
 
-![overview figure](./figures/overview/overview_46.png)
+![overview figure](./figures/overview/overview_46_7.png)
 
 This repository contains the python code for training and evaluation of models as presented in
 [Explaining Machine Learning Models for Clinical Gait Analysis](https://arxiv.org/abs/1912.07737)
