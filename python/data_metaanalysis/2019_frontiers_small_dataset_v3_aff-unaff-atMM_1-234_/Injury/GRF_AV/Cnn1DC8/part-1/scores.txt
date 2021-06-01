@@ -1,0 +1,6 @@
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-1
+test accuracy : 0.8952380952380953
+test loss (l1): 0.30471070722047666
+train-evaluation-sequence done after 30.068989753723145s
+

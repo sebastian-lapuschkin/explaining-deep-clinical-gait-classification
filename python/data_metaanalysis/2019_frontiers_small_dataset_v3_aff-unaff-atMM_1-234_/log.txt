@@ -1,0 +1,486 @@
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-0
+test accuracy : 0.8857142857142857
+test loss (l1): 1.6924189370898644
+train-evaluation-sequence done after 0.46410584449768066s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-1
+test accuracy : 0.8952380952380953
+test loss (l1): 1.3981964123612063
+train-evaluation-sequence done after 0.27207446098327637s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-2
+test accuracy : 0.8947368421052632
+test loss (l1): 1.8472134138787428
+train-evaluation-sequence done after 0.2870643138885498s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-3
+test accuracy : 0.9578947368421052
+test loss (l1): 1.4497323722816837
+train-evaluation-sequence done after 0.28056907653808594s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-4
+test accuracy : 0.8736842105263158
+test loss (l1): 1.6320342829507193
+train-evaluation-sequence done after 0.28606486320495605s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-5
+test accuracy : 0.9368421052631579
+test loss (l1): 1.770989115282553
+train-evaluation-sequence done after 0.28806519508361816s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-6
+test accuracy : 0.8842105263157894
+test loss (l1): 1.7148683550104065
+train-evaluation-sequence done after 0.2820756435394287s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-7
+test accuracy : 0.8947368421052632
+test loss (l1): 1.683185967065784
+train-evaluation-sequence done after 0.36208176612854004s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-8
+test accuracy : 0.8210526315789474
+test loss (l1): 1.6499974141652953
+train-evaluation-sequence done after 0.2620711326599121s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-9
+test accuracy : 0.7684210526315789
+test loss (l1): 1.8847870480281046
+train-evaluation-sequence done after 0.2750742435455322s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-0
+test accuracy : 0.8952380952380953
+test loss (l1): 0.5679691527294095
+train-evaluation-sequence done after 12.150906324386597s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-1
+test accuracy : 0.8095238095238095
+test loss (l1): 0.6546905755584573
+train-evaluation-sequence done after 11.935868501663208s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-2
+test accuracy : 0.8631578947368421
+test loss (l1): 0.46480142650443923
+train-evaluation-sequence done after 12.186929941177368s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-3
+test accuracy : 0.968421052631579
+test loss (l1): 0.4478587271539182
+train-evaluation-sequence done after 13.7473783493042s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-4
+test accuracy : 0.8526315789473684
+test loss (l1): 0.5481310693323788
+train-evaluation-sequence done after 21.326446294784546s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-5
+test accuracy : 0.8736842105263158
+test loss (l1): 0.4761120143794603
+train-evaluation-sequence done after 21.855451822280884s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-6
+test accuracy : 0.8947368421052632
+test loss (l1): 0.46549450276024884
+train-evaluation-sequence done after 27.77156639099121s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-7
+test accuracy : 0.8421052631578947
+test loss (l1): 0.5275717489673931
+train-evaluation-sequence done after 32.79853582382202s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-8
+test accuracy : 0.8736842105263158
+test loss (l1): 0.5322623591609682
+train-evaluation-sequence done after 32.96304774284363s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-9
+test accuracy : 0.7368421052631579
+test loss (l1): 0.70343708581192
+train-evaluation-sequence done after 44.7225878238678s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-0
+test accuracy : 0.8952380952380953
+test loss (l1): 0.2708119593814422
+train-evaluation-sequence done after 1016.8285987377167s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-1
+test accuracy : 0.8952380952380953
+test loss (l1): 0.33912847492759535
+train-evaluation-sequence done after 4660.277875900269s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-2
+test accuracy : 0.8631578947368421
+test loss (l1): 0.270596534763071
+train-evaluation-sequence done after 120.17895102500916s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-3
+test accuracy : 0.9578947368421052
+test loss (l1): 0.18310774184751713
+train-evaluation-sequence done after 119.36469984054565s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-4
+test accuracy : 0.8736842105263158
+test loss (l1): 0.31778216828473804
+train-evaluation-sequence done after 119.09418296813965s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-5
+test accuracy : 0.9368421052631579
+test loss (l1): 0.23459491515677416
+train-evaluation-sequence done after 118.55071020126343s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-6
+test accuracy : 0.9052631578947369
+test loss (l1): 0.2726615086973681
+train-evaluation-sequence done after 118.52463459968567s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-7
+test accuracy : 0.8421052631578947
+test loss (l1): 0.3188739633771811
+train-evaluation-sequence done after 121.0863025188446s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-8
+test accuracy : 0.8421052631578947
+test loss (l1): 0.34154610621771647
+train-evaluation-sequence done after 120.6236457824707s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-9
+test accuracy : 0.7473684210526316
+test loss (l1): 0.5215388150752258
+train-evaluation-sequence done after 119.45129251480103s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-2
+test accuracy : 0.8631578947368421
+test loss (l1): 0.26382802346829964
+train-evaluation-sequence done after 6770.165078401566s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-0
+test accuracy : 0.8476190476190476
+test loss (l1): 0.3571899463392127
+train-evaluation-sequence done after 38055.0369720459s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-1
+test accuracy : 0.8952380952380953
+test loss (l1): 0.30471070722047666
+train-evaluation-sequence done after 11027.326489210129s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-2
+test accuracy : 0.8736842105263158
+test loss (l1): 0.2585270461752919
+train-evaluation-sequence done after 10642.018399238586s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-3
+test accuracy : 0.9263157894736842
+test loss (l1): 0.2269898940725519
+train-evaluation-sequence done after 10663.511412143707s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-4
+test accuracy : 0.8315789473684211
+test loss (l1): 0.36205009658286424
+train-evaluation-sequence done after 10669.75294661522s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-5
+test accuracy : 0.9368421052631579
+test loss (l1): 0.23249988180642878
+train-evaluation-sequence done after 10672.237437725067s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-6
+test accuracy : 0.8842105263157894
+test loss (l1): 0.27046624008135794
+train-evaluation-sequence done after 10678.650342464447s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-7
+test accuracy : 0.8842105263157894
+test loss (l1): 0.3077633762864307
+train-evaluation-sequence done after 10676.310508489609s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-8
+test accuracy : 0.7894736842105263
+test loss (l1): 0.3881455989847123
+train-evaluation-sequence done after 10676.590775728226s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-9
+test accuracy : 0.7368421052631579
+test loss (l1): 0.5386118104297363
+train-evaluation-sequence done after 10610.598388671875s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-0
+test accuracy : 0.8857142857142857
+test loss (l1): 1.6924189370898644
+train-evaluation-sequence done after 0.05001044273376465s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-1
+test accuracy : 0.8952380952380953
+test loss (l1): 1.3981964123612063
+train-evaluation-sequence done after 0.0490114688873291s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-2
+test accuracy : 0.8947368421052632
+test loss (l1): 1.8472134138787428
+train-evaluation-sequence done after 0.042009830474853516s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-3
+test accuracy : 0.9578947368421052
+test loss (l1): 1.4497323722816837
+train-evaluation-sequence done after 0.051011085510253906s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-4
+test accuracy : 0.8736842105263158
+test loss (l1): 1.6320342829507193
+train-evaluation-sequence done after 0.04601097106933594s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-5
+test accuracy : 0.9368421052631579
+test loss (l1): 1.770989115282553
+train-evaluation-sequence done after 0.04200935363769531s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-6
+test accuracy : 0.8842105263157894
+test loss (l1): 1.7148683550104065
+train-evaluation-sequence done after 0.04400968551635742s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-7
+test accuracy : 0.8947368421052632
+test loss (l1): 1.683185967065784
+train-evaluation-sequence done after 0.04300975799560547s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-8
+test accuracy : 0.8210526315789474
+test loss (l1): 1.6499974141652953
+train-evaluation-sequence done after 0.04201006889343262s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV SvmLinearL2C1em1 part-9
+test accuracy : 0.7684210526315789
+test loss (l1): 1.8847870480281046
+train-evaluation-sequence done after 0.034008026123046875s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-0
+test accuracy : 0.8952380952380953
+test loss (l1): 0.5679691527294095
+train-evaluation-sequence done after 0.058013200759887695s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-1
+test accuracy : 0.8095238095238095
+test loss (l1): 0.6546905755584573
+train-evaluation-sequence done after 0.03500819206237793s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-2
+test accuracy : 0.8631578947368421
+test loss (l1): 0.46480142650443923
+train-evaluation-sequence done after 0.03300762176513672s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-3
+test accuracy : 0.968421052631579
+test loss (l1): 0.4478587271539182
+train-evaluation-sequence done after 0.042009592056274414s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-4
+test accuracy : 0.8526315789473684
+test loss (l1): 0.5481310693323788
+train-evaluation-sequence done after 0.04301023483276367s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-5
+test accuracy : 0.8736842105263158
+test loss (l1): 0.4761120143794603
+train-evaluation-sequence done after 0.042009592056274414s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-6
+test accuracy : 0.8947368421052632
+test loss (l1): 0.46549450276024884
+train-evaluation-sequence done after 0.044010162353515625s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-7
+test accuracy : 0.8421052631578947
+test loss (l1): 0.5275717489673931
+train-evaluation-sequence done after 0.04501008987426758s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-8
+test accuracy : 0.8736842105263158
+test loss (l1): 0.5322623591609682
+train-evaluation-sequence done after 0.05302095413208008s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV MlpLinear part-9
+test accuracy : 0.7368421052631579
+test loss (l1): 0.70343708581192
+train-evaluation-sequence done after 0.042009592056274414s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-0
+test accuracy : 0.8952380952380953
+test loss (l1): 0.2708119593814422
+train-evaluation-sequence done after 5.281242370605469s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-1
+test accuracy : 0.8952380952380953
+test loss (l1): 0.33912847492759535
+train-evaluation-sequence done after 4.491082668304443s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-2
+test accuracy : 0.8631578947368421
+test loss (l1): 0.26382802346829964
+train-evaluation-sequence done after 4.563062906265259s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-3
+test accuracy : 0.9578947368421052
+test loss (l1): 0.18310774184751713
+train-evaluation-sequence done after 5.9209370613098145s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-4
+test accuracy : 0.8736842105263158
+test loss (l1): 0.31778216828473804
+train-evaluation-sequence done after 4.616131544113159s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-5
+test accuracy : 0.9368421052631579
+test loss (l1): 0.23459491515677416
+train-evaluation-sequence done after 5.9794182777404785s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-6
+test accuracy : 0.9052631578947369
+test loss (l1): 0.2726615086973681
+train-evaluation-sequence done after 6.558775186538696s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-7
+test accuracy : 0.8421052631578947
+test loss (l1): 0.3188739633771811
+train-evaluation-sequence done after 5.641341924667358s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-8
+test accuracy : 0.8421052631578947
+test loss (l1): 0.34154610621771647
+train-evaluation-sequence done after 4.989145517349243s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-9
+test accuracy : 0.7473684210526316
+test loss (l1): 0.5215388150752258
+train-evaluation-sequence done after 5.706329107284546s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-0
+test accuracy : 0.8476190476190476
+test loss (l1): 0.3571899463392127
+train-evaluation-sequence done after 30.485133409500122s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-1
+test accuracy : 0.8952380952380953
+test loss (l1): 0.30471070722047666
+train-evaluation-sequence done after 30.068989753723145s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-2
+test accuracy : 0.8736842105263158
+test loss (l1): 0.2585270461752919
+train-evaluation-sequence done after 27.144174575805664s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-3
+test accuracy : 0.9263157894736842
+test loss (l1): 0.2269898940725519
+train-evaluation-sequence done after 28.182634353637695s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-4
+test accuracy : 0.8315789473684211
+test loss (l1): 0.36205009658286424
+train-evaluation-sequence done after 27.836214780807495s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-5
+test accuracy : 0.9368421052631579
+test loss (l1): 0.23249988180642878
+train-evaluation-sequence done after 27.963603734970093s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-6
+test accuracy : 0.8842105263157894
+test loss (l1): 0.27046624008135794
+train-evaluation-sequence done after 27.827558517456055s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-7
+test accuracy : 0.8842105263157894
+test loss (l1): 0.3077633762864307
+train-evaluation-sequence done after 27.875303745269775s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-8
+test accuracy : 0.7894736842105263
+test loss (l1): 0.3881455989847123
+train-evaluation-sequence done after 27.474091291427612s
+
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Cnn1DC8 part-9
+test accuracy : 0.7368421052631579
+test loss (l1): 0.5386118104297363
+train-evaluation-sequence done after 27.405513048171997s
+

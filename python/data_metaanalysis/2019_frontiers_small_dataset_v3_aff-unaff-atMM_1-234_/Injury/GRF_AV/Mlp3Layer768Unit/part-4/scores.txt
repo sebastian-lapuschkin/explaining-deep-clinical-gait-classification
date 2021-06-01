@@ -1,0 +1,6 @@
+
+. output atMM-0-1 2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_ Injury GRF_AV Mlp3Layer768Unit part-4
+test accuracy : 0.8736842105263158
+test loss (l1): 0.31778216828473804
+train-evaluation-sequence done after 4.616131544113159s
+
