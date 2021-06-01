@@ -1,9 +1,9 @@
-# On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence
+# Explaining Machine Learning Models for Clinical Gait Analysis
 
 ![overview figure](./figures/overview/overview_46.png)
 
 This repository contains the python code for training and evaluation of models as presented in
-[On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence](https://arxiv.org/abs/1912.07737)
+[Explaining Machine Learning Models for Clinical Gait Analysis](https://arxiv.org/abs/1912.07737)
 ```
 @article{horst2019understanding,
   title={On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence},
