@@ -9,17 +9,13 @@
 '''
 
 # %%
-# rough draft of what to do, before we build a nice script
-print('imports')
+print('importing packages and modules, defining functions...')
 import numpy as np
 import scipy.io
-
 import time
-
 import h5py
-import numpy as np
+import argparse
 
-from corelay.base import Param
 from corelay.processor.base import Processor
 from corelay.processor.flow import Sequential, Parallel
 from corelay.processor.affinity import SparseKNN
@@ -27,24 +23,114 @@ from corelay.pipeline.spectral import SpectralClustering
 from corelay.processor.clustering import KMeans
 from corelay.processor.embedding import TSNEEmbedding, EigenDecomposition
 from corelay.io.storage import HashedHDF5
-
 import matplotlib.pyplot as plt
 
-
-# custom processors can be implemented by defining a function attribute
+# %%
+# custom processors for corelay
 class Flatten(Processor):
     def function(self, data):
         return data.reshape(data.shape[0], np.prod(data.shape[1:]))
-
 
 class Normalize(Processor):
     def function(self, data):
         data = data / data.sum(keepdims=True)
         return data
 
+# constants
+ANALYSIS_GROUPING = ['ground_truth', 'as_predicted', 'all']
+ATTRIBUTION_TYPES = ['dom', 'act']
+MODELS = ['Cnn1DC8', 'Mlp3Layer768Unit', 'MlpLinear', 'SvmLinearL2C1em1']
+FOLDS = [str(f) for f in range(10)] + ['all']
+
+# parameterizable data loader
+def load_analysis_data(model, fold, attribution_type, analysis_groups):
+    """
+        loads and prepares data. for expected input parameters, call script with --help parameter.
+        outputs a list of sets of values; each entry in the list is its own input for a SpRAy analysis.
+    """
+    assert model in MODELS, 'Invalid model argument "{}". Pick from: {}'.format(model, MODELS)
+    assert fold in FOLDS, 'Invalid model argument "{}". Pick from: {}'.format(fold, FOLDS)
+    assert attribution_type in ATTRIBUTION_TYPES, 'Invalid model argument "{}". Pick from: {}'.format(attribution_type, ATTRIBUTION_TYPES)
+    assert analysis_groups in ANALYSIS_GROUPING, 'Invalid analysis_groups argument "{}". Pick from: {}'.format(analysis_groups, ANALYSIS_GROUPING)
+
+    #load precomputed model outputs (predictions, attributions)
+    targets_health = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets.mat')
+    targets_injurytypes = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets_injurytypes.mat')
+    splits = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/splits.mat')
+
+    if fold == 'all':
+        fold = [int(f) for f in FOLDS if f != 'all']
+    else:
+        fold = [int(fold)]
+
+    split_indices = np.concatenate([splits['S'][0,f][0] for f in fold],axis=0)
+    y_pred = []; R = []
+
+    for f in fold:
+        model_outputs = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/Injury/GRF_AV/{}/part-{}/outputs.mat'.format(model, f))
+        y_pred.append(model_outputs['y_pred'])
+        R.append(model_outputs['R_pred_{}_epsilon'.format(attribution_type)])
+    y_pred = np.concatenate(y_pred, axis=0)
+    R = np.concatenate(R, axis=0)
+    R = np.reshape(R, [-1, np.prod(R.shape[1::])]) # get relevance maps into uniform and flattened shape
+
+    true_injury_sublabels = targets_injurytypes['Y'][split_indices]
+    true_health_labels = targets_health['Y'][split_indices]
+
+    if analysis_groups == 'as_predicted':
+        y = np.argmax(y_pred, axis=1) # analyze as predicted, y = ypred
+    else:
+        y = np.argmax(targets_health['Y'][split_indices], axis=1) # analyze as actual label groups stuff, y = ytrue
+
+    # split data into inputs for multiple experiments, grouped by label assignment strategy for y
+    evaluation_groups = []
+    for cls in np.unique(y):
+        evaluation_groups.append({  'cls':cls,
+                                    'y':y[y == cls],
+                                    'R':R[y == cls],
+                                    'y_injury_type':true_injury_sublabels[y == cls], # true injury sublabels
+                                    'y_health_type':true_health_labels[y == cls], #healthy or not?
+                                    })
+
+    # some debug prints
+    # for e in evaluation_groups:
+    #    print(e['cls'], e['y'].shape, e['R'].shape, e['y_injury_type'].shape, e['y_health_type'].shape)
+    return evaluation_groups
+
+
+
+# main module doing most of the things.
+def main():
+
+    print('parsing command line arguments...')
+    parser = argparse.ArgumentParser(description="Use Spectral Relevance Analysis via CoReLay to analyze patterns in the model's behavior.")
+    parser.add_argument('-rs', '--random_seed', type=str, default='0xDEADBEEF', help='seed for the numpy random generator')
+    parser.add_argument('-ag', '--analysis_groups', type=str, default='ground_truth', help='How to handle/group data for analysis. Possible inputs from: {}'.format(ANALYSIS_GROUPING))
+    parser.add_argument('-at', '--attribution_type', type=str, default='act', help='Determines the attribution scores wrt either the DOMinant prediction or the ACTual class of a sample. Possible inputs from: {}'.format(ATTRIBUTION_TYPES))
+    parser.add_argument('-m', '--model', type=str, default='Cnn1DC8', help='For which model(s precomputed attribution scores) should the analysis be performed? Possible inputs from: {}'.format(MODELS))
+    parser.add_argument('-f', '--fold', type=str, default='0', help='Which (test9 data split/fold should be analyzed? Possible inputs from: {} '.format(FOLDS))
+    ARGS = parser.parse_args()
+
+    print('setting random seed...')
+    np.random.seed(int(ARGS.random_seed,0))
+
+    print('loading and preparing data as per specification...')
+    evaluation_groups = load_analysis_data(ARGS.model, ARGS.fold, ARGS.attribution_type, ARGS.analysis_groups)
+
+    # TODO SpRAy below
+
+
+
+
+
+
 # %%
 if __name__ == '__main__':
+    main()
+    exit()
 
+
+# %%
     print('init')
     np.random.seed(0xDEADBEEF)
 
@@ -67,10 +153,9 @@ if __name__ == '__main__':
             targets_health = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets.mat')
             targets_injurytypes = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets_injurytypes.mat')
             splits = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/splits.mat')
-            #permutation = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/permutation.mat')
+
 
             true_injury_sublabels = targets_injurytypes['Y'][splits['S'][0,fold][0]]
-            # print(true_injury_sublabels)
 
 
             print('data loading (%s)' % model_output_path)
