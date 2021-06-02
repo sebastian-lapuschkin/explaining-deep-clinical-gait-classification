@@ -192,7 +192,9 @@ def main():
         ax.scatter( tsne_embedding[:,0],
                     tsne_embedding[:,1],
                     c=np.argmax(y_true_injury,axis=1),
-                    cmap=ARGS.cmap_injury) #color code injury labels TODO CHOOSABLE COLOR MAP DIFFERENT FROM CLUSTER ASSIGNMENTS
+                    cmap=ARGS.cmap_injury)
+        ax.set_xticks([])
+        ax.set_yticks([])
         ax.set_title('GT injury labels')
         #ax.set_aspect('equal')
 
@@ -209,6 +211,7 @@ def main():
                 ax.set_title('SpRAy clusters ->')
 
         plt.suptitle('Relevance Clusters; attrs: {}, model: {}, fold: {}, {} labels: group {}'.format(ARGS.attribution_type,  ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
+        plt.tight_layout() # NOTE DO OR DO NOT ?
 
 
         if os.path.isfile(ARGS.output):
