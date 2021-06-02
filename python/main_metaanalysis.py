@@ -80,8 +80,10 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
 
     if analysis_groups == 'as_predicted':
         y = np.argmax(y_pred, axis=1) # analyze as predicted, y = ypred
-    else:
+    elif analysis_groups == 'ground_truth':
         y = np.argmax(targets_health['Y'][split_indices], axis=1) # analyze as actual label groups stuff, y = ytrue
+    else: # 'all'
+        y = np.zeros((y_pred.shape[0]), dtype=int) #all classes are the same
 
     # split data into inputs for multiple experiments, grouped by label assignment strategy for y
     evaluation_groups = []
@@ -197,7 +199,7 @@ def main():
                         cmap=ARGS.cmap_clustering)
             #ax.set_title('clustered')
 
-        plt.suptitle('Relevance Clusters; model: {}, fold: {}, {}: {}'.format(ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
+        plt.suptitle('Relevance Clusters; model: {}, fold: {}, {} labels: group {}'.format(ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
 
 
         if os.path.isfile(ARGS.output):
@@ -205,7 +207,7 @@ def main():
         else:
             output_dir, args_string = args_to_stuff(ARGS)
             output_dir = '{}/{}'.format(ARGS.output,output_dir)
-            print(output_dir, args_string)
+            #print(output_dir, args_string)
 
             if not os.path.isdir(output_dir):
                 os.makedirs(output_dir)
@@ -217,8 +219,9 @@ def main():
             np.save('{}/emb-{}.npy'.format(output_dir, cls), tsne_embedding)
             np.save('{}/clust-{}.npy'.format(output_dir, cls), clusterings)
 
-        if ARGS.show:
-            plt.show()
+    if ARGS.show:
+        # show all figures
+        plt.show()
 
 
 
