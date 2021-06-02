@@ -135,7 +135,9 @@ def main():
     parser.add_argument('-s','--show', action='store_true', help='Show intermediate figures?')
     ARGS = parser.parse_args()
 
-
+    # TODO: write number of samples in figure
+    # TODO: write number of clusters in figure
+    # TODO: legend
 
     print('setting random seed...')
     np.random.seed(int(ARGS.random_seed,0))
@@ -211,7 +213,7 @@ def main():
                 ax.set_title('SpRAy clusters ->')
 
         plt.suptitle('Relevance Clusters; attrs: {}, model: {}, fold: {}, {} labels: group {}'.format(ARGS.attribution_type,  ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
-        plt.tight_layout() # NOTE DO OR DO NOT ?
+        #plt.tight_layout() # NOTE DO OR DO NOT ?
 
 
         if os.path.isfile(ARGS.output):
