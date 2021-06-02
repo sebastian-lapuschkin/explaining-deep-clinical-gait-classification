@@ -93,6 +93,7 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
                                     'R':R[y == cls],
                                     'y_injury_type':true_injury_sublabels[y == cls], # true injury sublabels
                                     'y_health_type':true_health_labels[y == cls], #healthy or not?
+                                    'split_indices':split_indices[y==cls], #which of the (original) data points?
                                     })
 
     # some debug prints
@@ -177,6 +178,9 @@ def main():
         # (i.e. clusterings here contains a tuple of the k-means outputs)
         clusterings, tsne_embedding = pipeline(R)
 
+        #center tsne-embedding for visualization
+        tsne_embedding -= np.mean(tsne_embedding, axis=0)
+
         duration = time.perf_counter() - start_time
         print('    Pipeline execution time: {:.4f} seconds with {} input samples'.format(duration, tsne_embedding.shape[0]))
 
@@ -189,7 +193,8 @@ def main():
                     tsne_embedding[:,1],
                     c=np.argmax(y_true_injury,axis=1),
                     cmap=ARGS.cmap_injury) #color code injury labels TODO CHOOSABLE COLOR MAP DIFFERENT FROM CLUSTER ASSIGNMENTS
-        ax.set_title('gt injury labels')
+        ax.set_title('GT injury labels')
+        #ax.set_aspect('equal')
 
         for i in range(1,len(clusterings)):
             ax = plt.subplot(1, len(clusterings)+1, i+1)
@@ -197,9 +202,13 @@ def main():
                         tsne_embedding[:,1],
                         c=clusterings[i],
                         cmap=ARGS.cmap_clustering)
-            #ax.set_title('clustered')
+            ax.set_xticks([])
+            ax.set_yticks([])
+            #ax.set_aspect('equal')
+            if i == 1:
+                ax.set_title('SpRAy clusters ->')
 
-        plt.suptitle('Relevance Clusters; model: {}, fold: {}, {} labels: group {}'.format(ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
+        plt.suptitle('Relevance Clusters; attrs: {}, model: {}, fold: {}, {} labels: group {}'.format(ARGS.attribution_type,  ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
 
 
         if os.path.isfile(ARGS.output):
@@ -218,6 +227,8 @@ def main():
             with open('{}/callparams.args'.format(output_dir), 'wt') as f: f.write(args_string)
             np.save('{}/emb-{}.npy'.format(output_dir, cls), tsne_embedding)
             np.save('{}/clust-{}.npy'.format(output_dir, cls), clusterings)
+            np.save('{}/idx-{}.npy'.format(output_dir, cls), e['split_indices'])
+
 
     if ARGS.show:
         # show all figures
