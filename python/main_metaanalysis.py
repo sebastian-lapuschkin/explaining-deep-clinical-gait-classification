@@ -15,6 +15,8 @@ import scipy.io
 import time
 import h5py
 import argparse
+import os
+from natsort import natsorted
 
 from corelay.processor.base import Processor
 from corelay.processor.flow import Sequential, Parallel
@@ -25,7 +27,6 @@ from corelay.processor.embedding import TSNEEmbedding, EigenDecomposition
 from corelay.io.storage import HashedHDF5
 import matplotlib.pyplot as plt
 
-# %%
 # custom processors for corelay
 class Flatten(Processor):
     def function(self, data):
@@ -98,18 +99,40 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
     return evaluation_groups
 
 
+def args_to_stuff(ARGS):
+    # reads command line arguments and creates a folder name for figures and info for reproducing the call
+    relevant_keys = ['random_seed', 'analysis_groups', 'attribution_type',
+                    'model', 'fold', 'min_clusters', 'max_clusters',
+                    'neighbors_affinity', 'cmap_injury', 'cmap_clustering']
+    relevant_keys = natsorted(relevant_keys)
+
+    foldername = '-'.join(['{}'.format(getattr(ARGS,k)) for k in relevant_keys])
+    args_string = '  '.join(['--{} {}'.format(k, getattr(ARGS,k)) for k in relevant_keys])
+    return foldername, args_string
+
 
 # main module doing most of the things.
 def main():
 
     print('parsing command line arguments...')
-    parser = argparse.ArgumentParser(description="Use Spectral Relevance Analysis via CoReLay to analyze patterns in the model's behavior.")
+    parser = argparse.ArgumentParser(   description="Use Spectral Relevance Analysis via CoReLay to analyze patterns in the model's behavior.",
+                                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-rs', '--random_seed', type=str, default='0xDEADBEEF', help='seed for the numpy random generator')
     parser.add_argument('-ag', '--analysis_groups', type=str, default='ground_truth', help='How to handle/group data for analysis. Possible inputs from: {}'.format(ANALYSIS_GROUPING))
     parser.add_argument('-at', '--attribution_type', type=str, default='act', help='Determines the attribution scores wrt either the DOMinant prediction or the ACTual class of a sample. Possible inputs from: {}'.format(ATTRIBUTION_TYPES))
     parser.add_argument('-m', '--model', type=str, default='Cnn1DC8', help='For which model(s precomputed attribution scores) should the analysis be performed? Possible inputs from: {}'.format(MODELS))
     parser.add_argument('-f', '--fold', type=str, default='0', help='Which (test9 data split/fold should be analyzed? Possible inputs from: {} '.format(FOLDS))
+    parser.add_argument('-mc','--min_clusters', type=int, default=3, help='Minimum number of clusters for cluster label assignment in the analysis.' )
+    parser.add_argument('-MC','--max_clusters', type=int, default=8, help='Maximum number of clusters for cluster label assignment in the analysis.' )
+    parser.add_argument('-na','--neighbors_affinity', type=int, default=3, help='Number of nearest neighbors to considef for affinity graph computation')
+    parser.add_argument('-neig', '--number_eigen', type=int, default=8, help='Number of eigenvalues to consider for the spectral embedding, ie, the number of eigenvectors spanning the spectral space, ie, the dimensionalty of the computed spectral embedding')
+    parser.add_argument('-cmapi','--cmap_injury', type=str, default='Set1', help='Color map for drawing the ground truth injury labels. Any valid matplotlib colormap name is can be given')
+    parser.add_argument('-cmapc','--cmap_clustering', type=str, default='Set2', help='Color map for drawing the cluster labels inferred by SpRAy. Any valid matplotlib colormap name is can be given')
+    parser.add_argument('-o', '--output', type=str, default='./output_metaanalysis', help='Output root directory for the computed results. Figures and embedding coordinates, etc, will be stored here in parameter-dependently named sub-folders')
+    parser.add_argument('-s','--show', action='store_true', help='Show intermediate figures?')
     ARGS = parser.parse_args()
+
+
 
     print('setting random seed...')
     np.random.seed(int(ARGS.random_seed,0))
@@ -117,152 +140,93 @@ def main():
     print('loading and preparing data as per specification...')
     evaluation_groups = load_analysis_data(ARGS.model, ARGS.fold, ARGS.attribution_type, ARGS.analysis_groups)
 
-    # TODO SpRAy below
+    print('Starting Spectral Relevance Analysis...')
+    for e in evaluation_groups:
+
+        cls = e['cls']
+        R = e['R']
+        y_true_injury = e['y_injury_type']
+        n_clusters = range(ARGS.min_clusters, ARGS.max_clusters+1) # +1, because range is max value exclusive
+
+        print('    process "{}" relevance for class {} ({}) as per {}'.format(ARGS.attribution_type, cls, ARGS.analysis_groups, ARGS.model))
+
+        pipeline = SpectralClustering(
+            #optional, overwrites default settings of SpectralClustering class
+            affinity  = SparseKNN(n_neighbors=ARGS.neighbors_affinity, symmetric=True),
+            embedding = EigenDecomposition(n_eigval=ARGS.number_eigen),
+            clustering=Parallel([
+                Parallel([
+                    KMeans(n_clusters=k) for k in n_clusters
+                ], broadcast=True),
+                TSNEEmbedding() #use default parameters for TSNE
+            ], broadcast=True, is_output=True)
+        )
+        # Data (ie relevance) preprocessors for above pipeline
+        pipeline.preprocessing = Sequential([
+            Normalize(),    # normnalization to compare the structure in the relevance, not the overall magnitude scaling (which depends on f(x))
+            Flatten()       # redundant.
+        ])
+
+        start_time = time.perf_counter()
+
+        # Run the pipeline
+        # Processors flagged with "is_output=True" will be accumulated in the output
+        # the output will be a tree of tuples, with the same hierachy as the pipeline
+        # (i.e. clusterings here contains a tuple of the k-means outputs)
+        clusterings, tsne_embedding = pipeline(R)
+
+        duration = time.perf_counter() - start_time
+        print('    Pipeline execution time: {:.4f} seconds with {} input samples'.format(duration, tsne_embedding.shape[0]))
+
+        # drawing figures of results
+        fig = plt.figure(figsize=(2*(len(clusterings)+1),2))
+
+        #true injury sublabel plots
+        ax = plt.subplot(1, len(clusterings)+1, 1)
+        ax.scatter( tsne_embedding[:,0],
+                    tsne_embedding[:,1],
+                    c=np.argmax(y_true_injury,axis=1),
+                    cmap=ARGS.cmap_injury) #color code injury labels TODO CHOOSABLE COLOR MAP DIFFERENT FROM CLUSTER ASSIGNMENTS
+        ax.set_title('gt injury labels')
+
+        for i in range(1,len(clusterings)):
+            ax = plt.subplot(1, len(clusterings)+1, i+1)
+            ax.scatter( tsne_embedding[:,0],
+                        tsne_embedding[:,1],
+                        c=clusterings[i],
+                        cmap=ARGS.cmap_clustering)
+            #ax.set_title('clustered')
+
+        plt.suptitle('Relevance Clusters; model: {}, fold: {}, {}: {}'.format(ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
+
+
+        if os.path.isfile(ARGS.output):
+            print('Can not save results in "{}", exists as FILE already!'.format(ARGS.output))
+        else:
+            output_dir, args_string = args_to_stuff(ARGS)
+            output_dir = '{}/{}'.format(ARGS.output,output_dir)
+            print(output_dir, args_string)
+
+            if not os.path.isdir(output_dir):
+                os.makedirs(output_dir)
+
+            print('    saving figure, args and clusterings/embedding in {}'.format(output_dir))
+            plt.savefig('{}/cls-{}.svg'.format(output_dir, cls))
+            plt.savefig('{}/cls-{}.pdf'.format(output_dir, cls))
+            with open('{}/callparams.args'.format(output_dir), 'wt') as f: f.write(args_string)
+            np.save('{}/emb-{}.npy'.format(output_dir, cls), tsne_embedding)
+            np.save('{}/clust-{}.npy'.format(output_dir, cls), clusterings)
+
+        if ARGS.show:
+            plt.show()
 
 
 
 
 
-
-# %%
+#####################
+# ENTRY POINT
+#####################
 if __name__ == '__main__':
     main()
-    exit()
 
-
-# %%
-    print('init')
-    np.random.seed(0xDEADBEEF)
-
-
-    #class_selection = 'ground_truth'
-    class_selection = 'as_predicted'
-
-    #R_to_analyze = 'R_pred_act_epsilon'
-    R_to_analyze = 'R_pred_dom_epsilon'
-
-    #some settings for data loading
-    models = ['Cnn1DC8', 'Mlp3Layer768Unit', 'MlpLinear', 'SvmLinearL2C1em1']
-    folds = [i for i in range(10)] #
-    for model in models:
-        for fold in folds:
-            print('\n'*2)
-
-            #load model outputs
-            model_output_path = './data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/Injury/GRF_AV/{}/part-{}/outputs.mat'.format(model, fold)
-            targets_health = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets.mat')
-            targets_injurytypes = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets_injurytypes.mat')
-            splits = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/splits.mat')
-
-
-            true_injury_sublabels = targets_injurytypes['Y'][splits['S'][0,fold][0]]
-
-
-            print('data loading (%s)' % model_output_path)
-            model_outputs = scipy.io.loadmat(model_output_path)
-            #print(model_outputs.keys())
-
-            if class_selection == 'as_predicted':
-                #NOTE: first attempt: analyze as predicted, y = ypred
-                y = np.argmax(model_outputs['y_pred'], axis=1)
-
-            elif class_selection  == 'ground_truth':
-                #NOTE: second attempt: analyze as actual label groups stuff, y = ytrue
-                y = np.argmax(targets_health['Y'][splits['S'][0,fold][0]], axis=1)
-
-
-
-            for cls in np.unique(y):
-                print('process {} for class {} as per {}'.format(R_to_analyze, cls, model))
-
-                # get relevance maps for predicted class (in uniform flattened shape)
-                R = model_outputs[R_to_analyze][y == cls]
-                R = np.reshape(R, [-1, np.prod(R.shape[1::])])
-
-                #get true injury state labels for that class
-                y_true_injury = true_injury_sublabels[y == cls,:]
-
-
-                ## SPRAY STUFF, ADAPTED FROM CORELAY EXAMPLES
-                fpath = 'test-cls-{}.analysis.h5'.format(cls)
-                with h5py.File(fpath, 'a') as fd:
-                    # HashedHDF5 is an io-object that stores outputs of Processors based on hashes in hdf5
-                    iobj = HashedHDF5(fd.require_group('proc_data'))
-
-                    # generate some exemplary data
-                    n_clusters = range(3, 8)
-
-                    # SpectralClustering is an Example for a pre-defined Pipeline
-                    pipeline = SpectralClustering(
-                        #affinity = SparseKNN(n_neighbors=4, symmetric=True), #optional, overwrites default
-                        affinity = SparseKNN(n_neighbors=2, symmetric=True), #optional, overwrites default
-
-                        # processors, such as EigenDecomposition, can be assigned to pre-defined tasks
-                        embedding=EigenDecomposition(n_eigval=8, io=None),
-                        # flow-based Processors, such as Parallel, can combine multiple Processors
-                        # broadcast=True copies the input as many times as there are Processors
-                        # broadcast=False instead attempts to match each input to a Processor
-                        clustering=Parallel([
-                            Parallel([
-                                KMeans(n_clusters=k, io=None) for k in n_clusters
-                            ], broadcast=True),
-                            # io-objects will be used during computation when supplied to Processors
-                            # if a corresponding output value (here identified by hashes) already exists,
-                            # the value is not computed again but instead loaded from the io object
-                            TSNEEmbedding(io=None)
-                        ], broadcast=True, is_output=True)
-                    )
-                    # Processors (and Params) can be updated by simply assigning corresponding attributes
-                    pipeline.preprocessing = Sequential([
-                        #SumChannel(),
-                        Normalize(),
-                        Flatten()
-                    ])
-
-                    start_time = time.perf_counter()
-
-                    # Processors flagged with "is_output=True" will be accumulated in the output
-                    # the output will be a tree of tuples, with the same hierachy as the pipeline
-                    # (i.e. clusterings here contains a tuple of the k-means outputs)
-                    clusterings, tsne = pipeline(R)
-
-                    # since we memoize our results in a hdf5 file, subsequent calls will not compute
-                    # the values (for the same inputs), but rather load them from the hdf5 file
-                    # try running the script multiple times
-                    duration = time.perf_counter() - start_time
-                    print(f'Pipeline execution time: {duration:.4f} seconds')
-
-
-                    #print(clusterings, tsne)
-                    #print(len(clusterings))
-
-                    fig = plt.figure(figsize=(2*(len(clusterings)+1),2))
-
-                    #true injury sublabel plots
-                    ax = plt.subplot(1, len(clusterings)+1, 1)
-                    ax.scatter(tsne[:,0], tsne[:,1],c=np.argmax(y_true_injury,axis=1))
-                    ax.set_title('gt injury labels')
-
-                    for i in range(1,len(clusterings)):
-                        ax = plt.subplot(1, len(clusterings)+1, i+1)
-                        ax.scatter(tsne[:,0], tsne[:,1],c=clusterings[i])
-                        #ax.set_title('clustered')
-
-                    plt.suptitle('xai clusters; model: {}, fold: {}, {}: {}'.format(model, fold, class_selection,  cls))
-                    #plt.savefig(fpath + '-tsne-{}.pdf'.format(plcs))
-                    print('number of samples: {}'.format(tsne.shape[0]))
-                    plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-# %%
