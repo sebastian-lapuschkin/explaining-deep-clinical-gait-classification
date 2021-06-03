@@ -18,13 +18,13 @@ import argparse
 import os
 from natsort import natsorted
 
-from corelay.processor.base import Processor
+from corelay.processor.base import Processor, Param
 from corelay.processor.flow import Sequential, Parallel
 from corelay.processor.affinity import SparseKNN
 from corelay.pipeline.spectral import SpectralClustering
 from corelay.processor.clustering import KMeans
 from corelay.processor.embedding import TSNEEmbedding, EigenDecomposition
-from corelay.io.storage import HashedHDF5
+from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
 # custom processors for corelay
@@ -36,6 +36,14 @@ class Normalize(Processor):
     def function(self, data):
         data = data / data.sum(keepdims=True)
         return data
+
+class TSNEEmbeddingWithPerplexity(TSNEEmbedding):
+    perplexity = Param(float, default=30., identifier=True)
+    def function(self, data):
+        # pylint: disable=not-a-mapping
+        tsne = TSNE(n_components=self.n_components, metric=self.metric, perplexity=self.perplexity, **self.kwargs)
+        emb = tsne.fit_transform(data)
+        return emb
 
 # constants
 ANALYSIS_GROUPING = ['ground_truth', 'as_predicted', 'all']
@@ -106,7 +114,7 @@ def args_to_stuff(ARGS):
     # reads command line arguments and creates a folder name for figures and info for reproducing the call
     relevant_keys = ['random_seed', 'analysis_groups', 'attribution_type',
                     'model', 'fold', 'min_clusters', 'max_clusters',
-                    'neighbors_affinity', 'cmap_injury', 'cmap_clustering']
+                    'neighbors_affinity', 'tsne_perplexity', 'cmap_injury', 'cmap_clustering']
     relevant_keys = natsorted(relevant_keys)
 
     foldername = '-'.join(['{}'.format(getattr(ARGS,k)) for k in relevant_keys])
@@ -129,6 +137,7 @@ def main():
     parser.add_argument('-MC','--max_clusters', type=int, default=8, help='Maximum number of clusters for cluster label assignment in the analysis.' )
     parser.add_argument('-na','--neighbors_affinity', type=int, default=3, help='Number of nearest neighbors to considef for affinity graph computation')
     parser.add_argument('-neig', '--number_eigen', type=int, default=8, help='Number of eigenvalues to consider for the spectral embedding, ie, the number of eigenvectors spanning the spectral space, ie, the dimensionalty of the computed spectral embedding')
+    parser.add_argument('-tp', '--tsne_perplexity', type=float, default=30., help='The perplexity parameter for the TSNE embedding computation. Lower means more focus on local structures, higher means more focus the global structure.')
     parser.add_argument('-cmapi','--cmap_injury', type=str, default='Set1', help='Color map for drawing the ground truth injury labels. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-cmapc','--cmap_clustering', type=str, default='Set2', help='Color map for drawing the cluster labels inferred by SpRAy. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-o', '--output', type=str, default='./output_metaanalysis', help='Output root directory for the computed results. Figures and embedding coordinates, etc, will be stored here in parameter-dependently named sub-folders')
@@ -163,7 +172,8 @@ def main():
                 Parallel([
                     KMeans(n_clusters=k) for k in n_clusters
                 ], broadcast=True),
-                TSNEEmbedding() #use default parameters for TSNE
+                #TSNEEmbedding(perplexity=10) #use default parameters for TSNE
+                TSNEEmbeddingWithPerplexity(perplexity=ARGS.tsne_perplexity)
             ], broadcast=True, is_output=True)
         )
         # Data (ie relevance) preprocessors for above pipeline
@@ -209,12 +219,12 @@ def main():
                         tsne_embedding[:,1],
                         c=clusterings[i],
                         cmap=ARGS.cmap_clustering)
-            ax.set_xlabel('k={} clusters'.format(len(np.unique(clusterings[i]))))
+            ax.set_xlabel('k={} SpRAy clusters'.format(len(np.unique(clusterings[i]))))
             ax.set_xticks([])
             ax.set_yticks([])
             #ax.set_aspect('equal')
-            if i == 0:
-                ax.set_title('SpRAy clusters ->')
+            #if i == 0:
+            #    ax.set_title('SpRAy clusters ->')
 
         plt.suptitle('Relevance Clusters; attrs: {}, model: {}, fold: {}, {} labels: group {}'.format(ARGS.attribution_type,  ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
         #plt.tight_layout() # NOTE DO OR DO NOT ?
