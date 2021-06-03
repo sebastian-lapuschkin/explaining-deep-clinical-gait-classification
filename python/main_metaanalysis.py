@@ -268,6 +268,7 @@ def main():
             np.save('{}/emb-{}.npy'.format(output_dir, cls), tsne_embedding)
             np.save('{}/clust-{}.npy'.format(output_dir, cls), clusterings)
             np.save('{}/idx-{}.npy'.format(output_dir, cls), e['split_indices'])
+            np.save('{}/adata-{}.npy'.format(output_dir, cls), R)
 
 
     if ARGS.show:
