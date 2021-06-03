@@ -211,7 +211,7 @@ def main():
                     c=np.argmax(y_true_injury,axis=1),
                     cmap=ARGS.cmap_injury)
         ax.set_ylabel('n={} samples'.format(tsne_embedding.shape[0]))
-        ax.set_xlabel('GT injury labels')
+        ax.set_xlabel('{} GT injury labels'.format(len(np.unique(np.argmax(y_true_injury,axis=1)))))
         ax.set_xticks([])
         ax.set_yticks([])
 
@@ -221,7 +221,7 @@ def main():
                     tsne_embedding[:,1],
                     c=np.argmax(y_true_subject,axis=1),
                     cmap=ARGS.cmap_subject)
-        ax.set_xlabel('GT subject labels')
+        ax.set_xlabel('{} GT subject labels'.format(len(np.unique(np.argmax(y_true_subject,axis=1)))))
         ax.set_xticks([])
         ax.set_yticks([])
 
