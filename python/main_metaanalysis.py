@@ -50,6 +50,7 @@ ANALYSIS_GROUPING = ['ground_truth', 'as_predicted', 'all']
 ATTRIBUTION_TYPES = ['dom', 'act']
 MODELS = ['Cnn1DC8', 'Mlp3Layer768Unit', 'MlpLinear', 'SvmLinearL2C1em1']
 FOLDS = [str(f) for f in range(10)] + ['all']
+#EMBEDDINGS = ['tsne', 'umap']
 
 # parameterizable data loader
 def load_analysis_data(model, fold, attribution_type, analysis_groups):
@@ -66,7 +67,9 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
     targets_health = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets.mat')
     targets_injurytypes = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets_injurytypes.mat')
     targets_subject = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/subject_labels.mat')
+    permutation = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/permutation.mat')
     splits = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/splits.mat')
+
 
     if fold == 'all':
         fold = [int(f) for f in FOLDS if f != 'all']
@@ -86,8 +89,7 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
 
     true_injury_sublabels = targets_injurytypes['Y'][split_indices]
     true_health_labels = targets_health['Y'][split_indices]
-    true_subject_labels = targets_subject['LS'][split_indices]
-
+    true_subject_labels = targets_subject['LS'][permutation['P'][0]][split_indices]
 
     if analysis_groups == 'as_predicted':
         y = np.argmax(y_pred, axis=1) # analyze as predicted, y = ypred
@@ -107,10 +109,6 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
                                     'y_subject':true_subject_labels[y==cls], #which guy or gal?
                                     'split_indices':split_indices[y==cls], #which of the (original) data points?
                                     })
-
-    # some debug prints
-    # for e in evaluation_groups:
-    #    print(e['cls'], e['y'].shape, e['R'].shape, e['y_injury_type'].shape, e['y_health_type'].shape)
     return evaluation_groups
 
 
@@ -143,7 +141,7 @@ def main():
     parser.add_argument('-neig', '--number_eigen', type=int, default=8, help='Number of eigenvalues to consider for the spectral embedding, ie, the number of eigenvectors spanning the spectral space, ie, the dimensionalty of the computed spectral embedding')
     parser.add_argument('-tp', '--tsne_perplexity', type=float, default=30., help='The perplexity parameter for the TSNE embedding computation. Lower means more focus on local structures, higher means more focus the global structure.')
     parser.add_argument('-cmapi','--cmap_injury', type=str, default='Set1', help='Color map for drawing the ground truth injury labels. Any valid matplotlib colormap name is can be given')
-    parser.add_argument('-cmaps','--cmap_subject', type=str, default='tab20', help='Color map for drawing the ground truth subject labels. Any valid matplotlib colormap name is can be given')
+    parser.add_argument('-cmaps','--cmap_subject', type=str, default='viridis', help='Color map for drawing the ground truth subject labels. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-cmapc','--cmap_clustering', type=str, default='Set2', help='Color map for drawing the cluster labels inferred by SpRAy. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-o', '--output', type=str, default='./output_metaanalysis', help='Output root directory for the computed results. Figures and embedding coordinates, etc, will be stored here in parameter-dependently named sub-folders')
     parser.add_argument('-s','--show', action='store_true', help='Show intermediate figures?')
@@ -176,7 +174,6 @@ def main():
                 Parallel([
                     KMeans(n_clusters=k) for k in n_clusters
                 ], broadcast=True),
-                #TSNEEmbedding(perplexity=10) #use default parameters for TSNE
                 TSNEEmbeddingWithPerplexity(perplexity=ARGS.tsne_perplexity)
             ], broadcast=True, is_output=True)
         )
