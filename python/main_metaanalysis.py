@@ -269,6 +269,9 @@ def main():
             np.save('{}/clust-{}.npy'.format(output_dir, cls), clusterings)
             np.save('{}/idx-{}.npy'.format(output_dir, cls), e['split_indices'])
             np.save('{}/adata-{}.npy'.format(output_dir, cls), R)
+            #TODO ALSO SAVE CORRESPONDNIG INPUTS AND RELEVANCES PER ANALYSIS? BOTH ARE LOADED ANYWAY...
+            #TODO LOAD BOTH INTO E, MAKE SELECTION OF ANALYSIS TARGET OUTSIDE OF DATA LOADER
+            #TODO NEXT TIME.
 
 
     if ARGS.show:
