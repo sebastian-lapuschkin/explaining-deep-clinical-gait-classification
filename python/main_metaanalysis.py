@@ -187,7 +187,8 @@ def main():
         print('    Pipeline execution time: {:.4f} seconds with {} input samples'.format(duration, tsne_embedding.shape[0]))
 
         # drawing figures of results
-        fig = plt.figure(figsize=(2*(len(clusterings)+1),2))
+        fig = plt.figure(figsize=(2*(len(clusterings)+1),2.2))
+
 
         #true injury sublabel plots
         ax = plt.subplot(1, len(clusterings)+1, 1)
@@ -195,21 +196,24 @@ def main():
                     tsne_embedding[:,1],
                     c=np.argmax(y_true_injury,axis=1),
                     cmap=ARGS.cmap_injury)
+        ax.set_ylabel('n={} samples'.format(tsne_embedding.shape[0]))
+        ax.set_xlabel('GT injury labels')
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_title('GT injury labels')
+
         #ax.set_aspect('equal')
 
-        for i in range(1,len(clusterings)):
-            ax = plt.subplot(1, len(clusterings)+1, i+1)
+        for i in range(len(clusterings)):
+            ax = plt.subplot(1, len(clusterings)+1, i+1+1)
             ax.scatter( tsne_embedding[:,0],
                         tsne_embedding[:,1],
                         c=clusterings[i],
                         cmap=ARGS.cmap_clustering)
+            ax.set_xlabel('k={} clusters'.format(len(np.unique(clusterings[i]))))
             ax.set_xticks([])
             ax.set_yticks([])
             #ax.set_aspect('equal')
-            if i == 1:
+            if i == 0:
                 ax.set_title('SpRAy clusters ->')
 
         plt.suptitle('Relevance Clusters; attrs: {}, model: {}, fold: {}, {} labels: group {}'.format(ARGS.attribution_type,  ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
