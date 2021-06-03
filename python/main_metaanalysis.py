@@ -161,7 +161,7 @@ def main():
     parser.add_argument('-sr','--save_results', action='store_true', help='Save results as figures and numpy arrays (e.g. for further processing?)')
     ARGS = parser.parse_args()
 
-    # TODO: legend
+    # TODO: plot legend
 
     print('setting random seed...')
     np.random.seed(int(ARGS.random_seed,0))
