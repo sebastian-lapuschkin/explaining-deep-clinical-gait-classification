@@ -93,10 +93,12 @@ def load_analysis_data(model, fold, analysis_data, attribution_type, analysis_gr
     true_injury_sublabels = targets_injurytypes['Y'][split_indices]
     true_health_labels = targets_health['Y'][split_indices]
     true_subject_labels = targets_subject['LS'][permutation['P'][0]][split_indices]
+    inputs = input_data['X'][permutation['P'][0]][split_indices]
+    relevances = R
 
     if analysis_data == 'inputs':
         # do not analyze relevance. we pick the input data instead.
-        R = input_data['X'][permutation['P'][0]][split_indices]
+        R = inputs
 
 
     if analysis_groups == 'as_predicted':
@@ -111,11 +113,13 @@ def load_analysis_data(model, fold, analysis_data, attribution_type, analysis_gr
     for cls in np.unique(y):
         evaluation_groups.append({  'cls':cls,
                                     'y':y[y == cls],
-                                    'R':R[y == cls],
+                                    'R':R[y == cls], #misleading naming here, I know. R is the data to be analyzed, may be relevances or inputs
                                     'y_injury_type':true_injury_sublabels[y == cls], # true injury sublabels
                                     'y_health_type':true_health_labels[y == cls], #healthy or not?
                                     'y_subject':true_subject_labels[y==cls], #which guy or gal?
                                     'split_indices':split_indices[y==cls], #which of the (original) data points?
+                                    'inputs':inputs[y==cls], # input samples corresponding to the analyzed data
+                                    'relevances':relevances[y==cls] # relevance attributions corresponding to the analyzed data
                                     })
     return evaluation_groups
 
@@ -154,6 +158,7 @@ def main():
     parser.add_argument('-cmapc','--cmap_clustering', type=str, default='Set2', help='Color map for drawing the cluster labels inferred by SpRAy. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-o', '--output', type=str, default='./output_metaanalysis', help='Output root directory for the computed results. Figures and embedding coordinates, etc, will be stored here in parameter-dependently named sub-folders')
     parser.add_argument('-s','--show', action='store_true', help='Show intermediate figures?')
+    parser.add_argument('-sr','--save_results', action='store_true', help='Save results as figures and numpy arrays (e.g. for further processing?)')
     ARGS = parser.parse_args()
 
     # TODO: legend
@@ -250,28 +255,28 @@ def main():
                                                                                                         ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
         #plt.tight_layout() # NOTE DO OR DO NOT ?
 
+        if ARGS.save_results:
+            if os.path.isfile(ARGS.output):
+                print('Can not save results in "{}", exists as FILE already!'.format(ARGS.output))
+            else:
+                output_dir, args_string = args_to_stuff(ARGS)
+                output_dir = '{}/{}'.format(ARGS.output,output_dir)
+                #print(output_dir, args_string)
 
-        if os.path.isfile(ARGS.output):
-            print('Can not save results in "{}", exists as FILE already!'.format(ARGS.output))
-        else:
-            output_dir, args_string = args_to_stuff(ARGS)
-            output_dir = '{}/{}'.format(ARGS.output,output_dir)
-            #print(output_dir, args_string)
+                if not os.path.isdir(output_dir):
+                    os.makedirs(output_dir)
 
-            if not os.path.isdir(output_dir):
-                os.makedirs(output_dir)
+                print('    saving figure, args and clusterings/embedding in {}'.format(output_dir))
+                plt.savefig('{}/cls-{}.svg'.format(output_dir, cls))
+                plt.savefig('{}/cls-{}.pdf'.format(output_dir, cls))
+                with open('{}/callparams.args'.format(output_dir), 'wt') as f: f.write(args_string)
+                np.save('{}/emb-{}.npy'.format(output_dir, cls), tsne_embedding)
+                np.save('{}/clust-{}.npy'.format(output_dir, cls), clusterings)
+                np.save('{}/idx-{}.npy'.format(output_dir, cls), e['split_indices'])
+                np.save('{}/adata-{}.npy'.format(output_dir, cls), R)
+                np.save('{}/inputs-{}.npy'.format(output_dir, cls), e['inputs'])
+                np.save('{}/relevances-{}.npy'.format(output_dir, cls), e['relevances'])
 
-            print('    saving figure, args and clusterings/embedding in {}'.format(output_dir))
-            plt.savefig('{}/cls-{}.svg'.format(output_dir, cls))
-            plt.savefig('{}/cls-{}.pdf'.format(output_dir, cls))
-            with open('{}/callparams.args'.format(output_dir), 'wt') as f: f.write(args_string)
-            np.save('{}/emb-{}.npy'.format(output_dir, cls), tsne_embedding)
-            np.save('{}/clust-{}.npy'.format(output_dir, cls), clusterings)
-            np.save('{}/idx-{}.npy'.format(output_dir, cls), e['split_indices'])
-            np.save('{}/adata-{}.npy'.format(output_dir, cls), R)
-            #TODO ALSO SAVE CORRESPONDNIG INPUTS AND RELEVANCES PER ANALYSIS? BOTH ARE LOADED ANYWAY...
-            #TODO LOAD BOTH INTO E, MAKE SELECTION OF ANALYSIS TARGET OUTSIDE OF DATA LOADER
-            #TODO NEXT TIME.
 
 
     if ARGS.show:
