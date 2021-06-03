@@ -46,6 +46,7 @@ class TSNEEmbeddingWithPerplexity(TSNEEmbedding):
         return emb
 
 # constants
+ANALYSIIS_DATA = ['relevance', 'inputs']
 ANALYSIS_GROUPING = ['ground_truth', 'as_predicted', 'all']
 ATTRIBUTION_TYPES = ['dom', 'act']
 MODELS = ['Cnn1DC8', 'Mlp3Layer768Unit', 'MlpLinear', 'SvmLinearL2C1em1']
@@ -53,13 +54,14 @@ FOLDS = [str(f) for f in range(10)] + ['all']
 #EMBEDDINGS = ['tsne', 'umap']
 
 # parameterizable data loader
-def load_analysis_data(model, fold, attribution_type, analysis_groups):
+def load_analysis_data(model, fold, analysis_data, attribution_type, analysis_groups):
     """
         loads and prepares data. for expected input parameters, call script with --help parameter.
         outputs a list of sets of values; each entry in the list is its own input for a SpRAy analysis.
     """
     assert model in MODELS, 'Invalid model argument "{}". Pick from: {}'.format(model, MODELS)
     assert fold in FOLDS, 'Invalid model argument "{}". Pick from: {}'.format(fold, FOLDS)
+    assert analysis_data in ANALYSIIS_DATA, 'Invalid model argument "{}". Pick from: {}'.format(analysis_data, ANALYSIIS_DATA)
     assert attribution_type in ATTRIBUTION_TYPES, 'Invalid model argument "{}". Pick from: {}'.format(attribution_type, ATTRIBUTION_TYPES)
     assert analysis_groups in ANALYSIS_GROUPING, 'Invalid analysis_groups argument "{}". Pick from: {}'.format(analysis_groups, ANALYSIS_GROUPING)
 
@@ -67,6 +69,7 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
     targets_health = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets.mat')
     targets_injurytypes = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets_injurytypes.mat')
     targets_subject = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/subject_labels.mat')
+    input_data = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/data.mat')
     permutation = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/permutation.mat')
     splits = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/splits.mat')
 
@@ -85,11 +88,16 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
         R.append(model_outputs['R_pred_{}_epsilon'.format(attribution_type)])
     y_pred = np.concatenate(y_pred, axis=0)
     R = np.concatenate(R, axis=0)
-    R = np.reshape(R, [-1, np.prod(R.shape[1::])]) # get relevance maps into uniform and flattened shape
+    #R = np.reshape(R, [-1, np.prod(R.shape[1::])]) # get relevance maps into uniform and flattened shape # not needed. preprocessor Flatten does the same
 
     true_injury_sublabels = targets_injurytypes['Y'][split_indices]
     true_health_labels = targets_health['Y'][split_indices]
     true_subject_labels = targets_subject['LS'][permutation['P'][0]][split_indices]
+
+    if analysis_data == 'inputs':
+        # do not analyze relevance. we pick the input data instead.
+        R = input_data['X'][permutation['P'][0]][split_indices]
+
 
     if analysis_groups == 'as_predicted':
         y = np.argmax(y_pred, axis=1) # analyze as predicted, y = ypred
@@ -114,7 +122,7 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
 
 def args_to_stuff(ARGS):
     # reads command line arguments and creates a folder name for figures and info for reproducing the call
-    relevant_keys = ['random_seed', 'analysis_groups', 'attribution_type',
+    relevant_keys = ['random_seed', 'analysis_data', 'analysis_groups', 'attribution_type',
                     'model', 'fold', 'min_clusters', 'max_clusters',
                     'neighbors_affinity', 'tsne_perplexity', 'cmap_injury', 'cmap_subject', 'cmap_clustering']
     relevant_keys = natsorted(relevant_keys)
@@ -132,7 +140,8 @@ def main():
                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-rs', '--random_seed', type=str, default='0xDEADBEEF', help='seed for the numpy random generator')
     parser.add_argument('-ag', '--analysis_groups', type=str, default='ground_truth', help='How to handle/group data for analysis. Possible inputs from: {}'.format(ANALYSIS_GROUPING))
-    parser.add_argument('-at', '--attribution_type', type=str, default='act', help='Determines the attribution scores wrt either the DOMinant prediction or the ACTual class of a sample. Possible inputs from: {}'.format(ATTRIBUTION_TYPES))
+    parser.add_argument('-ad', '--analysis_data', type=str, default='relevance', help='What to analyze? Relevance attributions, or input data? Possible inputs from: {}'.format(ANALYSIIS_DATA))
+    parser.add_argument('-at', '--attribution_type', type=str, default='act', help='Determines the attribution scores wrt either the DOMinant prediction or the ACTual class of a sample. Only valid if data to analyze is relevance. Possible inputs from: {}'.format(ATTRIBUTION_TYPES))
     parser.add_argument('-m', '--model', type=str, default='Cnn1DC8', help='For which model(s precomputed attribution scores) should the analysis be performed? Possible inputs from: {}'.format(MODELS))
     parser.add_argument('-f', '--fold', type=str, default='0', help='Which (test9 data split/fold should be analyzed? Possible inputs from: {} '.format(FOLDS))
     parser.add_argument('-mc','--min_clusters', type=int, default=3, help='Minimum number of clusters for cluster label assignment in the analysis.' )
@@ -153,7 +162,7 @@ def main():
     np.random.seed(int(ARGS.random_seed,0))
 
     print('loading and preparing data as per specification...')
-    evaluation_groups = load_analysis_data(ARGS.model, ARGS.fold, ARGS.attribution_type, ARGS.analysis_groups)
+    evaluation_groups = load_analysis_data(ARGS.model, ARGS.fold, ARGS.analysis_data, ARGS.attribution_type, ARGS.analysis_groups)
 
     print('Starting Spectral Relevance Analysis...')
     for e in evaluation_groups:
@@ -237,7 +246,8 @@ def main():
             #if i == 0:
             #    ax.set_title('SpRAy clusters ->')
 
-        plt.suptitle('Relevance Clusters; attrs: {}, model: {}, fold: {}, {} labels: group {}'.format(ARGS.attribution_type,  ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
+        plt.suptitle('Relevance Clusters; data: {}, model: {}, fold: {}, {} labels: group {}'.format(ARGS.analysis_data if ARGS.analysis_data == 'inputs' else ARGS.analysis_data + ' '  + ARGS.attribution_type,
+                                                                                                        ARGS.model, ARGS.fold, ARGS.analysis_groups, cls))
         #plt.tight_layout() # NOTE DO OR DO NOT ?
 
 
