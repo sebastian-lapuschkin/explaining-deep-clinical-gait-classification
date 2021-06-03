@@ -65,6 +65,7 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
     #load precomputed model outputs (predictions, attributions)
     targets_health = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets.mat')
     targets_injurytypes = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets_injurytypes.mat')
+    targets_subject = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/subject_labels.mat')
     splits = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/splits.mat')
 
     if fold == 'all':
@@ -85,6 +86,8 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
 
     true_injury_sublabels = targets_injurytypes['Y'][split_indices]
     true_health_labels = targets_health['Y'][split_indices]
+    true_subject_labels = targets_subject['LS'][split_indices]
+
 
     if analysis_groups == 'as_predicted':
         y = np.argmax(y_pred, axis=1) # analyze as predicted, y = ypred
@@ -101,6 +104,7 @@ def load_analysis_data(model, fold, attribution_type, analysis_groups):
                                     'R':R[y == cls],
                                     'y_injury_type':true_injury_sublabels[y == cls], # true injury sublabels
                                     'y_health_type':true_health_labels[y == cls], #healthy or not?
+                                    'y_subject':true_subject_labels[y==cls], #which guy or gal?
                                     'split_indices':split_indices[y==cls], #which of the (original) data points?
                                     })
 
@@ -114,7 +118,7 @@ def args_to_stuff(ARGS):
     # reads command line arguments and creates a folder name for figures and info for reproducing the call
     relevant_keys = ['random_seed', 'analysis_groups', 'attribution_type',
                     'model', 'fold', 'min_clusters', 'max_clusters',
-                    'neighbors_affinity', 'tsne_perplexity', 'cmap_injury', 'cmap_clustering']
+                    'neighbors_affinity', 'tsne_perplexity', 'cmap_injury', 'cmap_subject', 'cmap_clustering']
     relevant_keys = natsorted(relevant_keys)
 
     foldername = '-'.join(['{}'.format(getattr(ARGS,k)) for k in relevant_keys])
@@ -139,13 +143,12 @@ def main():
     parser.add_argument('-neig', '--number_eigen', type=int, default=8, help='Number of eigenvalues to consider for the spectral embedding, ie, the number of eigenvectors spanning the spectral space, ie, the dimensionalty of the computed spectral embedding')
     parser.add_argument('-tp', '--tsne_perplexity', type=float, default=30., help='The perplexity parameter for the TSNE embedding computation. Lower means more focus on local structures, higher means more focus the global structure.')
     parser.add_argument('-cmapi','--cmap_injury', type=str, default='Set1', help='Color map for drawing the ground truth injury labels. Any valid matplotlib colormap name is can be given')
+    parser.add_argument('-cmaps','--cmap_subject', type=str, default='tab20', help='Color map for drawing the ground truth subject labels. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-cmapc','--cmap_clustering', type=str, default='Set2', help='Color map for drawing the cluster labels inferred by SpRAy. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-o', '--output', type=str, default='./output_metaanalysis', help='Output root directory for the computed results. Figures and embedding coordinates, etc, will be stored here in parameter-dependently named sub-folders')
     parser.add_argument('-s','--show', action='store_true', help='Show intermediate figures?')
     ARGS = parser.parse_args()
 
-    # TODO: write number of samples in figure
-    # TODO: write number of clusters in figure
     # TODO: legend
 
     print('setting random seed...')
@@ -160,6 +163,7 @@ def main():
         cls = e['cls']
         R = e['R']
         y_true_injury = e['y_injury_type']
+        y_true_subject = e['y_subject']
         n_clusters = range(ARGS.min_clusters, ARGS.max_clusters+1) # +1, because range is max value exclusive
 
         print('    process "{}" relevance for class {} ({}) as per {}'.format(ARGS.attribution_type, cls, ARGS.analysis_groups, ARGS.model))
@@ -197,11 +201,11 @@ def main():
         print('    Pipeline execution time: {:.4f} seconds with {} input samples'.format(duration, tsne_embedding.shape[0]))
 
         # drawing figures of results
-        fig = plt.figure(figsize=(2*(len(clusterings)+1),2.2))
+        fig = plt.figure(figsize=(2*(len(clusterings)+1+1),2.2))
 
 
         #true injury sublabel plots
-        ax = plt.subplot(1, len(clusterings)+1, 1)
+        ax = plt.subplot(1, len(clusterings)+1+1, 1)
         ax.scatter( tsne_embedding[:,0],
                     tsne_embedding[:,1],
                     c=np.argmax(y_true_injury,axis=1),
@@ -211,10 +215,20 @@ def main():
         ax.set_xticks([])
         ax.set_yticks([])
 
+        #true subject sublabel plots
+        ax = plt.subplot(1, len(clusterings)+1+1, 2)
+        ax.scatter( tsne_embedding[:,0],
+                    tsne_embedding[:,1],
+                    c=np.argmax(y_true_subject,axis=1),
+                    cmap=ARGS.cmap_subject)
+        ax.set_xlabel('GT subject labels')
+        ax.set_xticks([])
+        ax.set_yticks([])
+
         #ax.set_aspect('equal')
 
         for i in range(len(clusterings)):
-            ax = plt.subplot(1, len(clusterings)+1, i+1+1)
+            ax = plt.subplot(1, len(clusterings)+1+1, i+1+1+1)
             ax.scatter( tsne_embedding[:,0],
                         tsne_embedding[:,1],
                         c=clusterings[i],
