@@ -93,7 +93,7 @@ def load_analysis_data(model, fold, analysis_data, attribution_type, analysis_gr
     true_injury_sublabels = targets_injurytypes['Y'][split_indices]
     true_health_labels = targets_health['Y'][split_indices]
     true_subject_labels = targets_subject['LS'][permutation['P'][0]][split_indices]
-    inputs = input_data['X'][permutation['P'][0]][split_indices]
+    inputs = input_data['X'][split_indices]
     relevances = R
 
     if analysis_data == 'inputs':
