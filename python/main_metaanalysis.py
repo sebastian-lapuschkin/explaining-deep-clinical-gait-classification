@@ -65,7 +65,7 @@ def load_analysis_data(model, fold, analysis_data, attribution_type, analysis_gr
     assert attribution_type in ATTRIBUTION_TYPES, 'Invalid model argument "{}". Pick from: {}'.format(attribution_type, ATTRIBUTION_TYPES)
     assert analysis_groups in ANALYSIS_GROUPING, 'Invalid analysis_groups argument "{}". Pick from: {}'.format(analysis_groups, ANALYSIS_GROUPING)
 
-    #load precomputed model outputs (predictions, attributions)
+    #load precomputed model outputs (predictions, attributions) # TODO parameterize
     targets_health = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets.mat')
     targets_injurytypes = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets_injurytypes.mat')
     targets_subject = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/subject_labels.mat')
@@ -82,7 +82,7 @@ def load_analysis_data(model, fold, analysis_data, attribution_type, analysis_gr
     split_indices = np.concatenate([splits['S'][0,f][0] for f in fold],axis=0)
     y_pred = []; R = []
 
-    for f in fold:
+    for f in fold: # TODO parameterize paths
         model_outputs = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/Injury/GRF_AV/{}/part-{}/outputs.mat'.format(model, f))
         y_pred.append(model_outputs['y_pred'])
         R.append(model_outputs['R_pred_{}_epsilon'.format(attribution_type)])
