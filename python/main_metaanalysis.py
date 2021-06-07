@@ -54,24 +54,25 @@ FOLDS = [str(f) for f in range(10)] + ['all']
 #EMBEDDINGS = ['tsne', 'umap']
 
 # parameterizable data loader
-def load_analysis_data(model, fold, analysis_data, attribution_type, analysis_groups):
+def load_analysis_data(input_root, model, fold, analysis_data, attribution_type, analysis_groups):
     """
         loads and prepares data. for expected input parameters, call script with --help parameter.
         outputs a list of sets of values; each entry in the list is its own input for a SpRAy analysis.
     """
+    assert os.path.isdir(input_root), 'Specified project root folder "{}" does not exist!'.format(input_root)
     assert model in MODELS, 'Invalid model argument "{}". Pick from: {}'.format(model, MODELS)
     assert fold in FOLDS, 'Invalid model argument "{}". Pick from: {}'.format(fold, FOLDS)
     assert analysis_data in ANALYSIIS_DATA, 'Invalid model argument "{}". Pick from: {}'.format(analysis_data, ANALYSIIS_DATA)
     assert attribution_type in ATTRIBUTION_TYPES, 'Invalid model argument "{}". Pick from: {}'.format(attribution_type, ATTRIBUTION_TYPES)
     assert analysis_groups in ANALYSIS_GROUPING, 'Invalid analysis_groups argument "{}". Pick from: {}'.format(analysis_groups, ANALYSIS_GROUPING)
 
-    #load precomputed model outputs (predictions, attributions) # TODO parameterize
-    targets_health = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets.mat')
-    targets_injurytypes = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/targets_injurytypes.mat')
-    targets_subject = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/subject_labels.mat')
-    input_data = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/data.mat')
-    permutation = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/permutation.mat')
-    splits = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/splits.mat')
+    #load precomputed model outputs (predictions, attributions, other jazz)
+    targets_health = scipy.io.loadmat('{}/targets.mat'.format(input_root)) # targets.mat in injury type prediction settings with two classes, as per model training
+    targets_injurytypes = scipy.io.loadmat('{}/targets_injurytypes.mat'.format(input_root)) # targets.mat in injury type prediction settings with four classes.
+    targets_subject = scipy.io.loadmat('{}/subject_labels.mat'.format(input_root))
+    input_data = scipy.io.loadmat('{}/data.mat'.format(input_root))
+    permutation = scipy.io.loadmat('{}/permutation.mat'.format(input_root))
+    splits = scipy.io.loadmat('{}/splits.mat'.format(input_root))
 
 
     if fold == 'all':
@@ -82,13 +83,12 @@ def load_analysis_data(model, fold, analysis_data, attribution_type, analysis_gr
     split_indices = np.concatenate([splits['S'][0,f][0] for f in fold],axis=0)
     y_pred = []; R = []
 
-    for f in fold: # TODO parameterize paths
-        model_outputs = scipy.io.loadmat('./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_/Injury/GRF_AV/{}/part-{}/outputs.mat'.format(model, f))
+    for f in fold: # TODO parameterize paths further?
+        model_outputs = scipy.io.loadmat('{}/Injury/GRF_AV/{}/part-{}/outputs.mat'.format(input_root, model, f))
         y_pred.append(model_outputs['y_pred'])
         R.append(model_outputs['R_pred_{}_epsilon'.format(attribution_type)])
     y_pred = np.concatenate(y_pred, axis=0)
     R = np.concatenate(R, axis=0)
-    #R = np.reshape(R, [-1, np.prod(R.shape[1::])]) # get relevance maps into uniform and flattened shape # not needed. preprocessor Flatten does the same
 
     true_injury_sublabels = targets_injurytypes['Y'][split_indices]
     true_health_labels = targets_health['Y'][split_indices]
@@ -146,6 +146,7 @@ def main():
     parser.add_argument('-ag', '--analysis_groups', type=str, default='ground_truth', help='How to handle/group data for analysis. Possible inputs from: {}'.format(ANALYSIS_GROUPING))
     parser.add_argument('-ad', '--analysis_data', type=str, default='relevance', help='What to analyze? Relevance attributions, or input data? Possible inputs from: {}'.format(ANALYSIIS_DATA))
     parser.add_argument('-at', '--attribution_type', type=str, default='act', help='Determines the attribution scores wrt either the DOMinant prediction or the ACTual class of a sample. Only valid if data to analyze is relevance. Possible inputs from: {}'.format(ATTRIBUTION_TYPES))
+    parser.add_argument('-ir', '--input_root', type=str, default='./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_', help='Root folder of the "input project" to analyze. For now always assumes to be a Injury prediction based on GRV_AV data. This folder should contain all the data and ground truth labels.')
     parser.add_argument('-m', '--model', type=str, default='Cnn1DC8', help='For which model(s precomputed attribution scores) should the analysis be performed? Possible inputs from: {}'.format(MODELS))
     parser.add_argument('-f', '--fold', type=str, default='0', help='Which (test9 data split/fold should be analyzed? Possible inputs from: {} '.format(FOLDS))
     parser.add_argument('-mc','--min_clusters', type=int, default=3, help='Minimum number of clusters for cluster label assignment in the analysis.' )
@@ -156,7 +157,7 @@ def main():
     parser.add_argument('-cmapi','--cmap_injury', type=str, default='Set1', help='Color map for drawing the ground truth injury labels. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-cmaps','--cmap_subject', type=str, default='viridis', help='Color map for drawing the ground truth subject labels. Any valid matplotlib colormap name is can be given')
     parser.add_argument('-cmapc','--cmap_clustering', type=str, default='Set2', help='Color map for drawing the cluster labels inferred by SpRAy. Any valid matplotlib colormap name is can be given')
-    parser.add_argument('-o', '--output', type=str, default='./output_metaanalysis', help='Output root directory for the computed results. Figures and embedding coordinates, etc, will be stored here in parameter-dependently named sub-folders')
+    parser.add_argument('-o', '--output', type=str, default='./output_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_', help='Output root directory for the computed results. Figures and embedding coordinates, etc, will be stored here in parameter-dependently named sub-folders')
     parser.add_argument('-s','--show', action='store_true', help='Show intermediate figures?')
     parser.add_argument('-sr','--save_results', action='store_true', help='Save results as figures and numpy arrays (e.g. for further processing?)')
     ARGS = parser.parse_args()
@@ -167,7 +168,7 @@ def main():
     np.random.seed(int(ARGS.random_seed,0))
 
     print('loading and preparing data as per specification...')
-    evaluation_groups = load_analysis_data(ARGS.model, ARGS.fold, ARGS.analysis_data, ARGS.attribution_type, ARGS.analysis_groups)
+    evaluation_groups = load_analysis_data(ARGS.input_root, ARGS.model, ARGS.fold, ARGS.analysis_data, ARGS.attribution_type, ARGS.analysis_groups)
 
     print('Starting Spectral Relevance Analysis...')
     for e in evaluation_groups:
