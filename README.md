@@ -60,4 +60,5 @@ python sge_job_simple.py your_file_of_choice.args
 ```
 Some paths and variables need to be adjusted.
 
+__TODO: ADD REF AND GIT SOURCE FOR CORELAY__
 
