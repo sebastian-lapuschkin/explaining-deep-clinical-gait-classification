@@ -140,17 +140,17 @@ def djordjes_custom_cmap(labels):
     # expects integer type numeric labels in [0,1,2,3,4], where 4 is the aggregate class of gait disorders in [1,2,3]
     # 0: color_normal = [27,158,119]
     # 1: color_ankle = [217,95,2]
-    # 2: color_hip = [231,41,138]
-    # 3: color_knee = [230,171,2]
+    # 2: color_knee = [230,171,2]
+    # 3: color_hip = [231,41,138]
     # 4: color_gd = [117,112,179]
 
     color_normal = [27,158,119]
     color_ankle = [217,95,2]
-    color_hip = [231,41,138]
     color_knee = [230,171,2]
+    color_hip = [231,41,138]
     color_gd = [117,112,179]
 
-    ccmap = dict([(i,np.array(v)/255.) for i,v in enumerate([color_normal, color_ankle, color_hip, color_knee, color_gd])])
+    ccmap = dict([(i,np.array(v)/255.) for i,v in enumerate([color_normal, color_ankle, color_knee, color_hip, color_gd])])
     return [ccmap[l] for l in labels]
 
 
