@@ -136,6 +136,24 @@ def args_to_stuff(ARGS):
     return foldername, args_string
 
 
+def djordjes_custom_cmap(labels):
+    # expects integer type numeric labels in [0,1,2,3,4], where 4 is the aggregate class of gait disorders in [1,2,3]
+    # 0: color_normal = [27,158,119]
+    # 1: color_ankle = [217,95,2]
+    # 2: color_hip = [231,41,138]
+    # 3: color_knee = [230,171,2]
+    # 4: color_gd = [117,112,179]
+
+    color_normal = [27,158,119]
+    color_ankle = [217,95,2]
+    color_hip = [231,41,138]
+    color_knee = [230,171,2]
+    color_gd = [117,112,179]
+
+    ccmap = dict([(i,np.array(v)/255.) for i,v in enumerate([color_normal, color_ankle, color_hip, color_knee, color_gd])])
+    return [ccmap[l] for l in labels]
+
+
 # main module doing most of the things.
 def main():
 
@@ -148,13 +166,13 @@ def main():
     parser.add_argument('-at', '--attribution_type', type=str, default='act', help='Determines the attribution scores wrt either the DOMinant prediction or the ACTual class of a sample. Only valid if data to analyze is relevance. Possible inputs from: {}'.format(ATTRIBUTION_TYPES))
     parser.add_argument('-ir', '--input_root', type=str, default='./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_', help='Root folder of the "input project" to analyze. For now always assumes to be a Injury prediction based on GRV_AV data. This folder should contain all the data and ground truth labels.')
     parser.add_argument('-m', '--model', type=str, default='Cnn1DC8', help='For which model(s precomputed attribution scores) should the analysis be performed? Possible inputs from: {}'.format(MODELS))
-    parser.add_argument('-f', '--fold', type=str, default='0', help='Which (test9 data split/fold should be analyzed? Possible inputs from: {} '.format(FOLDS))
+    parser.add_argument('-f', '--fold', type=str, default='0', help='Which (test data split/fold should be analyzed? Possible inputs from: {} '.format(FOLDS))
     parser.add_argument('-mc','--min_clusters', type=int, default=3, help='Minimum number of clusters for cluster label assignment in the analysis.' )
     parser.add_argument('-MC','--max_clusters', type=int, default=8, help='Maximum number of clusters for cluster label assignment in the analysis.' )
-    parser.add_argument('-na','--neighbors_affinity', type=int, default=3, help='Number of nearest neighbors to considef for affinity graph computation')
+    parser.add_argument('-na','--neighbors_affinity', type=int, default=3, help='Number of nearest neighbors to consider for affinity graph computation')
     parser.add_argument('-neig', '--number_eigen', type=int, default=8, help='Number of eigenvalues to consider for the spectral embedding, ie, the number of eigenvectors spanning the spectral space, ie, the dimensionalty of the computed spectral embedding')
     parser.add_argument('-tp', '--tsne_perplexity', type=float, default=30., help='The perplexity parameter for the TSNE embedding computation. Lower means more focus on local structures, higher means more focus the global structure.')
-    parser.add_argument('-cmapi','--cmap_injury', type=str, default='Set1', help='Color map for drawing the ground truth injury labels. Any valid matplotlib colormap name can be given')
+    parser.add_argument('-cmapi','--cmap_injury', type=str, default='custom', help='Color map for drawing the ground truth injury labels. Any valid matplotlib colormap name can be given -> OR "custom", which matches the color choices in the remainder of the paper.')
     parser.add_argument('-cmaps','--cmap_subject', type=str, default='viridis', help='Color map for drawing the ground truth subject labels. Any valid matplotlib colormap name can be given')
     parser.add_argument('-cmapc','--cmap_clustering', type=str, default='Set2', help='Color map for drawing the cluster labels inferred by SpRAy. Any valid matplotlib colormap name can be given')
     parser.add_argument('-o', '--output', type=str, default='./output_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_', help='Output root directory for the computed results. Figures and embedding coordinates, etc, will be stored here in parameter-dependently named sub-folders')
@@ -218,10 +236,17 @@ def main():
 
         #true injury sublabel plots
         ax = plt.subplot(1, len(clusterings)+1+1, 1)
-        ax.scatter( tsne_embedding[:,0],
-                    tsne_embedding[:,1],
-                    c=np.argmax(y_true_injury,axis=1),
-                    cmap=ARGS.cmap_injury)
+        if ARGS.cmap_injury == 'custom':
+            print("        drawing true injury labels by picking from djordje's custom colormap for cluster labels")
+            ax.scatter( tsne_embedding[:,0],
+                        tsne_embedding[:,1],
+                        c=djordjes_custom_cmap(np.argmax(y_true_injury,axis=1))
+                        )
+        else:
+            ax.scatter( tsne_embedding[:,0],
+                        tsne_embedding[:,1],
+                        c=np.argmax(y_true_injury,axis=1),
+                        cmap=ARGS.cmap_injury)
         ax.set_ylabel('n={} samples'.format(tsne_embedding.shape[0]))
         ax.set_xlabel('{} GT injury labels'.format(len(np.unique(np.argmax(y_true_injury,axis=1)))))
         ax.set_xticks([])
