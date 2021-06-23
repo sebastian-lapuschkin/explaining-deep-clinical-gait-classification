@@ -126,7 +126,7 @@ def load_analysis_data(input_root, model, fold, analysis_data, attribution_type,
 
 def args_to_stuff(ARGS):
     # reads command line arguments and creates a folder name for figures and info for reproducing the call
-    relevant_keys = ['random_seed', 'analysis_data', 'analysis_groups', 'attribution_type',
+    relevant_keys = ['random_seed', 'analysis_data', 'analysis_groups', 'group_index', 'attribution_type',
                     'model', 'fold', 'min_clusters', 'max_clusters',
                     'neighbors_affinity', 'tsne_perplexity', 'cmap_injury', 'cmap_subject', 'cmap_clustering']
     relevant_keys = natsorted(relevant_keys)
@@ -162,6 +162,7 @@ def main():
                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-rs', '--random_seed', type=str, default='0xDEADBEEF', help='seed for the numpy random generator')
     parser.add_argument('-ag', '--analysis_groups', type=str, default='ground_truth', help='How to handle/group data for analysis. Possible inputs from: {}'.format(ANALYSIS_GROUPING))
+    parser.add_argument('-gi', '--group_index', type=str, default='all', help='Among the groups (or classes) of samples in the data, wrt. the grouping specified, via --analysis_groups, which ones to analyze?. Possible inputs from "all" or any valid and positive integer index ')
     parser.add_argument('-ad', '--analysis_data', type=str, default='relevance', help='What to analyze? Relevance attributions, or input data? Possible inputs from: {}'.format(ANALYSIIS_DATA))
     parser.add_argument('-at', '--attribution_type', type=str, default='act', help='Determines the attribution scores wrt either the DOMinant prediction or the ACTual class of a sample. Only valid if data to analyze is relevance. Possible inputs from: {}'.format(ATTRIBUTION_TYPES))
     parser.add_argument('-ir', '--input_root', type=str, default='./data_metaanalysis/2019_frontiers_small_dataset_v3_aff-unaff-atMM_1-234_', help='Root folder of the "input project" to analyze. For now always assumes to be a Injury prediction based on GRV_AV data. This folder should contain all the data and ground truth labels.')
@@ -190,8 +191,11 @@ def main():
 
     print('Starting Spectral Relevance Analysis...')
     for e in evaluation_groups:
-
         cls = e['cls']
+        if not ARGS.group_index in ['all', str(cls)]:
+            print('    skipping group/class {} analysis as per --group_index specification'.format(cls))
+            continue
+
         R = e['R']
         y_true_injury = e['y_injury_type']
         y_true_subject = e['y_subject']
