@@ -7,17 +7,17 @@ This repository contains the python code for training and evaluation of models a
 ```
 @article{horst2019understanding,
   title={On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence},
-  author={Horst, Fabian and
-          Slijepcevic, Djordje and
-          Lapuschkin, Sebastian and
-          Raberger, Anna-Maria and
-          Zeppelzauer, Matthias and
-          Samek, Wojciech and
-          Breiteneder, Christian and
-          Sch{\"o}llhorn, Wolfgang I
-          and Horsak, Brian},
-  journal={arXiv preprint arXiv:1912.07737},
-  year={2019}
+  author  = {Horst, Fabian and
+             Slijepcevic, Djordje and
+             Lapuschkin, Sebastian and
+             Raberger, Anna-Maria and
+             Zeppelzauer, Matthias and
+             Samek, Wojciech and
+             Breiteneder, Christian and
+             Sch{\"o}llhorn, Wolfgang I and
+             Horsak, Brian},
+  journal = {arXiv preprint arXiv:1912.07737},
+  year    = {2019}
 }
 ```
 
@@ -68,15 +68,15 @@ The Meta-Analysis of relevance attributions using Spectral Relevance Analysis (S
 Should you use or extend the implementation in the present repository, please consider citing the software paper, as well as our paper mentioned at the top of this page.
 ```
 @article{anders2021software,
-      author={Anders, Christopher J. and
-              Neumann, David and
-              Samek, Wojciech and
-              Müller, Klaus-Robert and
-              Lapuschkin, Sebastian},
-      title={Software for Dataset-wide XAI: From Local Explanations to Global Insights with {Zennit}, {CoRelAy}, and {ViRelAy}},
-      journal= {CoRR},
-      volume = {abs/2106.13200},
-      year={2021},
+      author  = {Anders, Christopher J. and
+                 Neumann, David and
+                 Samek, Wojciech and
+                 Müller, Klaus-Robert and
+                 Lapuschkin, Sebastian},
+      title   = {Software for Dataset-wide XAI: From Local Explanations to Global Insights with {Zennit}, {CoRelAy}, and {ViRelAy}},
+      journal = {CoRR},
+      volume  = {abs/2106.13200},
+      year    = {2021},
 }
 ```
 
