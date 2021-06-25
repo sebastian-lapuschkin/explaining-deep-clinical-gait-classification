@@ -25,7 +25,7 @@ This repository contains the python code for training and evaluation of models a
 
 Folder `figures` contains code and data for (generating) the overview figure shown in the paper.
 
-Folder `python` contains code for model training and evaluation, based on python3 and the python sub-package of the [LRP Toolbox (version 1.3.0rc2)](https://github.com/sebastian-lapuschkin/lrp_toolbox). Should you use or extend this implementation please consider citing the toolbox, as well as our paper mentioned above.
+Folder `python` contains code for model training and evaluation, based on python3 and the python sub-package of the [LRP Toolbox (version 1.3.0rc2)](https://github.com/sebastian-lapuschkin/lrp_toolbox). Should you use or extend the implementation in the present repository, please consider citing the toolbox, as well as our paper mentioned above.
 ```
 @article{lapuschkin2016toolbox,
     author  = {Lapuschkin, Sebastian and
@@ -60,5 +60,18 @@ python sge_job_simple.py your_file_of_choice.args
 ```
 Some paths and variables need to be adjusted.
 
-__TODO: ADD REF AND GIT SOURCE FOR CORELAY__
-
+The Meta-Analysis of relevance attributions using Spectral Relevance Analysis are based on implementations from the [CoRelAy](https://github.com/virelay/corelay) framework.
+Should you use or extend the implementation in the present repository, please consider citing the software paper, as well as our paper mentioned at the top of this page.
+```
+@article{anders2021software,
+      author={Anders, Christopher J. and
+              Neumann, David and
+              Samek, Wojciech and
+              Müller, Klaus-Robert and
+              Lapuschkin, Sebastian},
+      title={Software for Dataset-wide XAI: From Local Explanations to Global Insights with {Zennit}, {CoRelAy}, and {ViRelAy}},
+      journal= {CoRR},
+      volume = {abs/2106.13200},
+      year={2021},
+}
+```
