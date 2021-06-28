@@ -13,10 +13,11 @@ print('importing packages and modules, defining functions...')
 import numpy as np
 import scipy.io
 import time
-import h5py
+from termcolor import cprint, colored
 import argparse
 import os
 from natsort import natsorted
+import matplotlib.cm
 
 from corelay.processor.base import Processor, Param
 from corelay.processor.flow import Sequential, Parallel
@@ -154,6 +155,29 @@ def djordjes_custom_cmap(labels):
     return [ccmap[l] for l in labels]
 
 
+def custom_subject_cmap(labels, cmap):
+    # we have ~200 subject labels.
+    # this function maps them to a unique consecutive enumeration and then applies a color map to avoid multiple labels bein squashed into
+    # the same in in discrete color maps.
+
+    # how many lables do these qualitative matplotlib colormaps support?
+    cmap_limits = {'Pastel1':9, 'Pastel2':8, 'Paired':12, 'Accent':8, 'Dark2':8, 'Set1':9, 'Set2':8, 'Set3':12, 'tab10':10, 'tab20':20, 'tab20b':20, 'tab20c':20}
+    unique_labels = np.unique(labels)
+
+    enum_map = dict([(l,i) for i,l in enumerate(np.sort(unique_labels))])
+    enum_labels = [enum_map[l] for l in labels]
+
+    if cmap in cmap_limits:
+        if unique_labels.size > cmap_limits[cmap]:
+            cprint(colored('WARNING! You are trying to map {} unique labels using the qualitative color map {}, which only has {} unique values. Picking another color map is advised.'.format(unique_labels.size, cmap, cmap_limits[cmap]), color='yellow'))
+
+
+    cmap = matplotlib.cm.get_cmap(cmap)
+    return([cmap(i/unique_labels.size)[0:3] for i in enum_labels ])
+
+
+
+
 # main module doing most of the things.
 def main():
 
@@ -260,8 +284,9 @@ def main():
         ax = plt.subplot(1, len(clusterings)+1+1, 2)
         ax.scatter( tsne_embedding[:,0],
                     tsne_embedding[:,1],
-                    c=np.argmax(y_true_subject,axis=1),
-                    cmap=ARGS.cmap_subject)
+                    c=custom_subject_cmap(np.argmax(y_true_subject,axis=1),ARGS.cmap_subject),
+                    )
+
         ax.set_xlabel('{} GT subject labels'.format(len(np.unique(np.argmax(y_true_subject,axis=1)))))
         ax.set_xticks([])
         ax.set_yticks([])
