@@ -1,27 +1,44 @@
-# Explaining Machine Learning Models for Clinical Gait Analysis
+ # Explaining Machine Learning Models for Clinical Gait Analysis
 
 ![overview figure](./figures/overview/overview_46_7.png)
 
 This repository contains the python code for training and evaluation of models as presented in
-[Explaining Machine Learning Models for Clinical Gait Analysis](https://arxiv.org/abs/1912.07737)
+[Explaining Machine Learning Models for Clinical Gait Analysis](https://doi.org/10.1145/3474121).
+
+This article investigates the usefulness of Explainable Artificial Intelligence (XAI) methods to increase transparency in automated clinical gait classification based on time series. For this purpose, predictions of state-of-the-art classification methods are explained with a XAI method called Layer-wise Relevance Propagation (LRP). Our main contribution is an approach that explains class-specific characteristics learned by ML models that are trained for gait classification. Our experiments show that explanations obtained by LRP exhibit promising statistical properties concerning inter-class discriminativity and are also in line with clinically relevant biomechanical gait characteristics.
+
 ```
-@article{horst2019understanding,
-  title={On the Understanding and Interpretation of Machine Learning Predictions in Clinical Gait Analysis Using Explainable Artificial Intelligence},
-  author  = {Horst, Fabian and
-             Slijepcevic, Djordje and
-             Lapuschkin, Sebastian and
-             Raberger, Anna-Maria and
-             Zeppelzauer, Matthias and
-             Samek, Wojciech and
-             Breiteneder, Christian and
-             Sch{\"o}llhorn, Wolfgang I and
-             Horsak, Brian},
-  journal = {arXiv preprint arXiv:1912.07737},
-  year    = {2019}
+@article{slijepcevic2021explaining,
+    author     = {Slijepcevic, Djordje and
+                  Horst, Fabian and 
+                  Lapuschkin, Sebastian and
+                  Horsak, Brian and
+                  Raberger, Anna-Maria and
+                  Kranzl, Andreas and
+                  Samek, Wojciech and
+                  Breiteneder, Christian and
+                  Sch\"{o}llhorn, Wolfgang Immanuel and
+                  Zeppelzauer, Matthias},
+    title      = {Explaining Machine Learning Models for Clinical Gait Analysis},
+    year       = {2021},
+    issue_date = {April 2022},
+    publisher  = {Association for Computing Machinery},
+    address    = {New York, NY, USA},
+    volume     = {3},
+    number     = {2},
+    pages      = {1--27},
+    issn       = {2691-1957},
+    url        = {https://doi.org/10.1145/3474121},
+    doi        = {10.1145/3474121},
+    journal    = {ACM Transactions for Computing on Healthcare},
+    month      = {dec},
+    articleno  = {14},
+    numpages   = {27},
 }
 ```
 
 ## Code, Data and Reproducibility
+
 
 ### Figures
 Folder `figures` contains code and data for (generating) the overview figure shown in the paper.
@@ -62,6 +79,7 @@ or to be submitted to a SUN Grid Engine with
 python sge_job_simple.py your_file_of_choice.args
 ```
 Some paths and variables need to be adjusted.
+
 
 ### Dataset-wide Analyses of XAI
 The Meta-Analysis of relevance attributions using Spectral Relevance Analysis (SpRAy) are based on implementations from the [CoRelAy](https://github.com/virelay/corelay) framework.
